@@ -164,22 +164,15 @@ const replyToPost = async (req, res) => {
 
 const getFeedPosts = async (req, res) => {
 	try {
-		let feedPosts
-		
-		if (req.user) {
-            const userId = req.user._id;
-            const user = await User.findById(userId);
-            if (!user) {
-                return res.status(404).json({ error: "User not found" });
-            }
+		const userId = req.user._id;
+		const user = await User.findById(userId);
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
 
-            const following = user.following;
+		const following = user.following;
 
-            feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 });
-        } else {
-            // If not authenticated, get a maximum of 5 feed posts
-            feedPosts = await Post.find().limit(5).sort({ createdAt: -1 });
-        }
+		const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 });
 
 		res.status(200).json(feedPosts);
 	} catch (err) {
