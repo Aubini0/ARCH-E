@@ -7,11 +7,11 @@ import mongoose from "mongoose";
 
 const getUserProfile = async (req, res) => {
 	const { query } = req.params;
-
 	try {
 		let user;
 		if (mongoose.Types.ObjectId.isValid(query)) {
-			user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
+			const userId = new mongoose.Types.ObjectId(query);
+			user = await User.findOne({ _id: userId }).select("-password").select("-updatedAt");
 		} else {
 			user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
 		}
@@ -67,7 +67,7 @@ const loginUser = async (req, res) => {
 		const { username, password } = req.body;
 		const user = await User.findOne({ username });
 		const isPasswordCorrect = await bcrypt.compare(password, user?.password || "");
-
+		console.log("req");
 		if (!user || !isPasswordCorrect) return res.status(400).json({ error: "Invalid username or password" });
 
 		if (user.isFrozen) {
@@ -137,15 +137,15 @@ const getUserFriends = async (req, res) => {
 		const followers = usersFollowedMe.followers;
 
 		if (followers.length === 0) {
-		return res.status(400).json({ error: "No Friends found" });
-	  }	 
-  
-	  res.status(200).json({ followers });
+			return res.status(400).json({ error: "No Friends found" });
+		}
+
+		res.status(200).json({ followers });
 	} catch (err) {
-	  res.status(500).json({ error: err.message });
+		res.status(500).json({ error: err.message });
 	}
-  };
-  
+};
+
 
 const updateUser = async (req, res) => {
 	const { name, email, username, password, bio } = req.body;

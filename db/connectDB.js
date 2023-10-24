@@ -4,6 +4,8 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(
       `mongodb+srv://hycienth:oYnyFCGMSusIvxZO@amplifi.m87n5am.mongodb.net/?retryWrites=true&w=majority`,
+     
+    //  `mongodb://127.0.0.1:27017/Amplififeed`,
       {
         // To avoid warnings in the console
         useNewUrlParser: true,
