@@ -17,8 +17,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secret.AWSSECRETACCESSKEY }}
-      AWS_DEFAULT_REGION: ${{ secret.AWSREGION }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSSECRETACCESSKEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.AWSREGION }}
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
