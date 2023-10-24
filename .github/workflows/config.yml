@@ -15,6 +15,10 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secret.AWSSECRETACCESSKEY }}
+      AWS_DEFAULT_REGION: ${{ secret.AWSREGION }}
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
@@ -25,10 +29,5 @@ jobs:
             python -m pip install --upgrade pip
             pip install awsebcli
       - run: |
-          eb init
-          1
-          1
-          AKIAWO62VDEDLJK4UAIR
-          dIMT2mEC+e83GC/6hMErn+KQ/0Pap1rerx3cUozO
           eb deploy
       
