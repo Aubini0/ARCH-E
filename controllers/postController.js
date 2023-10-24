@@ -36,7 +36,7 @@ const createPost = async (req, res) => {
 		res.status(201).json(newPost);
 	} catch (err) {
 		res.status(500).json({ error: err.message });
-		console.log(err);
+
 	}
 };
 
@@ -53,6 +53,31 @@ const getPost = async (req, res) => {
 		res.status(500).json({ error: err.message });
 	}
 };
+
+const deleteComment = async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const replyId = req.params.replyId;
+
+        const post = await Post.findById(postId);
+
+        if (!post) {
+            return res.status(404).json({ error: "Post not found" });
+        }
+		
+        const replyIndex = post.replies.findIndex((reply) => reply._id.toString() === replyId);
+
+        if (replyIndex !== -1) {
+            post.replies.splice(replyIndex, 1);
+            await post.save();
+            return res.status(200).json({ message: "Reply deleted successfully" });
+        } else {
+            return res.status(404).json({ error: "Reply not found" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+}
 
 const deletePost = async (req, res) => {
 	try {
@@ -92,11 +117,11 @@ const likeUnlikePost = async (req, res) => {
 		const userLikedPost = post.likes.includes(userId);
 
 		if (userLikedPost) {
-			// Unlike post
+
 			await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
 			res.status(200).json({ message: "Post unliked successfully" });
 		} else {
-			// Like post
+
 			post.likes.push(userId);
 			await post.save();
 			res.status(200).json({ message: "Post liked successfully" });
@@ -119,6 +144,7 @@ const replyToPost = async (req, res) => {
 		}
 
 		const post = await Post.findById(postId);
+
 		if (!post) {
 			return res.status(404).json({ error: "Post not found" });
 		}
@@ -126,7 +152,9 @@ const replyToPost = async (req, res) => {
 		const reply = { userId, text, userProfilePic, username };
 
 		post.replies.push(reply);
+
 		await post.save();
+
 
 		res.status(200).json(reply);
 	} catch (err) {
@@ -154,8 +182,10 @@ const getFeedPosts = async (req, res) => {
 
 const getUserPosts = async (req, res) => {
 	const { username } = req.params;
+
 	try {
 		const user = await User.findOne({ username });
+
 		if (!user) {
 			return res.status(404).json({ error: "User not found" });
 		}
@@ -165,7 +195,9 @@ const getUserPosts = async (req, res) => {
 		res.status(200).json(posts);
 	} catch (error) {
 		res.status(500).json({ error: error.message });
+
 	}
 };
 
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts };
+
+export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment };

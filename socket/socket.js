@@ -36,6 +36,18 @@ io.on("connection", (socket) => {
 		}
 	});
 
+	socket.on("followUnfollowEvent", async ({ userId, followed }) => {
+		io.to(userSocketMap[userId]).emit("followUnfollowEvent", { userId , followed});
+	});
+
+	socket.on("likeUnlikeEvent", async ({ userId, liked }) => {
+		io.to(userSocketMap[userId]).emit("followUnfollowEvent", { userId , liked});
+	});
+
+	socket.on("repostEvent", async ({ userId }) => {
+		io.to(userSocketMap[userId]).emit("repostEvent", { userId });
+	});
+
 	socket.on("disconnect", () => {
 		console.log("user disconnected");
 		delete userSocketMap[userId];
