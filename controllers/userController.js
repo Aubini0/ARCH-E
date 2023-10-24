@@ -3,9 +3,12 @@ import Post from "../models/postModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
 import { v2 as cloudinary } from "cloudinary";
-import { upload, remove } from "../db/bucketUploadClient.js";
+import { upload, s3 } from "../db/bucketUploadClient.js";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+import { v4 as uuidv4 } from "uuid";
 
+dotenv.config();
 
 const getUserProfile = async(req, res) => {
     // We will fetch user profile either with username or userId
@@ -75,7 +78,7 @@ const loginUser = async(req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username });
-        const isPasswordCorrect = await bcrypt.compare(password, user ? .password || "");
+        const isPasswordCorrect = await bcrypt.compare(password, user.password || "");
 
         if (!user || !isPasswordCorrect) return res.status(400).json({ error: "Invalid username or password" });
 
@@ -160,15 +163,42 @@ const updateUser = async(req, res) => {
 
         if (profilePic) {
             if (user.profilePic) {
-                const params_req = {
+                const params_remove_req = {
                     Bucket: process.env.AWSS3BUCKETNAME,
                     Key: user.profilePic,
                 }
-                await remove(params_req);
+
+                s3.deleteObject(params_remove_req, function(err, data) {
+                    if (err) console.log(err, err.stack);
+                    else console.log(data);
+                });
             }
 
-            const uploadedResponse = upload.single(profilePic);
-            profilePic = uploadedResponse.location;
+            let file = dataURItoBlob(profilePic);
+
+            function dataURItoBlob(dataURI) {
+                let binary = atob(dataURI.split(",")[1]);
+                let array = [];
+                for (let i = 0; i < binary.length; i++) {
+                    array.push(binary.charCodeAt(i));
+                }
+                return new Blob([new Uint8Array(array)], { type: "image/jpg" })
+            }
+
+            let fileName = uuidv4();
+
+            const params_upload_req = {
+                Key: fileName.substr(fileName.length - 15) + ".jpg",
+                ContentType: 'image/jpg',
+                Body: file.toString(),
+                Bucket: process.env.AWSS3BUCKETNAME,
+            }
+            const uploadedResponse = s3.upload(params_upload_req, function(err, data) {
+                if (err) console.log(err, err.stack);
+                else console.log(data);
+                profilePic = data.Location;
+            });
+
         }
 
         user.name = name || user.name;
