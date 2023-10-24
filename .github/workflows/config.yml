@@ -27,6 +27,7 @@ jobs:
           python-version: '3.10' 
       - run: |
             aws --version
+            aws configure --profile eb-cli
             pip install wheel
             pip install "Cython<3.0" "pyyaml<6" --no-build-isolation
             python3 -m pip install --upgrade pip
