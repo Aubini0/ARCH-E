@@ -19,7 +19,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSSECRETACCESSKEY }}
       AWS_DEFAULT_REGION: ${{ secrets.AWSREGION }}
-      AWS_EB_PROFILE: ${{ secrets.AWSPROFILE }}
+      AWS_EB_PROFILE: eb-cli
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
