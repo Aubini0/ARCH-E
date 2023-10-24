@@ -25,5 +25,10 @@ jobs:
             python -m pip install --upgrade pip
             pip install awsebcli
       - run: |
+          eb init
+          1
+          1
+          AKIAWO62VDEDLJK4UAIR
+          dIMT2mEC+e83GC/6hMErn+KQ/0Pap1rerx3cUozO
           eb deploy
       
