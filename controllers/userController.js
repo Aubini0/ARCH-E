@@ -11,42 +11,29 @@ import { v4 as uuidv4 } from "uuid";
 dotenv.config();
 
 const getUserProfile = async(req, res) => {
-    // We will fetch user profile either with username or userId
-    // query is either username or userId
     const { query } = req.params;
 
     try {
         let user;
-        const getUserProfile = async(req, res) => {
-            const { query } = req.params;
-
-            try {
-                let user;
-                if (mongoose.Types.ObjectId.isValid(query)) {
-                    user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
-                } else {
-                    user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
-                }
-                // query is userId
-                if (mongoose.Types.ObjectId.isValid(query)) {
-                    user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
-                } else {
-                    // query is username
-                    user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
-                }
-
-                if (!user) return res.status(404).json({ error: "User not found" });
-
-                res.status(200).json(user);
-            } catch (err) {
-                res.status(500).json({ error: err.message });
-                console.log("Error in getUserProfile: ", err.message);
-            }
-            res.status(200).json(user);
+        if (mongoose.Types.ObjectId.isValid(query)) {
+            user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
+        } else {
+            user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
         }
+
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        res.status(200).json(user);
     } catch (err) {
         res.status(500).json({ error: err.message });
+        console.log("Error in getUserProfile: ", err.message);
     }
+    res.status(200).json(user);
+}
+}
+catch (err) {
+    res.status(500).json({ error: err.message });
+}
 };
 
 const signupUser = async(req, res) => {
@@ -101,7 +88,7 @@ const loginUser = async(req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username });
-        const isPasswordCorrect = await bcrypt.compare(password, user.password || "");
+        const isPasswordCorrect = await bcrypt.compare(password, user ? .password || "");
 
         if (!user || !isPasswordCorrect) return res.status(400).json({ error: "Invalid username or password" });
 
