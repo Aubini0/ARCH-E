@@ -8,95 +8,69 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 
-<<
-<< << < HEAD
 dotenv.config();
 
 const getUserProfile = async(req, res) => {
-        // We will fetch user profile either with username or userId
-        // query is either username or userId
-        const { query } = req.params;
+    // We will fetch user profile either with username or userId
+    // query is either username or userId
+    const { query } = req.params;
 
-        try {
-            let user; ===
-            === =
-            const getUserProfile = async(req, res) => {
-                    const { query } = req.params;
+    try {
+        let user;
+        const getUserProfile = async(req, res) => {
+            const { query } = req.params;
 
-                    try {
-                        let user;
-                        if (mongoose.Types.ObjectId.isValid(query)) {
-                            user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
-                        } else {
-                            user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
-                        } >>>
-                        >>> > d5b5c843741e1f59e315e34d0229ebef2cf8cc8d
-
-                        // query is userId
-                        if (mongoose.Types.ObjectId.isValid(query)) {
-                            user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
-                        } else {
-                            // query is username
-                            user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
-                        }
-
-                        <<
-                        << << < HEAD
-                        if (!user) return res.status(404).json({ error: "User not found" });
-
-                        res.status(200).json(user);
-                    } catch (err) {
-                        res.status(500).json({ error: err.message });
-                        console.log("Error in getUserProfile: ", err.message);
-                    } ===
-                    === =
-                    res.status(200).json(user);
-                } catch (err) {
-                    res.status(500).json({ error: err.message });
-                } >>>
-                >>> > d5b5c843741e1f59e315e34d0229ebef2cf8cc8d
-        };
-
-        const signupUser = async(req, res) => {
             try {
-                const { name, email, username, password } = req.body;
-                const user = await User.findOne({ $or: [{ email }, { username }] });
-
-                if (user) {
-                    return res.status(400).json({ error: "User already exists" });
-                }
-                const salt = await bcrypt.genSalt(10);
-                const hashedPassword = await bcrypt.hash(password, salt);
-
-                const newUser = new User({
-                    name,
-                    email,
-                    username,
-                    password: hashedPassword,
-                });
-                await newUser.save();
-
-                if (newUser) {
-                    generateTokenAndSetCookie(newUser._id, res);
-
-                    <<
-                    << << < HEAD
-                    res.status(201).json({
-                        _id: newUser._id,
-                        name: newUser.name,
-                        email: newUser.email,
-                        username: newUser.username,
-                        bio: newUser.bio,
-                        profilePic: newUser.profilePic,
-                    });
+                let user;
+                if (mongoose.Types.ObjectId.isValid(query)) {
+                    user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
                 } else {
-                    res.status(400).json({ error: "Invalid user data" });
+                    user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
                 }
+                // query is userId
+                if (mongoose.Types.ObjectId.isValid(query)) {
+                    user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
+                } else {
+                    // query is username
+                    user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
+                }
+
+                if (!user) return res.status(404).json({ error: "User not found" });
+
+                res.status(200).json(user);
             } catch (err) {
                 res.status(500).json({ error: err.message });
-                console.log("Error in signupUser: ", err.message);
-            } ===
-            === =
+                console.log("Error in getUserProfile: ", err.message);
+            }
+            res.status(200).json(user);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+const signupUser = async(req, res) => {
+    try {
+        const { name, email, username, password } = req.body;
+        const user = await User.findOne({ $or: [{ email }, { username }] });
+
+        if (user) {
+            return res.status(400).json({ error: "User already exists" });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const newUser = new User({
+            name,
+            email,
+            username,
+            password: hashedPassword,
+        });
+        await newUser.save();
+
+        if (newUser) {
+            generateTokenAndSetCookie(newUser._id, res);
+
             res.status(201).json({
                 _id: newUser._id,
                 name: newUser.name,
@@ -110,9 +84,18 @@ const getUserProfile = async(req, res) => {
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
-    } >>>
-    >>> > d5b5c843741e1f59e315e34d0229ebef2cf8cc8d
+        console.log("Error in signupUser: ", err.message);
+    }
+    res.status(201).json({
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        username: newUser.username,
+        bio: newUser.bio,
+        profilePic: newUser.profilePic,
+    })
 };
+
 
 const loginUser = async(req, res) => {
     try {
@@ -129,8 +112,6 @@ const loginUser = async(req, res) => {
 
         generateTokenAndSetCookie(user._id, res);
 
-        <<
-        << << < HEAD
         res.status(200).json({
             _id: user._id,
             name: user.name,
@@ -151,30 +132,7 @@ const logoutUser = (req, res) => {
         res.status(200).json({ message: "User logged out successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });
-        console.log("Error in signupUser: ", err.message);
-    } ===
-    === =
-    res.status(200).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        username: user.username,
-        bio: user.bio,
-        profilePic: user.profilePic,
-    });
-} catch (error) {
-    res.status(500).json({ error: error.message });
-}
-};
-
-const logoutUser = (req, res) => {
-    try {
-        res.cookie("jwt", "", { maxAge: 1 });
-        res.status(200).json({ message: "User logged out successfully" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    } >>>
-    >>> > d5b5c843741e1f59e315e34d0229ebef2cf8cc8d
+    }
 };
 
 const followUnFollowUser = async(req, res) => {
@@ -226,118 +184,119 @@ const getUserFriends = async(req, res) => {
 
 
 const updateUser = async(req, res) => {
-        const { name, email, username, password, bio } = req.body;
-        let { profilePic } = req.body;
+    const { name, email, username, password, bio } = req.body;
+    let { profilePic } = req.body;
 
-        const userId = req.user._id;
-        try {
-            let user = await User.findById(userId);
-            if (!user) return res.status(400).json({ error: "User not found" });
+    const userId = req.user._id;
+    try {
+        let user = await User.findById(userId);
+        if (!user) return res.status(400).json({ error: "User not found" });
 
-            // if (req.params.id !== userId.toString())
-            // 	return res.status(400).json({ error: "You cannot update other user's profile" });
+        // if (req.params.id !== userId.toString())
+        // 	return res.status(400).json({ error: "You cannot update other user's profile" });
 
-            if (password) {
-                const salt = await bcrypt.genSalt(10);
-                const hashedPassword = await bcrypt.hash(password, salt);
-                user.password = hashedPassword;
-            }
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+            user.password = hashedPassword;
+        }
 
-            if (profilePic) {
-                if (user.profilePic) {
-                    const params_remove_req = {
-                        Bucket: process.env.AWSS3BUCKETNAME,
-                        Key: user.profilePic,
-                    }
-
-                    s3.deleteObject(params_remove_req, function(err, data) {
-                        if (err) console.log(err, err.stack);
-                        else console.log(data);
-                    });
-                }
-
-                let file = dataURItoBlob(profilePic);
-
-                function dataURItoBlob(dataURI) {
-                    let binary = atob(dataURI.split(",")[1]);
-                    let array = [];
-                    for (let i = 0; i < binary.length; i++) {
-                        array.push(binary.charCodeAt(i));
-                    }
-                    return new Blob([new Uint8Array(array)], { type: "image/jpg" })
-                }
-
-                let fileName = uuidv4();
-
-                const params_upload_req = {
-                    Key: fileName.substr(fileName.length - 15) + ".jpg",
-                    ContentType: 'image/jpg',
-                    Body: file.toString(),
+        if (profilePic) {
+            if (user.profilePic) {
+                const params_remove_req = {
                     Bucket: process.env.AWSS3BUCKETNAME,
+                    Key: user.profilePic,
                 }
-                const uploadedResponse = s3.upload(params_upload_req, function(err, data) {
+
+                s3.deleteObject(params_remove_req, function(err, data) {
                     if (err) console.log(err, err.stack);
                     else console.log(data);
-                    profilePic = data.Location;
                 });
-
-                res.status(200).json(user);
-            } catch (err) {
-                res.status(500).json({ error: err.message });
             }
-        };
 
-        const getSuggestedUsers = async(req, res) => {
-            try {
-                // exclude the current user from suggested users array and exclude users that current user is already following
-                const userId = req.user._id;
+            let file = dataURItoBlob(profilePic);
 
-                const usersFollowedByYou = await User.findById(userId).select("following");
-
-                const users = await User.aggregate([{
-                        $match: {
-                            _id: { $ne: userId },
-                        },
-                    },
-                    {
-                        $sample: { size: 10 },
-                    },
-                ]);
-                const filteredUsers = users.filter((user) => !usersFollowedByYou.following.includes(user._id));
-                const suggestedUsers = filteredUsers.slice(0, 4);
-
-                suggestedUsers.forEach((user) => (user.password = null));
-
-                res.status(200).json(suggestedUsers);
-            } catch (error) {
-                res.status(500).json({ error: error.message });
-            }
-        };
-
-        const freezeAccount = async(req, res) => {
-            try {
-                const user = await User.findById(req.user._id);
-                if (!user) {
-                    return res.status(400).json({ error: "User not found" });
+            function dataURItoBlob(dataURI) {
+                let binary = atob(dataURI.split(",")[1]);
+                let array = [];
+                for (let i = 0; i < binary.length; i++) {
+                    array.push(binary.charCodeAt(i));
                 }
-
-                user.isFrozen = true;
-                await user.save();
-
-                res.status(200).json({ success: true });
-            } catch (error) {
-                res.status(500).json({ error: error.message });
+                return new Blob([new Uint8Array(array)], { type: "image/jpg" })
             }
-        };
 
-        export {
-            signupUser,
-            loginUser,
-            logoutUser,
-            followUnFollowUser,
-            getUserFriends,
-            updateUser,
-            getUserProfile,
-            getSuggestedUsers,
-            freezeAccount,
-        };
+            let fileName = uuidv4();
+
+            const params_upload_req = {
+                Key: fileName.substr(fileName.length - 15) + ".jpg",
+                ContentType: 'image/jpg',
+                Body: file.toString(),
+                Bucket: process.env.AWSS3BUCKETNAME,
+            }
+            const uploadedResponse = s3.upload(params_upload_req, function(err, data) {
+                if (err) console.log(err, err.stack);
+                else console.log(data);
+                profilePic = data.Location;
+            });
+
+            res.status(200).json(user);
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+const getSuggestedUsers = async(req, res) => {
+    try {
+        // exclude the current user from suggested users array and exclude users that current user is already following
+        const userId = req.user._id;
+
+        const usersFollowedByYou = await User.findById(userId).select("following");
+
+        const users = await User.aggregate([{
+                $match: {
+                    _id: { $ne: userId },
+                },
+            },
+            {
+                $sample: { size: 10 },
+            },
+        ]);
+        const filteredUsers = users.filter((user) => !usersFollowedByYou.following.includes(user._id));
+        const suggestedUsers = filteredUsers.slice(0, 4);
+
+        suggestedUsers.forEach((user) => (user.password = null));
+
+        res.status(200).json(suggestedUsers);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const freezeAccount = async(req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(400).json({ error: "User not found" });
+        }
+
+        user.isFrozen = true;
+        await user.save();
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+export {
+    signupUser,
+    loginUser,
+    logoutUser,
+    followUnFollowUser,
+    getUserFriends,
+    updateUser,
+    getUserProfile,
+    getSuggestedUsers,
+    freezeAccount,
+};
