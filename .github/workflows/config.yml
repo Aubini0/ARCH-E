@@ -23,9 +23,6 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::444450806022:user/Hycienth
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
@@ -37,6 +34,12 @@ jobs:
             python3 -m pip install --upgrade pip
             pip install awsebcli --upgrade --user
             eb --version
+      
+      - run: |
+          mkdir ~/.aws 
+          echo -e "[eb-cli]\naws_access_key_id=${{ secrets.AWSACCESSKEYID }}\naws_secret_access_key=${{ secrets.AWSACCESSKEYID }}\n" > ~/.aws/credentials
+          cat ~/.aws/credentials
+      
       - run: |
           eb deploy 
       
