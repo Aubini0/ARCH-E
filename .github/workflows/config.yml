@@ -41,5 +41,6 @@ jobs:
           cat ~/.aws/credentials
       
       - run: |
+          eb use AMPLIFI-env --region us-east-1
           eb deploy 
       
