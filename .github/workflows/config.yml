@@ -28,6 +28,9 @@ jobs:
       - run: |
             aws --version
             aws configure --profile eb-cli
+            ${{ secrets.AWSACCESSKEYID }}
+            ${{ secrets.AWSSECRETACCESSKEY }}
+            ${{ secrets.AWSREGION }}
             pip install wheel
             pip install "Cython<3.0" "pyyaml<6" --no-build-isolation
             python3 -m pip install --upgrade pip
