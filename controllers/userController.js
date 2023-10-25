@@ -28,7 +28,6 @@ const getUserProfile = async(req, res) => {
         res.status(500).json({ error: err.message });
         console.log("Error in getUserProfile: ", err.message);
     }
-    res.status(200).json(user);
 };
 
 const signupUser = async(req, res) => {
