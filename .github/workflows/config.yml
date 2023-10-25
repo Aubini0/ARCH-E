@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     # Steps represent a sequence of tasks that will be executed as part of the job
     env:
-      AWS_ACCESS_KEY_ID: AKIAWO62VDEDPFVAFZXJ
-      AWS_SECRET_ACCESS_KEY: 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
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWSACCESSKEYID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWSSECRETACCESSKEY }}
       AWS_DEFAULT_REGION: ${{ secrets.AWSREGION }}
 
     steps:
@@ -37,7 +37,7 @@ jobs:
       
       - run: |
           mkdir ~/.aws 
-          echo -e "[eb-cli]\naws_access_key_id=AKIAWO62VDEDPFVAFZXJ\naws_secret_access_key=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\naws_default_region=${{ secrets.AWSREGION }}\n" > ~/.aws/credentials
+          echo -e "[eb-cli]\naws_access_key_id=${{ secrets.AWSACCESSKEYID }}\naws_secret_access_key=${{ secrets.AWSSECRETACCESSKEY }}\naws_default_region=${{ secrets.AWSREGION }}\n" > ~/.aws/credentials
           cat ~/.aws/credentials
       
       - run: |
