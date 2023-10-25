@@ -30,6 +30,7 @@ jobs:
         with:
           node-version: 18
       - run: |
+          cd backend
           npm run start
         
       - uses: actions/checkout@v3
