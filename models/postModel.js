@@ -7,6 +7,11 @@ const postSchema = mongoose.Schema(
 			ref: "User",
 			required: true,
 		},
+		postedFrom : {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			default: null
+		},
 		text: {
 			type: String,
 			maxLength: 500,
