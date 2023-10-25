@@ -26,6 +26,12 @@ jobs:
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/setup-node@v4.0.0
+        with:
+          node-version: 18
+      - run: |
+          npm run start
+        
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
