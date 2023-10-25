@@ -37,7 +37,7 @@ jobs:
       
       - run: |
           mkdir ~/.aws 
-          echo -e "[eb-cli]\naws_access_key_id=${{ secrets.AWSACCESSKEYID }}\naws_secret_access_key=${{ secrets.AWSACCESSKEYID }}\n" > ~/.aws/credentials
+          echo -e "[eb-cli]\naws_access_key_id=${{ secrets.AWSACCESSKEYID }}\naws_secret_access_key=${{ secrets.AWSACCESSKEYID }}\naws_default_region=${{ secrets.AWSREGION }}\n" > ~/.aws/credentials
           cat ~/.aws/credentials
       
       - run: |
