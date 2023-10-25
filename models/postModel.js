@@ -11,6 +11,10 @@ const postSchema = mongoose.Schema(
 			type: String,
 			maxLength: 500,
 		},
+		audio: {
+			type: String,
+			required: true,
+		  },
 		img: {
 			type: String,
 		},
