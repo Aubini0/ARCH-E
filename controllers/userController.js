@@ -184,7 +184,6 @@ const updateUser = async(req, res) => {
             user.password = hashedPassword;
         }
 
-
         if (profilePic) {
             if (user.profilePic) {
                 let img = user.profilePic.split(".com/")[1]
@@ -198,7 +197,6 @@ const updateUser = async(req, res) => {
                     else console.log(data);
                 });
             }
-
 
             let buf = Buffer.from(profilePic.replace(/^data:image\/\w+;base64,/, ""), 'base64')
 
