@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "dev": "nodemon server.js",
-        "start": "node server.js"
+        "start": "nodemon server.js"
     },
     "type": "module",
     "keywords": [],
@@ -27,8 +27,5 @@
         "nodemon": "^3.0.1",
         "socket.io": "^4.7.2",
         "uuid": "^9.0.1"
-    },
-    "devDependencies": {
-        "nodemon": "^3.0.1"
     }
 }

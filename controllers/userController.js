@@ -183,9 +183,10 @@ const updateUser = async(req, res) => {
 
         if (profilePic) {
             if (user.profilePic) {
+                let img = user.profilePic.split(".com/")[1]
                 const params_remove_req = {
                     Bucket: process.env.AWSS3BUCKETNAME,
-                    Key: user.profilePic,
+                    Key: img,
                 }
 
                 s3.deleteObject(params_remove_req, function(err, data) {
