@@ -8,6 +8,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 
+
 dotenv.config();
 
 const getUserProfile = async(req, res) => {
@@ -28,9 +29,7 @@ const getUserProfile = async(req, res) => {
         res.status(500).json({ error: err.message });
         console.log("Error in getUserProfile: ", err.message);
     }
-    res.status(200).json(user);
-}
-
+};
 
 const signupUser = async(req, res) => {
     try {
@@ -84,7 +83,7 @@ const loginUser = async(req, res) => {
     try {
         const { username, password } = req.body;
         const user = await User.findOne({ username });
-        const isPasswordCorrect = await bcrypt.compare(password, user?.password || "");
+        const isPasswordCorrect = await bcrypt.compare(password, user.password || "");
 
         if (!user || !isPasswordCorrect) return res.status(400).json({ error: "Invalid username or password" });
 
@@ -92,6 +91,7 @@ const loginUser = async(req, res) => {
             user.isFrozen = false;
             await user.save();
         }
+
 
         generateTokenAndSetCookie(user._id, res);
 
@@ -175,9 +175,6 @@ const updateUser = async(req, res) => {
         let user = await User.findById(userId);
         if (!user) return res.status(400).json({ error: "User not found" });
 
-        // if (req.params.id !== userId.toString())
-        // 	return res.status(400).json({ error: "You cannot update other user's profile" });
-
         if (password) {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
@@ -197,30 +194,37 @@ const updateUser = async(req, res) => {
                 });
             }
 
-            let file = dataURItoBlob(profilePic);
-
-            function dataURItoBlob(dataURI) {
-                let binary = atob(dataURI.split(",")[1]);
-                let array = [];
-                for (let i = 0; i < binary.length; i++) {
-                    array.push(binary.charCodeAt(i));
-                }
-                return new Blob([new Uint8Array(array)], { type: "image/jpg" })
-            }
+            let buf = Buffer.from(profilePic.replace(/^data:image\/\w+;base64,/, ""), 'base64')
 
             let fileName = uuidv4();
 
-            const params_upload_req = {
-                Key: fileName.substr(fileName.length - 15) + ".jpg",
-                ContentType: 'image/jpg',
-                Body: file.toString(),
-                Bucket: process.env.AWSS3BUCKETNAME,
-            }
-            const uploadedResponse = s3.upload(params_upload_req, function(err, data) {
-                if (err) console.log(err, err.stack);
-                else console.log(data);
-                profilePic = data.Location;
-            });
+            const type = profilePic.split(';')[0].split('/')[1];
+
+            let params_data = {
+                Key: `${fileName.substr(fileName.length - 15)}.${type}`,
+                Body: buf,
+                ContentEncoding: 'base64',
+                ACL: 'public-read',
+                ContentType: `image/${type}`,
+                Bucket: process.env.AWSS3BUCKETNAME
+            };
+
+            let location = '';
+            let key = '';
+            try {
+                const { Location, Key } = await s3.upload(params_data).promise();
+                location = Location;
+                key = Key;
+            } catch (error) {}
+
+
+            user.name = name || user.name;
+            user.email = email || user.email;
+            user.username = username || user.username;
+            user.profilePic = location || user.profilePic;
+            user.bio = bio || user.bio;
+
+            user = await user.save();
 
             res.status(200).json(user);
         }
