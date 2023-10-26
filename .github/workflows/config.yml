@@ -32,7 +32,6 @@ jobs:
           node-version: 18
       - run: |
             npm install
-            npm run start
 
 
       - uses: actions/checkout@v3
