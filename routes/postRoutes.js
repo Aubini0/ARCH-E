@@ -10,13 +10,15 @@ import {
 	deleteComment
 } from "../controllers/postController.js";
 import protectRoute from "../middlewares/protectRoute.js";
+import { upload } from "../db/bucketUploadClient.js";
 
 const router = express.Router();
 
-router.get("/feed",protectRoute, getFeedPosts);
+router.get("/feed", protectRoute, getFeedPosts);
+
 router.get("/:id", getPost);
 router.get("/user/:username", getUserPosts);
-router.post("/create", protectRoute, createPost);
+router.post("/create",  protectRoute, createPost);
 router.delete("/:id", protectRoute, deletePost);
 router.put("/like/:id", protectRoute, likeUnlikePost);
 router.put("/reply/:id", protectRoute, replyToPost);

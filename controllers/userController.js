@@ -175,9 +175,6 @@ const updateUser = async(req, res) => {
         let user = await User.findById(userId);
         if (!user) return res.status(400).json({ error: "User not found" });
 
-        // if (req.params.id !== userId.toString())
-        // 	return res.status(400).json({ error: "You cannot update other user's profile" });
-
         if (password) {
             const salt = await bcrypt.genSalt(10);
             const hashedPassword = await bcrypt.hash(password, salt);
