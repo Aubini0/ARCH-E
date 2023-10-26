@@ -213,6 +213,7 @@ const updateUser = async(req, res) => {
                 Bucket: process.env.AWSS3BUCKETNAME
             };
 
+
             let location = '';
             let key = '';
             try {
