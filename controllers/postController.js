@@ -6,10 +6,6 @@ import { v4 as uuidv4 } from "uuid";
 import { upload, s3 } from "../db/bucketUploadClient.js";
 
 
-
-
-
-
 const createPost = async(req, res) => {
     try {
         if (!req.body.audio) {
@@ -17,6 +13,7 @@ const createPost = async(req, res) => {
         }
         const audioData = Buffer.from(req.body.audio, 'base64');
         const fileName = uuidv4() + '.mp3'; // Generate a unique filename
+
 
         const params = {
             Bucket: process.env.AWSS3BUCKETNAME,
@@ -42,7 +39,7 @@ const createPost = async(req, res) => {
         // Assuming you have a database model named "AudioPost" for audio posts
         const post = new Post({
             postedBy: postedBy,
-            title,
+            text: title,
             audio: audioPath
         });
         await post.save();
