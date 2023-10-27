@@ -33,7 +33,6 @@ const createPost = async (req, res) => {
 		const { Location, Key } = await s3.upload(params).promise();
 		location = Location;
 		key = Key;
-		console.log(location)
 
 	   // Save the audio URL to the database
 	   const audioPath = location;
@@ -42,7 +41,7 @@ const createPost = async (req, res) => {
 	   // Assuming you have a database model named "AudioPost" for audio posts
 	   const post = new Post({
 		 postedBy: postedBy,
-		 title,
+		 text : title,
 		 audio: audioPath
 	   });
        await post.save();
@@ -58,6 +57,16 @@ const createPost = async (req, res) => {
 
 
 
+  // Fetch all posts
+  const getAllPosts = async (req, res) => {
+	try {
+	  const posts = await Post.find();
+	  res.status(200).json(posts);
+	} catch (error) {
+	  console.error('Error fetching posts:', error);
+	  res.status(500).json({ error: 'Error fetching posts' });
+	}
+  };
 
 
 
@@ -87,16 +96,7 @@ const updatePost = async (req, res) => {
 	}
   };
   
-  // Fetch all posts
-  const getAllPosts = async (req, res) => {
-	try {
-	  const posts = await Post.find();
-	  res.json(posts);
-	} catch (error) {
-	  console.error('Error fetching posts:', error);
-	  res.status(500).json({ error: 'Error fetching posts' });
-	}
-  };
+
   
   // Fetch a specific post by ID
   const getPostById = async (req, res) => {
@@ -306,4 +306,4 @@ const getUserPosts = async(req, res) => {
 };
 
 
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment };
+export { createPost, getPost, getAllPosts, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment };
