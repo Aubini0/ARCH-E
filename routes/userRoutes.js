@@ -1,14 +1,14 @@
 import express from "express";
 import {
-	followUnFollowUser,
-	getUserProfile,
-	loginUser,
-	logoutUser,
-	signupUser,
-	updateUser,
-	getSuggestedUsers,
-	freezeAccount,
-	getUserFriends,
+    followUnFollowUser,
+    getUserProfile,
+    loginUser,
+    logoutUser,
+    signupUser,
+    updateUser,
+    getSuggestedUsers,
+    freezeAccount,
+    getUserFriends,
 } from "../controllers/userController.js";
 import protectRoute from "../middlewares/protectRoute.js";
 

@@ -2,7 +2,7 @@ import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
 
 
-const createRepost = async (req, res) => {
+const createRepost = async(req, res) => {
     try {
         const { postedBy, text, parentPost, postedFrom } = req.body;
         let { img } = req.body;
@@ -35,14 +35,13 @@ const createRepost = async (req, res) => {
         await newPost.save();
 
         res.status(201).json(newPost);
-    }
-    catch (err) {
+    } catch (err) {
         res.status(500).json({ error: err.message });
 
     }
 }
 
-const getUserReposts = async (req, res) => {
+const getUserReposts = async(req, res) => {
     const { username } = req.params;
 
     try {
@@ -69,11 +68,12 @@ const getUserReposts = async (req, res) => {
                 };
             });
 
-            res.status(200).json(reposts);
+        res.status(200).json(reposts);
 
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 }
+
 
 export { createRepost, getUserReposts };
