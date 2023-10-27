@@ -1,58 +1,41 @@
 import mongoose from "mongoose";
 
-const postSchema = mongoose.Schema(
-	{
-		postedBy: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
-			required: true,
-		},
-		postedFrom : {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "User",
-			default: null
-		},
-		text: {
-			type: String,
-			maxLength: 500,
-		},
-		audio: {
-			type: String,
-			required: true,
-		  },
-		img: {
-			type: String,
-		},
-		likes: {
-			// array of user ids
-			type: [mongoose.Schema.Types.ObjectId],
-			ref: "User",
-			default: [],
-		},
-		replies: [
-			{
-				userId: {
-					type: mongoose.Schema.Types.ObjectId,
-					ref: "User",
-					required: true,
-				},
-				text: {
-					type: String,
-					required: true,
-				},
-				userProfilePic: {
-					type: String,
-				},
-				username: {
-					type: String,
-				},
-			},
-		],
+const postSchema = mongoose.Schema({
+	postedBy: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "User",
+		required: true,
 	},
-	{
-		timestamps: true,
-	}
-);
+	postedFrom: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "User",
+		default: null,
+	},
+	text: {
+		type: String,
+		maxLength: 500,
+	},
+	audio: {
+		type: String,
+		required: true,
+	},
+	img: {
+		type: String,
+	},
+	likes: {
+		type: [mongoose.Schema.Types.ObjectId],
+		ref: "User",
+		default: [],
+	},
+	replies: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Reply",
+		},
+	],
+}, {
+	timestamps: true,
+});
 
 const Post = mongoose.model("Post", postSchema);
 

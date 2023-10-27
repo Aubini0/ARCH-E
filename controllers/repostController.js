@@ -59,12 +59,8 @@ const getUserReposts = async (req, res) => {
                 return {
                     _id: post._id,
                     text: post.text,
-                    postedBy: {
-                        _id: post.postedBy._id,
-                    },
-                    postedFrom: {
-                        _id: post.postedFrom._id,
-                    },
+                    postedBy: post.postedBy._id,
+                    postedFrom: post.postedFrom._id,
                     createdAt: post.createdAt,
                 };
             });
