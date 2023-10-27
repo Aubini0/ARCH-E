@@ -33,7 +33,6 @@ const createPost = async (req, res) => {
 		const { Location, Key } = await s3.upload(params).promise();
 		location = Location;
 		key = Key;
-
 	   // Save the audio URL to the database
 	   const audioPath = location;
 	   const { title, postedBy } = req.body;
