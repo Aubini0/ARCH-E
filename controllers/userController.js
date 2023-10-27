@@ -51,7 +51,7 @@ const signupUser = async(req, res) => {
         await newUser.save();
 
         if (newUser) {
-            generateTokenAndSetCookie(newUser._id, res);
+           const token = await  generateTokenAndSetCookie(newUser._id, res);
 
             res.status(201).json({
                 _id: newUser._id,
@@ -60,6 +60,7 @@ const signupUser = async(req, res) => {
                 username: newUser.username,
                 bio: newUser.bio,
                 profilePic: newUser.profilePic,
+                token
             });
         } else {
             res.status(400).json({ error: "Invalid user data" });
@@ -93,7 +94,7 @@ const loginUser = async(req, res) => {
         }
 
 
-        generateTokenAndSetCookie(user._id, res);
+      const token = await   generateTokenAndSetCookie(user._id, res);
 
         res.status(200).json({
             _id: user._id,
@@ -102,6 +103,7 @@ const loginUser = async(req, res) => {
             username: user.username,
             bio: user.bio,
             profilePic: user.profilePic,
+            token
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
