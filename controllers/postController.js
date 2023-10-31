@@ -1,9 +1,12 @@
 import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
+import Reply from "../models/replyModel.js";
 import dotenv from "dotenv";
 dotenv.config();
 import { v4 as uuidv4 } from "uuid";
 import { upload, s3 } from "../db/bucketUploadClient.js";
+import { Types } from 'mongoose'; // Import Types from mongoose
+
 
 
 
@@ -12,7 +15,7 @@ import { upload, s3 } from "../db/bucketUploadClient.js";
 
 const createPost = async (req, res) => {
   try {
-    console.log("req.body", req.body);
+    console.log("creat req.body", req.body);
     if (!req.body.audio) {
       return res.status(400).json({ error: 'No audio file provided.' });
     }
@@ -45,7 +48,7 @@ const createPost = async (req, res) => {
     // Assuming you have a database model named "AudioPost" for audio posts
     const post = new Post({
       postedBy: postedBy,
-      text : title,
+      text: title,
       audio: audioPath
     });
     console.log("post", post);
@@ -133,10 +136,6 @@ const searchPostsByTitle = async (req, res) => {
     res.status(500).json({ error: 'Error searching for posts by title' });
   }
 };
-
-
-
-
 
 
 const getPost = async (req, res) => {
@@ -243,10 +242,12 @@ const likeUnlikePost = async (req, res) => {
 
 const replyToPost = async (req, res) => {
   try {
+    const { ObjectId } = Types;
+
     console.log("req.body", req.body);
     const { text, user } = req.body;
     const postId = req.params.id;
-    const userId = user._id;
+    const userId = new ObjectId(user._id);
     const userProfilePic = user.profilePic;
     const username = user.username;
 
@@ -262,22 +263,24 @@ const replyToPost = async (req, res) => {
     }
 
     const post = await Post.findById(postId);
-    console.log("post", post);
 
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    const reply = { userId, text, userProfilePic, username };
-    console.log("reply", reply);
+    const reply = new Reply({ userId, text, userProfilePic, username });
+    console.log("final reply", reply);
+    await reply.save(); // Save the reply document
+
+    // Push the reply into the post's replies array
     post.replies.push(reply);
-    console.log("pushed post", post);
-    await post.save();
 
-    const replyId = post.replies[post.replies.length - 1]._id;
+    await post.save(); // Save the updated post
 
-    const replyWithId = { _id: replyId, ...reply };
-    console.log('replyWithId', replyWithId);
+    const replyId = reply._id;
+
+    const replyWithId = { _id: replyId, ...reply.toObject() };
+    console.log("replyWithId", replyWithId);
     res.status(200).json(replyWithId);
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -11,6 +11,15 @@ const postSchema = mongoose.Schema({
 		ref: "User",
 		default: null,
 	},
+	parentPost: {	
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "Post",
+		default: null,
+	},
+	repostCount: {
+		type: Number,
+		default: 0,
+	},
 	text: {
 		type: String,
 		maxLength: 500,
