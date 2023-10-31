@@ -51,7 +51,7 @@ const signupUser = async(req, res) => {
         await newUser.save();
 
         if (newUser) {
-            generateTokenAndSetCookie(newUser._id, res);
+           const token = await  generateTokenAndSetCookie(newUser._id, res);
 
             res.status(201).json({
                 _id: newUser._id,
@@ -60,6 +60,7 @@ const signupUser = async(req, res) => {
                 username: newUser.username,
                 bio: newUser.bio,
                 profilePic: newUser.profilePic,
+                token
             });
         } else {
             res.status(400).json({ error: "Invalid user data" });
@@ -81,7 +82,9 @@ const signupUser = async(req, res) => {
 
 const loginUser = async(req, res) => {
     try {
+        console.log(req.body);
         const { username, password } = req.body;
+        console.log(username, password);
         const user = await User.findOne({ username });
         const isPasswordCorrect = await bcrypt.compare(password, user.password || "");
 
@@ -93,7 +96,7 @@ const loginUser = async(req, res) => {
         }
 
 
-        generateTokenAndSetCookie(user._id, res);
+      const token = await   generateTokenAndSetCookie(user._id, res);
 
         res.status(200).json({
             _id: user._id,
@@ -102,6 +105,7 @@ const loginUser = async(req, res) => {
             username: user.username,
             bio: user.bio,
             profilePic: user.profilePic,
+            token
         });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -152,14 +156,13 @@ const getUserFriends = async(req, res) => {
 
         const userId = req.user._id;
         const usersFollowedMe = await User.findById(userId).select("followers");
+        
 
-        const followers = usersFollowedMe.followers;
-
-        if (followers.length === 0) {
+        if (!usersFollowedMe) {
             return res.status(400).json({ error: "No Friends found" });
         }
 
-        res.status(200).json({ followers });
+        res.status(200).json({ usersFollowedMe });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -240,10 +243,14 @@ const updateUser = async(req, res) => {
 const getSuggestedUsers = async(req, res) => {
     try {
         // exclude the current user from suggested users array and exclude users that current user is already following
-        const userId = req.user._id;
+        const userId = req.params.id;
+        console.log("userId: ", userId);
 
         const usersFollowedByYou = await User.findById(userId).select("following");
 
+        if (!usersFollowedByYou) {    
+            return res.status(400).json({ error: "No friends found" });
+        }
         const users = await User.aggregate([{
                 $match: {
                     _id: { $ne: userId },
@@ -254,7 +261,7 @@ const getSuggestedUsers = async(req, res) => {
             },
         ]);
         const filteredUsers = users.filter((user) => !usersFollowedByYou.following.includes(user._id));
-        const suggestedUsers = filteredUsers.slice(0, 4);
+        const suggestedUsers = filteredUsers.slice(0, 5);
 
         suggestedUsers.forEach((user) => (user.password = null));
 

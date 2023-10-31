@@ -12,6 +12,7 @@ import { upload, s3 } from "../db/bucketUploadClient.js";
 
 const createPost = async (req, res) => {
   try {
+    console.log("req.body", req.body);
     if (!req.body.audio) {
       return res.status(400).json({ error: 'No audio file provided.' });
     }
@@ -38,13 +39,16 @@ const createPost = async (req, res) => {
     // Save the audio URL to the database
     const audioPath = location;
     const { title, postedBy } = req.body;
+    console.log("postedBy", postedBy);
+    console.log("title", title);
 
     // Assuming you have a database model named "AudioPost" for audio posts
     const post = new Post({
       postedBy: postedBy,
-      title,
+      text : title,
       audio: audioPath
     });
+    console.log("post", post);
     await post.save();
 
     return res.status(201).json(post);
@@ -239,11 +243,19 @@ const likeUnlikePost = async (req, res) => {
 
 const replyToPost = async (req, res) => {
   try {
-    const { text } = req.body;
+    console.log("req.body", req.body);
+    const { text, user } = req.body;
     const postId = req.params.id;
-    const userId = req.user._id;
-    const userProfilePic = req.user.profilePic;
-    const username = req.user.username;
+    const userId = user._id;
+    const userProfilePic = user.profilePic;
+    const username = user.username;
+
+    console.log("user", user);
+    console.log("userProfilePic", userProfilePic);
+    console.log("username", username);
+    console.log("userId", userId);
+
+    console.log("text", text);
 
     if (!text) {
       return res.status(400).json({ error: "Text field is required" });
@@ -257,9 +269,9 @@ const replyToPost = async (req, res) => {
     }
 
     const reply = { userId, text, userProfilePic, username };
-
+    console.log("reply", reply);
     post.replies.push(reply);
-
+    console.log("pushed post", post);
     await post.save();
 
     const replyId = post.replies[post.replies.length - 1]._id;
@@ -275,17 +287,44 @@ const replyToPost = async (req, res) => {
 
 const getFeedPosts = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    const userId = req.params.id;
+    console.log("UserId", userId);
+    const user = userId ? await User.findById(userId) : null;
+    console.log("user", user);
+    console.log("userId", userId);
+
+    // Determine whether the user is authenticated or not
+    const isAuthenticated = !!user;
+    console.log("isAuthenticated", isAuthenticated);
+
+    // Match stage to filter feed posts
+    const matchStage = isAuthenticated
+      ? {
+        $match: {
+          postedBy: { $in: user.following },
+          postedBy: { $ne: userId }, // Exclude the user's own posts
+        },
+      }
+      : { $match: {} };
+
+    console.log("matchStage", matchStage);
+
+    // Sample stage to get a random sample of 10 posts
+    const sampleStage = { $sample: { size: 10 } };
+
+    console.log("sampleStage", sampleStage);
+
+    // Aggregate the pipeline
+    const pipeline = [matchStage, sampleStage];
+
+    const randomFeedPosts = await Post.aggregate(pipeline);
+    console.log("randomFeedPosts", randomFeedPosts);
+
+    if (!randomFeedPosts) {
+      return res.status(404).json({ error: "No feed posts found" });
     }
 
-    const following = user.following;
-
-    const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 });
-
-    res.status(200).json(feedPosts);
+    res.status(200).json(randomFeedPosts);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -311,4 +350,4 @@ const getUserPosts = async (req, res) => {
 };
 
 
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment };
+export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment, getAllPosts };
