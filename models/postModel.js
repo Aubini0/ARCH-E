@@ -38,10 +38,29 @@ const postSchema = mongoose.Schema({
 	},
 	replies: [
 		{
+		  userId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: "Reply",
+			ref: "User",
+			required: true,
+		  },
+		  text: {
+			type: String,
+			required: true,
+		  },
+		  userProfilePic: {
+			type: String,
+			required: true,
+		  },
+		  username: {
+			type: String,
+			required: true,
+		  },
+		  _id: {
+			type: mongoose.Schema.Types.ObjectId,
+			required: true,
+		  },
 		},
-	],
+	  ],
 }, {
 	timestamps: true,
 });

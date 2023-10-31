@@ -7,12 +7,6 @@ import { v4 as uuidv4 } from "uuid";
 import { upload, s3 } from "../db/bucketUploadClient.js";
 import { Types } from 'mongoose'; // Import Types from mongoose
 
-
-
-
-
-
-
 const createPost = async (req, res) => {
   try {
     console.log("creat req.body", req.body);
@@ -141,6 +135,7 @@ const searchPostsByTitle = async (req, res) => {
 const getPost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
+    console.log("get post", post);
 
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
@@ -267,21 +262,34 @@ const replyToPost = async (req, res) => {
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
-
-    const reply = new Reply({ userId, text, userProfilePic, username });
+    const replyId = new ObjectId();
+    const reply = {
+      _id: replyId,
+      userId: userId,
+      text: text,
+      userProfilePic: userProfilePic,
+      username: username,
+    };
+    console.log("post before :", post)
     console.log("final reply", reply);
-    await reply.save(); // Save the reply document
+    // await reply.save(); // Save the reply document
 
     // Push the reply into the post's replies array
-    post.replies.push(reply);
 
-    await post.save(); // Save the updated post
+    const update = {
+      $push: { replies: reply },
+    };
 
-    const replyId = reply._id;
+    const updatedPost = await Post.updateOne({ _id: postId }, update);
+    console.log("updatedPost", updatedPost);
+    if (updatedPost.modifiedCount === 1) {
+      const replyWithId = reply;
+      console.log("replyWithId", replyWithId);
+      res.status(200).json(replyWithId);
+    } else {
+      res.status(404).json({ error: "Post not updated" });
+    }
 
-    const replyWithId = { _id: replyId, ...reply.toObject() };
-    console.log("replyWithId", replyWithId);
-    res.status(200).json(replyWithId);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
