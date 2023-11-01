@@ -298,25 +298,32 @@ const replyToPost = async (req, res) => {
 
 const getFeedPosts = async (req, res) => {
   try {
-    const userId = req.params.id;
-    console.log("UserId", userId);
-    const user = userId ? await User.findById(userId) : null;
-    console.log("user", user);
-    console.log("userId", userId);
+    let isAuthenticated = false;
+    let userId = req.params.id || null; // Set userId to null if id is not provided
+    let user = null;
+    
+    if (userId) {
+      console.log("UserId", userId);
 
-    // Determine whether the user is authenticated or not
-    const isAuthenticated = !!user;
+      user = await User.findById(userId);
+      console.log("user", user);
+
+      if (user) {
+        isAuthenticated = true;
+      }
+    }
+
     console.log("isAuthenticated", isAuthenticated);
 
-    // Match stage to filter feed posts
-    const matchStage = isAuthenticated
-      ? {
+    // Initial match stage to filter out the user's own posts
+    let matchStage = {};
+    if (isAuthenticated) {
+      matchStage = {
         $match: {
-          postedBy: { $in: user.following },
-          postedBy: { $ne: userId }, // Exclude the user's own posts
+          postedBy: { $nin: [userId] }, // Exclude the user's own posts
         },
-      }
-      : { $match: {} };
+      };
+    }
 
     console.log("matchStage", matchStage);
 
@@ -326,12 +333,17 @@ const getFeedPosts = async (req, res) => {
     console.log("sampleStage", sampleStage);
 
     // Aggregate the pipeline
-    const pipeline = [matchStage, sampleStage];
+    const pipeline = [];
 
+    if (matchStage.$match) {
+      pipeline.push(matchStage);
+    }
+    pipeline.push(sampleStage);
+    
     const randomFeedPosts = await Post.aggregate(pipeline);
     console.log("randomFeedPosts", randomFeedPosts);
 
-    if (!randomFeedPosts) {
+    if (!randomFeedPosts || randomFeedPosts.length === 0) {
       return res.status(404).json({ error: "No feed posts found" });
     }
 
@@ -340,6 +352,9 @@ const getFeedPosts = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+
+
 
 const getUserPosts = async (req, res) => {
   const { username } = req.params;
