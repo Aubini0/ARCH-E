@@ -1,21 +1,26 @@
 import User from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 
+
+
 const protectRoute = async (req, res, next) => {
-  try {
-    const token = req.cookies.jwt || req.headers["authorization"]
-    if (!token) return res.status(401).json({ message: "Unauthorized" });
+  const bearerToken = await req.body.token || req.query.token || req.headers["authorization"]
 
-    const decoded = jwt.verify(token, "Hycienth");
+  console.log(bearerToken)
 
-    const user = await User.findById(decoded.userId).select("-password");
-
-    req.user = user;
-
-    next();
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  if (!bearerToken) {
+    return res.status(403).send("a token is required for authentication")
   }
-};
+  try {
+    const token = bearerToken.substring(7)
+    const decoded = await jwt.verify(token, "Hycienth" )
+    req.user = decoded
+  } catch (error) {
+    return res.status(401).send("Invalid Token")
+  }
 
-export default protectRoute;
+  return next()
+}
+
+
+export default protectRoute

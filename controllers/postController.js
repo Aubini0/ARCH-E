@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { upload, s3 } from "../db/bucketUploadClient.js";
 
 
+
 const createPost = async(req, res) => {
     try {
         if (!req.body.audio) {
@@ -302,4 +303,4 @@ const getUserPosts = async(req, res) => {
 };
 
 
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment };
+export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment, getAllPosts };
