@@ -1,9 +1,12 @@
 import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
+import Reply from "../models/replyModel.js";
 import dotenv from "dotenv";
 dotenv.config();
 import { v4 as uuidv4 } from "uuid";
-import { upload, s3 } from "../db/bucketUploadClient.js";
+import { upload, s3 } from "../db/bucketUploadClient.js"; <<
+<<
+<< < HEAD
 
 
 
@@ -63,6 +66,9 @@ const createPost = async(req, res) => {
 
 
 // Update a post
+<<
+<<
+<< < HEAD
 const updatePost = async(req, res) => {
     const { postId } = req.params; // Assuming you have a route parameter for postId
     const { title, postedBy } = req.body;
@@ -96,211 +102,344 @@ const getAllPosts = async(req, res) => {
 
 // Fetch a specific post by ID
 const getPostById = async(req, res) => {
-    const { postId } = req.params;
+        const { postId } = req.params;
 
-    try {
-        const post = await Post.findById(postId);
-        if (!post) {
-            return res.status(404).json({ error: 'Post not found' });
-        }
-        res.json(post);
-    } catch (error) {
-        console.error('Error fetching post by ID:', error);
-        res.status(500).json({ error: 'Error fetching post by ID' });
-    }
-};
-
-
-// Search for posts by title
-const searchPostsByTitle = async(req, res) => {
-    const { searchTerm } = req.query;
-    try {
-        const posts = await Post.find({
-            title: { $regex: searchTerm, $options: 'i' }, // Case-insensitive title search
-        });
-
-        res.json(posts);
-    } catch (error) {
-        console.error('Error searching for posts by title:', error);
-        res.status(500).json({ error: 'Error searching for posts by title' });
-    }
-};
-
-
-
-
-
-
-const getPost = async(req, res) => {
-    try {
-        const post = await Post.findById(req.params.id);
-
-        if (!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
-
-        res.status(200).json(post);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
-
-const deleteComment = async(req, res) => {
-    try {
-        const postId = req.params.id;
-        const replyId = req.params.replyId;
-
-        const post = await Post.findById(postId);
-
-        if (!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
-
-        const replyIndex = post.replies.findIndex((reply) => reply._id.toString() === replyId);
-
-        if (replyIndex !== -1) {
-            post.replies.splice(replyIndex, 1);
-            await post.save();
-            return res.status(200).json({ message: "Reply deleted successfully" });
-        } else {
-            return res.status(404).json({ error: "Reply not found" });
-        }
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-}
-
-const deletePost = async(req, res) => {
-    try {
-        const post = await Post.findById(req.params.id);
-        if (!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
-
-        if (post.postedBy.toString() !== req.user._id.toString()) {
-            return res.status(401).json({ error: "Unauthorized to delete post" });
-        }
-
-        if (post.img) {
-
-            let img = post.img.split(".com/")[1]
-            const params_remove_req = {
-                Bucket: process.env.AWSS3BUCKETNAME,
-                Key: img,
+        try {
+            const post = await Post.findById(postId);
+            if (!post) {
+                return res.status(404).json({ error: 'Post not found' });
             }
+            res.json(post);
+        } catch (error) {
+            console.error('Error fetching post by ID:', error);
+            res.status(500).json({ error: 'Error fetching post by ID' });
+        } ===
+        ===
+        =
+        const updatePost = async(req, res) => {
+            const { postId } = req.params; // Assuming you have a route parameter for postId
+            const { title, postedBy } = req.body;
 
-            s3.deleteObject(params_remove_req, function(err, data) {
-                if (err) console.log(err, err.stack);
-                else console.log(data);
-            });
-            // const imgId = post.img.split("/").pop().split(".")[0];
-            // await cloudinary.uploader.destroy(imgId);
+            try {
+                const updatedPost = await Post.findByIdAndUpdate(
+                    postId, { title, postedBy }, { new: true }
+                );
+
+                if (!updatedPost) {
+                    return res.status(404).json({ error: 'Post not found' });
+                }
+
+                res.json(updatedPost);
+            } catch (error) {
+                console.error('Error updating post:', error);
+                res.status(500).json({ error: 'Error updating post' });
+            }
+        };
+
+        // Fetch all posts
+        const getAllPosts = async(req, res) => {
+            try {
+                const posts = await Post.find();
+                res.json(posts);
+            } catch (error) {
+                console.error('Error fetching posts:', error);
+                res.status(500).json({ error: 'Error fetching posts' });
+            }
+        };
+
+        // Fetch a specific post by ID
+        const getPostById = async(req, res) => {
+            const { postId } = req.params;
+
+            try {
+                const post = await Post.findById(postId);
+                if (!post) {
+                    return res.status(404).json({ error: 'Post not found' });
+                }
+                res.json(post);
+            } catch (error) {
+                console.error('Error fetching post by ID:', error);
+                res.status(500).json({ error: 'Error fetching post by ID' });
+            } >>>
+            >>>
+            > fff6c500c38a2b7b1b4fe834ace9761d7c25f5b4
+        };
+
+
+        // Search for posts by title
+        <<
+        <<
+        << < HEAD
+        const searchPostsByTitle = async(req, res) => {
+            const { searchTerm } = req.query;
+            try {
+                const posts = await Post.find({
+                    title: { $regex: searchTerm, $options: 'i' }, // Case-insensitive title search
+                });
+
+                res.json(posts);
+            } catch (error) {
+                console.error('Error searching for posts by title:', error);
+                res.status(500).json({ error: 'Error searching for posts by title' });
+            }
+        };
+
+
+
+
+
+
+        const getPost = async(req, res) => {
+            try {
+                const post = await Post.findById(req.params.id);
+                console.log("get post", post);
+
+                if (!post) {
+                    return res.status(404).json({ error: "Post not found" });
+                }
+
+                res.status(200).json(post);
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
+        };
+
+        const deleteComment = async(req, res) => {
+            try {
+                const postId = req.params.id;
+                const replyId = req.params.replyId;
+
+                const post = await Post.findById(postId);
+
+                if (!post) {
+                    return res.status(404).json({ error: "Post not found" });
+                }
+
+                const replyIndex = post.replies.findIndex((reply) => reply._id.toString() === replyId);
+
+                if (replyIndex !== -1) {
+                    post.replies.splice(replyIndex, 1);
+                    await post.save();
+                    return res.status(200).json({ message: "Reply deleted successfully" });
+                } else {
+                    return res.status(404).json({ error: "Reply not found" });
+                }
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
         }
 
-        await Post.findByIdAndDelete(req.params.id);
+        const deletePost = async(req, res) => {
+            try {
+                const post = await Post.findById(req.params.id);
+                if (!post) {
+                    return res.status(404).json({ error: "Post not found" });
+                }
 
-        res.status(200).json({ message: "Post deleted successfully" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+                if (post.postedBy.toString() !== req.user._id.toString()) {
+                    return res.status(401).json({ error: "Unauthorized to delete post" });
+                }
 
-};
+                if (post.img) {
 
-const likeUnlikePost = async(req, res) => {
-    try {
-        const { id: postId } = req.params;
-        const userId = req.user._id;
+                    let img = post.img.split(".com/")[1]
+                    const params_remove_req = {
+                        Bucket: process.env.AWSS3BUCKETNAME,
+                        Key: img,
+                    }
 
-        const post = await Post.findById(postId);
+                    s3.deleteObject(params_remove_req, function(err, data) {
+                        if (err) console.log(err, err.stack);
+                        else console.log(data);
+                    });
+                    // const imgId = post.img.split("/").pop().split(".")[0];
+                    // await cloudinary.uploader.destroy(imgId);
+                }
 
-        if (!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
+                await Post.findByIdAndDelete(req.params.id);
 
-        const userLikedPost = post.likes.includes(userId);
+                res.status(200).json({ message: "Post deleted successfully" });
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
+        };
 
-        if (userLikedPost) {
+        const likeUnlikePost = async(req, res) => {
+            try {
+                const { id: postId } = req.params;
+                const userId = req.user._id;
 
-            await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
-            res.status(200).json({ message: "Post unliked successfully" });
-        } else {
+                const post = await Post.findById(postId);
 
-            post.likes.push(userId);
-            await post.save();
-            res.status(200).json({ message: "Post liked successfully" });
-        }
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
+                if (!post) {
+                    return res.status(404).json({ error: "Post not found" });
+                }
 
-const replyToPost = async(req, res) => {
-    try {
-        const { text } = req.body;
-        const postId = req.params.id;
-        const userId = req.user._id;
-        const userProfilePic = req.user.profilePic;
-        const username = req.user.username;
+                const userLikedPost = post.likes.includes(userId);
 
-        if (!text) {
-            return res.status(400).json({ error: "Text field is required" });
-        }
+                if (userLikedPost) {
 
-        const post = await Post.findById(postId);
+                    await Post.updateOne({ _id: postId }, { $pull: { likes: userId } });
+                    res.status(200).json({ message: "Post unliked successfully" });
+                } else {
 
-        if (!post) {
-            return res.status(404).json({ error: "Post not found" });
-        }
+                    post.likes.push(userId);
+                    await post.save();
+                    res.status(200).json({ message: "Post liked successfully" });
+                }
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
+        };
 
-        const reply = { userId, text, userProfilePic, username };
+        const replyToPost = async(req, res) => {
+            try {
+                const { ObjectId } = Types;
 
-        post.replies.push(reply);
+                console.log("req.body", req.body);
+                const { text, user } = req.body;
+                const postId = req.params.id;
+                const userId = new ObjectId(user._id);
+                const userProfilePic = user.profilePic;
+                const username = user.username;
 
-        await post.save();
+                console.log("user", user);
+                console.log("userProfilePic", userProfilePic);
+                console.log("username", username);
+                console.log("userId", userId);
+
+                console.log("text", text);
+
+                if (!text) {
+                    return res.status(400).json({ error: "Text field is required" });
+                }
+
+                const post = await Post.findById(postId);
+
+                if (!post) {
+                    return res.status(404).json({ error: "Post not found" });
+                }
+                const replyId = new ObjectId();
+                const reply = {
+                    _id: replyId,
+                    userId: userId,
+                    text: text,
+                    userProfilePic: userProfilePic,
+                    username: username,
+                };
+                console.log("post before :", post)
+                console.log("final reply", reply);
+                // await reply.save(); // Save the reply document
+
+                // Push the reply into the post's replies array
+
+                const update = {
+                    $push: { replies: reply },
+                };
+
+                const updatedPost = await Post.updateOne({ _id: postId }, update);
+                console.log("updatedPost", updatedPost);
+                if (updatedPost.modifiedCount === 1) {
+                    const replyWithId = reply;
+                    console.log("replyWithId", replyWithId);
+                    res.status(200).json(replyWithId);
+                } else {
+                    res.status(404).json({ error: "Post not updated" });
+                }
+
+            } catch (err) {
+                res.status(500).json({ error: err.message });
+            }
+        };
 
 
-        res.status(200).json(reply);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
+        <<
+        <<
+        << < HEAD
+            ===
+            ===
+            =
+            const getFeedPosts = async(req, res) => {
+                try {
+                    let isAuthenticated = false;
+                    let userId = req.params.id || null; // Set userId to null if id is not provided
+                    let user = null;
 
-const getFeedPosts = async(req, res) => {
-    try {
-        const userId = req.user._id;
-        const user = await User.findById(userId);
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+                    if (userId) {
+                        console.log("UserId", userId);
 
-        const following = user.following;
+                        user = await User.findById(userId);
+                        console.log("user", user);
 
-        const feedPosts = await Post.find({ postedBy: { $in: following } }).sort({ createdAt: -1 });
+                        if (user) {
+                            isAuthenticated = true;
+                        }
+                    }
 
-        res.status(200).json(feedPosts);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-};
+                    console.log("isAuthenticated", isAuthenticated);
 
-const getUserPosts = async(req, res) => {
-    const { username } = req.params;
+                    // Initial match stage to filter out the user's own posts
+                    let matchStage = {};
+                    if (isAuthenticated) {
+                        matchStage = {
+                            $match: {
+                                postedBy: { $nin: [userId] }, // Exclude the user's own posts
+                            },
+                        };
+                    }
 
-    try {
-        const user = await User.findOne({ username });
+                    console.log("matchStage", matchStage);
 
-        if (!user) {
-            return res.status(404).json({ error: "User not found" });
-        }
+                    // Sample stage to get a random sample of 10 posts
+                    const sampleStage = { $sample: { size: 10 } };
 
-        const posts = await Post.find({ postedBy: user._id }).sort({ createdAt: -1 });
+                    console.log("sampleStage", sampleStage);
 
-        res.status(200).json(posts);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+                    // Aggregate the pipeline
+                    const pipeline = [];
 
-    }
-};
+                    if (matchStage.$match) {
+                        pipeline.push(matchStage);
+                    }
+                    pipeline.push(sampleStage);
+
+                    const randomFeedPosts = await Post.aggregate(pipeline);
+                    console.log("randomFeedPosts", randomFeedPosts);
+
+                    if (!randomFeedPosts || randomFeedPosts.length === 0) {
+                        return res.status(404).json({ error: "No feed posts found" });
+                    }
+
+                    res.status(200).json(randomFeedPosts);
+                } catch (err) {
+                    res.status(500).json({ error: err.message });
+                }
+            };
 
 
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment, getAllPosts };
+
+
+        const getUserPosts = async(req, res) => {
+            const { username } = req.params;
+
+            try {
+                const user = await User.findOne({ username });
+
+                if (!user) {
+                    return res.status(404).json({ error: "User not found" });
+                }
+
+                const posts = await Post.find({ postedBy: user._id }).sort({ createdAt: -1 });
+
+                res.status(200).json(posts);
+            } catch (error) {
+                res.status(500).json({ error: error.message });
+
+            }
+        };
+
+
+        >>>
+        >>>
+        > fff6c500c38a2b7b1b4fe834ace9761d7c25f5b4
+        export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment, getAllPosts };

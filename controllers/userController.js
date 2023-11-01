@@ -74,7 +74,9 @@ const signupUser = async(req, res) => {
 
 const loginUser = async(req, res) => {
     try {
+        console.log(req.body);
         const { username, password } = req.body;
+        console.log(username, password);
         const user = await User.findOne({ username });
         const isPasswordCorrect = await bcrypt.compare(password, user.password || "");
 
@@ -114,11 +116,12 @@ const logoutUser = (req, res) => {
 
 const followUnFollowUser = async(req, res) => {
     try {
+        const { userId } = req.params;
         const { id } = req.params;
         const userToModify = await User.findById(id);
-        const currentUser = await User.findById(req.user._id);
+        const currentUser = await User.findById(userId);
 
-        if (id === req.user._id.toString())
+        if (id === userId.toString())
             return res.status(400).json({ error: "You cannot follow/unfollow yourself" });
 
         if (!userToModify || !currentUser) return res.status(400).json({ error: "User not found" });
@@ -127,13 +130,13 @@ const followUnFollowUser = async(req, res) => {
 
         if (isFollowing) {
             // Unfollow user
-            await User.findByIdAndUpdate(id, { $pull: { followers: req.user._id } });
-            await User.findByIdAndUpdate(req.user._id, { $pull: { following: id } });
+            await User.findByIdAndUpdate(id, { $pull: { followers: userId } });
+            await User.findByIdAndUpdate(userId, { $pull: { following: id } });
             res.status(200).json({ message: "User unfollowed successfully" });
         } else {
             // Follow user
-            await User.findByIdAndUpdate(id, { $push: { followers: req.user._id } });
-            await User.findByIdAndUpdate(req.user._id, { $push: { following: id } });
+            await User.findByIdAndUpdate(id, { $push: { followers: userId } });
+            await User.findByIdAndUpdate(userId, { $push: { following: id } });
             res.status(200).json({ message: "User followed successfully" });
         }
     } catch (err) {
@@ -146,14 +149,13 @@ const getUserFriends = async(req, res) => {
 
         const userId = req.user._id;
         const usersFollowedMe = await User.findById(userId).select("followers");
+        
 
-        const followers = usersFollowedMe.followers;
-
-        if (followers.length === 0) {
+        if (!usersFollowedMe) {
             return res.status(400).json({ error: "No Friends found" });
         }
 
-        res.status(200).json({ followers });
+        res.status(200).json({ usersFollowedMe });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -164,7 +166,7 @@ const updateUser = async(req, res) => {
     const { name, email, username, password, bio } = req.body;
     let { profilePic } = req.body;
 
-    const userId = req.user._id;
+    const userId = req.params.id;
     try {
         let user = await User.findById(userId);
         if (!user) return res.status(400).json({ error: "User not found" });
@@ -234,10 +236,14 @@ const updateUser = async(req, res) => {
 const getSuggestedUsers = async(req, res) => {
     try {
         // exclude the current user from suggested users array and exclude users that current user is already following
-        const userId = req.user._id;
+        const userId = req.params.id;
+        console.log("userId: ", userId);
 
         const usersFollowedByYou = await User.findById(userId).select("following");
 
+        if (!usersFollowedByYou) {    
+            return res.status(400).json({ error: "No friends found" });
+        }
         const users = await User.aggregate([{
                 $match: {
                     _id: { $ne: userId },
@@ -248,7 +254,7 @@ const getSuggestedUsers = async(req, res) => {
             },
         ]);
         const filteredUsers = users.filter((user) => !usersFollowedByYou.following.includes(user._id));
-        const suggestedUsers = filteredUsers.slice(0, 4);
+        const suggestedUsers = filteredUsers.slice(0, 5);
 
         suggestedUsers.forEach((user) => (user.password = null));
 
