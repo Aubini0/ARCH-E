@@ -208,15 +208,9 @@ const updateUser = async(req, res) => {
                 Bucket: process.env.AWSS3BUCKETNAME
             };
 
-
-            let location = '';
-            let key = '';
-            try {
-                const { Location, Key } = await s3.upload(params_data).promise();
-                location = Location;
-                key = Key;
-            } catch (error) {}
-
+            const { Location, Key } = await s3.putObject(params_data).promise();
+            let location = Location;
+            let key = Key;
 
             user.name = name || user.name;
             user.email = email || user.email;
