@@ -20,17 +20,13 @@ const createPost = async(req, res) => {
             Bucket: process.env.AWSS3BUCKETNAME,
             Key: fileName,
             Body: audioData,
-            ContentType: "audio/mp3",
+            ContentType: "audio/mp3"
         };
 
         // Upload the audio file to S3 and get the location
-
-        let location = '';
-        let key = '';
-
         const { Location, Key } = await s3.putObject(params).promise();
-        location = Location;
-        key = Key;
+        let location = Location;
+        let key = Key;
         console.log(location)
 
         // Save the audio URL to the database
