@@ -204,10 +204,11 @@ const updateUser = async(req, res) => {
                 Body: buf,
                 ContentEncoding: 'base64',
                 ContentType: `image/${type}`,
-                Bucket: process.env.AWSS3BUCKETNAME
+                Bucket: "amplifibucketfiles",
+                ACL: "public-read"
             };
 
-            const { Location, Key } = await s3.putObject(params_data).promise();
+            const { Location, Key } = await s3.upload(params_data).promise();
             let location = Location;
             let key = Key;
 

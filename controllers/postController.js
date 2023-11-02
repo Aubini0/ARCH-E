@@ -17,13 +17,16 @@ const createPost = async(req, res) => {
         const fileName = uuidv4() + '.mp3'; // Generate a unique filename
 
         const params = {
-            Bucket: process.env.AWSS3BUCKETNAME,
+            Bucket: "amplifibucketfiles",
             Key: fileName,
             Body: audioData,
-            ContentType: "audio/mp3"
+            ContentType: "audio/mp3",
+            ACL: "public-read"
         };
 
         // Upload the audio file to S3 and get the location
+
+
         const { Location, Key } = await s3.putObject(params).promise();
         let location = Location;
         let key = Key;
