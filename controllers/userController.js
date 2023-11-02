@@ -203,7 +203,6 @@ const updateUser = async(req, res) => {
                 Key: `${fileName.substr(fileName.length - 15)}.${type}`,
                 Body: buf,
                 ContentEncoding: 'base64',
-                ACL: 'public-read',
                 ContentType: `image/${type}`,
                 Bucket: process.env.AWSS3BUCKETNAME
             };
