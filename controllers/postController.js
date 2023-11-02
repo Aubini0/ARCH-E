@@ -27,7 +27,7 @@ const createPost = async(req, res) => {
         // Upload the audio file to S3 and get the location
 
 
-        const { Location, Key } = await s3.putObject(params).promise();
+        const { Location, Key } = await s3.upload(params).promise();
         let location = Location;
         let key = Key;
         console.log(location)
