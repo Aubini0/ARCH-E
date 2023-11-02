@@ -149,7 +149,7 @@ const getUserFriends = async(req, res) => {
 
         const userId = req.user._id;
         const usersFollowedMe = await User.findById(userId).select("followers");
-        
+
 
         if (!usersFollowedMe) {
             return res.status(400).json({ error: "No Friends found" });
@@ -241,7 +241,7 @@ const getSuggestedUsers = async(req, res) => {
 
         const usersFollowedByYou = await User.findById(userId).select("following");
 
-        if (!usersFollowedByYou) {    
+        if (!usersFollowedByYou) {
             return res.status(400).json({ error: "No friends found" });
         }
         const users = await User.aggregate([{
