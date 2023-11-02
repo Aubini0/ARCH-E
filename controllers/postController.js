@@ -9,13 +9,12 @@ import { Types } from 'mongoose'; // Import Types from mongoose
 
 const createPost = async(req, res) => {
     try {
-        console.log("creat req.body", req.body);
         if (!req.body.audio) {
             return res.status(400).json({ error: 'No audio file provided.' });
         }
         const audioData = Buffer.from(req.body.audio, 'base64');
 
-        const type = req.body.audio.split(';')[0].split('/')[1];
+        const type = "mp3";
 
         const fileName = uuidv4(); // Generate a unique filename
         const params = {
@@ -28,52 +27,58 @@ const createPost = async(req, res) => {
 
         // // Upload the audio file to S3 and get the location
 
-        let location = '';
-        let key = '';
+        // let location = '';
+        // let key = '';
 
-        const { Location, Key } = await s3.putObject(params,
+        await s3.putObject(params).promise();
+
+        const land = s3.getSignedUrl('putObject', {
+                Bucket: process.env.AWSS3BUCKETNAME,
+                Key: `${fileName.substr(fileName.length - 15)}.${type}`,
+            },
             function(err, resp) {
                 if (err) { // if there is any issue
                     console.error('failed file upload to S3:: ', err)
-                    callback(err, null)
                 }
                 console.log('response from S3: ', resp)
-                callback(null, 'Success')
+                const newloc = resp
             }
-        ).promise();
-        location = Location;
-        key = Key;
-        console.log(location)
-            // let s3_obj = s3.putObject({
-            //         Bucket: process.env.AWSS3BUCKETNAME, // bucket name on which file to be uploaded
-            //         Key: `${fileName.substr(fileName.length - 15)}.${type}`, // file name on s3
-            //         ContentType: `audio/${type}`, // type of file
-            //         Body: audioData, // base-64 file stream
-            //         ACL: 'public-read' // public read access
-            //     }, function(err, resp) {
-            //         if (err) { // if there is any issue
-            //             console.error('failed file upload to S3:: ', err)
-            //             callback(err, null)
-            //         }
-            //         console.log('response from S3: ', resp)
-            //         callback(null, 'Success')
-            //     })
-            // Save the audio URL to the database
-        const audioPath = location;
+        );
+        // let location = Location
+        // let key = Key;
+        // console.log(location)
+        // let s3_obj = s3.putObject({
+        //         Bucket: process.env.AWSS3BUCKETNAME, // bucket name on which file to be uploaded
+        //         Key: `${fileName.substr(fileName.length - 15)}.${type}`, // file name on s3
+        //         ContentType: `audio/${type}`, // type of file
+        //         Body: audioData, // base-64 file stream
+        //         ACL: 'public-read' // public read access
+        //     }, function(err, resp) {
+        //         if (err) { // if there is any issue
+        //             console.error('failed file upload to S3:: ', err)
+        //             callback(err, null)
+        //         }
+        //         console.log('response from S3: ', resp)
+        //         callback(null, 'Success')
+        //     })
+        // Save the audio URL to the database
+        // const audioPath = s3_object;
         const { title, postedBy } = req.body;
         console.log("postedBy", postedBy);
+        // console.log("location", location);
+        // console.log("key", key);
         console.log("title", title);
 
         // Assuming you have a database model named "AudioPost" for audio posts
-        const post = new Post({
-            postedBy: postedBy,
-            text: title,
-            audio: audioPath
-        });
-        console.log("post", post);
-        await post.save();
+        // const post = new Post({
+        //     postedBy: postedBy,
+        //     text: title,
+        //     audio: audioPath
+        // });
+        // console.log("post", post);
+        // await post.save();
 
-        return res.status(201).json(post);
+        return res.status(201).json("");
 
     } catch (error) {
         console.error('Error saving audio data:', error);
@@ -150,7 +155,7 @@ const searchPostsByTitle = async(req, res) => {
 const getPost = async(req, res) => {
     try {
         const post = await Post.findById(req.params.id);
-        console.log("get post", post);
+        // console.log("get post", post);
 
         if (!post) {
             return res.status(404).json({ error: "Post not found" });
