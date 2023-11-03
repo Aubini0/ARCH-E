@@ -1,14 +1,16 @@
 import express from "express";
 import {
-    createPost,
-    deletePost,
-    getPost,
-    likeUnlikePost,
-    replyToPost,
-    getFeedPosts,
-    getUserPosts,
-    deleteComment,
-    getAllPosts
+	createPost,
+	deletePost,
+	getPost,
+	likeUnlikePost,
+	replyToPost,
+	getFeedPosts,
+	getUserPosts,
+	deleteComment,
+	getAllPosts,
+	upvotePost,
+	downvotePost
 } from "../controllers/postController.js";
 import protectRoute from "../middlewares/protectRoute.js";
 
@@ -24,5 +26,7 @@ router.delete("/:id", protectRoute, deletePost);
 router.put("/like/:id", protectRoute, likeUnlikePost);
 router.put("/reply/:id", protectRoute, replyToPost);
 router.delete("/reply/delete/:id/:replyId", protectRoute, deleteComment);
+router.put('/upvote/:postId/:userId', upvotePost);
+router.put('/downvote/:postId/:userId', downvotePost);
 
 export default router;
