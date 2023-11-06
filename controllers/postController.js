@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 import { upload, s3 } from "../db/bucketUploadClient.js";
 import { Types } from 'mongoose'; // Import Types from mongoose
 
-const createPost = async(req, res) => {
+const createPost = async (req, res) => {
     try {
         console.log("creat req.body", req.body);
         if (!req.body.audio) {
@@ -57,7 +57,7 @@ const createPost = async(req, res) => {
 
 
 // Update a post
-const updatePost = async(req, res) => {
+const updatePost = async (req, res) => {
     const { postId } = req.params; // Assuming you have a route parameter for postId
     const { title, postedBy } = req.body;
 
@@ -78,7 +78,7 @@ const updatePost = async(req, res) => {
 };
 
 // Fetch all posts
-const getAllPosts = async(req, res) => {
+const getAllPosts = async (req, res) => {
     try {
         const posts = await Post.find();
         res.json(posts);
@@ -89,7 +89,7 @@ const getAllPosts = async(req, res) => {
 };
 
 // Fetch a specific post by ID
-const getPostById = async(req, res) => {
+const getPostById = async (req, res) => {
     const { postId } = req.params;
 
     try {
@@ -106,7 +106,7 @@ const getPostById = async(req, res) => {
 
 
 // Search for posts by title
-const searchPostsByTitle = async(req, res) => {
+const searchPostsByTitle = async (req, res) => {
     const { searchTerm } = req.query;
     try {
         const posts = await Post.find({
@@ -121,7 +121,7 @@ const searchPostsByTitle = async(req, res) => {
 };
 
 
-const getPost = async(req, res) => {
+const getPost = async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         console.log("get post", post);
@@ -136,7 +136,7 @@ const getPost = async(req, res) => {
     }
 };
 
-const deleteComment = async(req, res) => {
+const deleteComment = async (req, res) => {
     try {
         const postId = req.params.id;
         const replyId = req.params.replyId;
@@ -161,7 +161,7 @@ const deleteComment = async(req, res) => {
     }
 }
 
-const deletePost = async(req, res) => {
+const deletePost = async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         if (!post) {
@@ -180,7 +180,7 @@ const deletePost = async(req, res) => {
                 Key: img,
             }
 
-            s3.deleteObject(params_remove_req, function(err, data) {
+            s3.deleteObject(params_remove_req, function (err, data) {
                 if (err) console.log(err, err.stack);
                 else console.log(data);
             });
@@ -196,7 +196,7 @@ const deletePost = async(req, res) => {
     }
 };
 
-const likeUnlikePost = async(req, res) => {
+const likeUnlikePost = async (req, res) => {
     try {
         const { id: postId } = req.params;
         const userId = req.user._id;
@@ -224,7 +224,7 @@ const likeUnlikePost = async(req, res) => {
     }
 };
 
-const replyToPost = async(req, res) => {
+const replyToPost = async (req, res) => {
     try {
         const { ObjectId } = Types;
 
@@ -286,13 +286,13 @@ const replyToPost = async(req, res) => {
 
 
 const getFeedPosts = async (req, res) => {
-  try {
-    let isAuthenticated = false;
-    let userId = req.params.id || null; // Set userId to null if id is not provided
-    let user = null;
-    
-    if (userId) {
-      console.log("UserId", userId);
+    try {
+        let isAuthenticated = false;
+        let userId = req.params.id || null; // Set userId to null if id is not provided
+        let user = null;
+
+        if (userId) {
+            console.log("UserId", userId);
 
             user = await User.findById(userId);
             console.log("user", user);
@@ -324,13 +324,13 @@ const getFeedPosts = async (req, res) => {
         // Aggregate the pipeline
         const pipeline = [];
 
-    if (matchStage.$match) {
-      pipeline.push(matchStage);
-    }
-    pipeline.push(sampleStage);
-    
-    const randomFeedPosts = await Post.aggregate(pipeline);
-    console.log("randomFeedPosts", randomFeedPosts);
+        if (matchStage.$match) {
+            pipeline.push(matchStage);
+        }
+        pipeline.push(sampleStage);
+
+        const randomFeedPosts = await Post.aggregate(pipeline);
+        console.log("randomFeedPosts", randomFeedPosts);
 
         if (!randomFeedPosts || randomFeedPosts.length === 0) {
             return res.status(404).json({ error: "No feed posts found" });
@@ -345,7 +345,7 @@ const getFeedPosts = async (req, res) => {
 
 
 
-const getUserPosts = async(req, res) => {
+const getUserPosts = async (req, res) => {
     const { username } = req.params;
 
     try {
@@ -365,63 +365,75 @@ const getUserPosts = async(req, res) => {
 };
 
 const upvotePost = async (req, res) => {
-  const { postId, userId } = req.params;
+    const { postId, userId } = req.params;
 
-  try {
-    const post = await Post.findById(postId);
+    try {
+        const post = await Post.findById(postId);
 
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
+        if (!post) {
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        const upVoteIndex = post.upVote.indexOf(userId);
+
+        if (upVoteIndex === -1) {
+            post.upVote.push(userId);
+
+        } else {
+            post.upVote.splice(upVoteIndex, 1);
+
+        }
+
+        const downVoteIndex = post.downVote.indexOf(userId);
+
+        if (downVoteIndex !== -1) {
+            post.downVote.splice(downVoteIndex, 1);
+
+        }
+
+        await post.save();
+
+        return res.status(200).json(post);
+    } catch (err) {
+        return res.status(500).json({ error: err.message });
     }
-
-    if (!post.upVote.includes(userId)) {
-      post.upVote.push(userId);
-
-      const downVoteIndex = post.downVote.indexOf(userId);
-      console.log("downVoteIndex", downVoteIndex);
-      if (downVoteIndex !== -1) {
-        post.downVote.splice(downVoteIndex, 1);
-      }
-
-      await post.save();
-
-      return res.status(200).json(post);
-    } else {
-      return res.status(400).json({ error: 'You already upvoted this post' });
-    }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
 };
 
-// Controller function for downvoting a post
+
 const downvotePost = async (req, res) => {
-  const { postId, userId } = req.params;
+    const { postId, userId } = req.params;
+  
+    try {
+      const post = await Post.findById(postId);
+  
+      if (!post) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+  
+      const downVoteIndex = post.downVote.indexOf(userId);
+  
+      if (downVoteIndex === -1) {
+        post.downVote.push(userId);
 
-  try {
-    const post = await Post.findById(postId);
+      } else {
+        post.downVote.splice(downVoteIndex, 1);
 
-    if (!post) {
-      return res.status(404).json({ error: 'Post not found' });
-    }
-
-    if (!post.downVote.includes(userId)) {
-      post.downVote.push(userId);
-
+      }
+  
       const upVoteIndex = post.upVote.indexOf(userId);
+  
       if (upVoteIndex !== -1) {
         post.upVote.splice(upVoteIndex, 1);
+        
       }
-
+  
       await post.save();
-
+  
       return res.status(200).json(post);
-    } else {
-      return res.status(400).json({ error: 'You already downvoted this post' });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
     }
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
-  }
-};
+  };
+  
 
 export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment, getAllPosts, upvotePost, downvotePost };
