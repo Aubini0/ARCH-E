@@ -7,6 +7,8 @@ import { upload, s3 } from "../db/bucketUploadClient.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
+import { sendOTP } from "../utils/helpers/generateOTP.js"
+import speakeasy from "speakeasy";
 
 
 dotenv.config();
@@ -51,7 +53,7 @@ const signupUser = async(req, res) => {
         await newUser.save();
 
         if (newUser) {
-            const token = await generateTokenAndSetCookie(newUser._id, res);
+            const token = await generateTokenAndSetCookie(newUser, res);
 
             res.status(201).json({
                 _id: newUser._id,
@@ -64,6 +66,98 @@ const signupUser = async(req, res) => {
             });
         } else {
             res.status(400).json({ error: "Invalid user data" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+        console.log("Error in signupUser: ", err.message);
+    }
+};
+
+const signupUserBabbl = async(req, res) => {
+    try {
+        const { first_name, last_name, username, age, phone, profilePic } = req.body;
+        const user = await User.findOne({ $or: [{ phone }, { username }] });
+
+        if (user) {
+            return res.status(400).json({ error: "User already exists" });
+        }
+
+        if (profilePic) {
+            let buf = Buffer.from(profilePic.replace(/^data:image\/\w+;base64,/, ""), 'base64')
+
+            let fileName = uuidv4();
+
+            const type = profilePic.split(';')[0].split('/')[1];
+
+            let params_data = {
+                Key: `${fileName.substr(fileName.length - 15)}.${type}`,
+                Body: buf,
+                ContentEncoding: 'base64',
+                ContentType: `image/${type}`,
+                Bucket: "amplifibucketfiles",
+                ACL: "public-read"
+            };
+
+            const { Location, Key } = await s3.upload(params_data).promise();
+            let location = Location;
+            let key = Key;
+            const newUser = new User({
+                first_name: first_name,
+                last_name: last_name,
+                username: username,
+                age: age,
+                phone: phone,
+                profilePic: location,
+                ip: req.ip,
+            });
+            await newUser.save();
+
+            if (newUser) {
+                const token = await generateTokenAndSetCookie(newUser, res);
+
+                res.status(201).json({
+                    _id: newUser._id,
+                    first_name: newUser.first_name,
+                    last_name: newUser.last_name,
+                    username: newUser.username,
+                    age: newUser.age,
+                    profilePic: newUser.profilePic,
+                    ip: user.ip,
+                    token: token
+                });
+            } else {
+                res.status(400).json({ error: "Invalid user data" });
+            }
+        } else {
+            let location = null;
+            let key = null;
+            const newUser = new User({
+                first_name: first_name,
+                last_name: last_name,
+                username: username,
+                age: age,
+                phone: phone,
+                profilePic: location,
+                ip: req.ip,
+            });
+            await newUser.save();
+
+            if (newUser) {
+                const token = await generateTokenAndSetCookie(newUser, res);
+
+                res.status(201).json({
+                    _id: newUser._id,
+                    first_name: newUser.first_name,
+                    last_name: newUser.last_name,
+                    username: newUser.username,
+                    age: newUser.age,
+                    profilePic: newUser.profilePic,
+                    ip: newUser.ip,
+                    token: token
+                });
+            } else {
+                res.status(400).json({ error: "Invalid user data" });
+            }
         }
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -88,7 +182,7 @@ const loginUser = async(req, res) => {
         }
 
 
-        const token = await generateTokenAndSetCookie(user._id, res);
+        const token = await generateTokenAndSetCookie(user, res);
 
         res.status(200).json({
             _id: user._id,
@@ -97,6 +191,43 @@ const loginUser = async(req, res) => {
             username: user.username,
             bio: user.bio,
             profilePic: user.profilePic,
+            ip: user.ip,
+            token
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+        console.log("Error in loginUser: ", error.message);
+    }
+};
+
+const loginUserBabbl = async(req, res) => {
+    try {
+        console.log(req.body);
+        const { phone, otp } = req.body;
+
+        let tokenValidates = speakeasy.totp.verify({
+            secret: phone,
+            encoding: 'base32',
+            token: otp,
+            window: 15
+        });
+
+        if (tokenValidates == false) {
+            res.status(400).json({ error: "Invalid OTP" });
+        }
+
+        const user = await User.findOne({ phone });
+
+        const token = await generateTokenAndSetCookie(user, res);
+
+        res.status(200).json({
+            _id: user._id,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            phone: user.phone,
+            username: user.username,
+            profilePic: user.profilePic,
+            ip: user.ip,
             token
         });
     } catch (error) {
@@ -274,6 +405,41 @@ const freezeAccount = async(req, res) => {
     }
 };
 
+
+const CreateTOTP = async(req, res) => {
+    const { phone } = req.body;
+    try {
+        let token = speakeasy.totp({
+            secret: phone,
+            step: 5,
+            window: 30
+        });
+
+        sendOTP(phone, token);
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+const VerifyTOTP = async(req, res) => {
+    const { token, phone } = req.body;
+    try {
+        let tokenValidates = speakeasy.totp.verify({
+            secret: phone,
+            token: token,
+            step: 5,
+            window: 30
+        });
+
+        res.status(200).json({ success: tokenValidates });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 export {
     signupUser,
     loginUser,
@@ -284,4 +450,8 @@ export {
     getUserProfile,
     getSuggestedUsers,
     freezeAccount,
+    signupUserBabbl,
+    loginUserBabbl,
+    CreateTOTP,
+    VerifyTOTP,
 };

@@ -365,4 +365,29 @@ const getUserPosts = async(req, res) => {
 };
 
 
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment, getAllPosts };
+const fetchMatchingUsers = async(req, res) => {
+    try {
+        let userid = req.user.id;
+
+        const user = await User.findById(userid);
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        let age = user.age
+
+        let ip = user.ip
+
+        const matchingusers = await User.find({ $or: [{ age }, { ip }] });
+
+        res.status(200).json(matchingusers);
+
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+
+}
+
+
+export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment, getAllPosts, fetchMatchingUsers };

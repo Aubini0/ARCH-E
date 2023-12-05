@@ -31,6 +31,7 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json({ limit: "100mb" })); // To parse JSON data in the req.body
 app.use(express.urlencoded({ extended: true })); // To parse form data in the req.body
 app.use(cookieParser());
+app.set('trust proxy', true)
 
 // Routes
 app.use("/api/users", userRoutes);
@@ -38,6 +39,4 @@ app.use("/api/posts", postRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reposts", repostRoutes);
 
-app.listen(PORT, () =>
-    console.log(`Server started at http://localhost:${PORT}`)
-);
+app.listen(PORT, '0.0.0.0');
