@@ -26,7 +26,7 @@ router.put("/like/:id", protectRoute, likeUnlikePost);
 router.put("/matching_users/", protectRoute, fetchMatchingUsers);
 router.put("/reply/:id", protectRoute, replyToPost);
 router.delete("/reply/delete/:id/:replyId", protectRoute, deleteComment);
-router.put('/upvote/:postId/:userId', protectRoute, upvotePost);
-router.put('/downvote/:postId/:userId', protectRoute, downvotePost);
+// router.put('/upvote/:postId/:userId', protectRoute, upvotePost);
+// router.put('/downvote/:postId/:userId', protectRoute, downvotePost);
 
 export default router;
