@@ -7,7 +7,7 @@ import { upload, s3 } from "../db/bucketUploadClient.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
-import { sendOTP } from "../utils/helpers/generateOTP.js"
+import { sendOTP, makeid } from "../utils/helpers/generateOTP.js"
 import speakeasy from "speakeasy";
 
 
@@ -78,6 +78,8 @@ const signupUserBabbl = async(req, res) => {
         const { first_name, last_name, username, age, phone, profilePic } = req.body;
         const user = await User.findOne({ $or: [{ phone }, { username }] });
 
+        let email = makeid(9)
+
         if (user) {
             return res.status(400).json({ error: "User already exists" });
         }
@@ -108,6 +110,7 @@ const signupUserBabbl = async(req, res) => {
                 age: age,
                 phone: phone,
                 profilePic: location,
+                email: email,
                 ip: req.ip,
             });
             await newUser.save();
@@ -123,21 +126,20 @@ const signupUserBabbl = async(req, res) => {
                     age: newUser.age,
                     profilePic: newUser.profilePic,
                     ip: user.ip,
+                    email: email,
                     token: token
                 });
             } else {
                 res.status(400).json({ error: "Invalid user data" });
             }
         } else {
-            let location = null;
-            let key = null;
             const newUser = new User({
                 first_name: first_name,
                 last_name: last_name,
                 username: username,
                 age: age,
+                email: email,
                 phone: phone,
-                profilePic: location,
                 ip: req.ip,
             });
             await newUser.save();
