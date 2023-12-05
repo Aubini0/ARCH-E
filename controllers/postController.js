@@ -364,7 +364,6 @@ const getUserPosts = async(req, res) => {
     }
 };
 
-
 const fetchMatchingUsers = async(req, res) => {
     try {
         let userid = req.user.id;

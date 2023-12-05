@@ -36,6 +36,16 @@ const postSchema = mongoose.Schema({
 		ref: "User",
 		default: [],
 	},
+	upVote: {
+		type: [mongoose.Schema.Types.ObjectId],
+		ref: "User",
+		default: [],
+	},
+	downVote: {
+		type: [mongoose.Schema.Types.ObjectId],
+		ref: "User",
+		default: [],
+	},
 	replies: [
 		{
 		  userId: {
