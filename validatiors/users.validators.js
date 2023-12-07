@@ -36,6 +36,29 @@ const userValidation = {
         }),
 
 
+        phone: Joi.string().pattern(/^\+[1-9]\d{1,14}$/)
+            .required()
+            .error(() => {
+            throw {
+                status: 200,
+                statusCode: 400,
+                success: false,
+                message: "Phone Number is required",
+            };
+        }),
+
+
+        username: Joi.string()
+            .required()
+            .error(() => {
+            throw {
+                status: 200,
+                statusCode: 400,
+                success: false,
+                message: "Username is required",
+            };
+        }),
+
 
       }),
     
