@@ -97,7 +97,9 @@ const signupUserBabbl = async(req, res) => {
         await JoiSchema.validateAsync({
             age,
             lat,
-            long
+            long,
+            phone,
+            username
         });
 
         res.status(201).json(
@@ -110,7 +112,7 @@ const signupUserBabbl = async(req, res) => {
                 profilePic , 
                 lat , 
                 long  ,
-                ip           
+                ip 
             )
         )
 
