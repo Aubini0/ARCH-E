@@ -9,9 +9,8 @@ import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { sendOTP, makeid } from "../utils/helpers/generateOTP.js"
 import speakeasy from "speakeasy";
-
-
-dotenv.config();
+import userValidation from "../validatiors/users.validators.js";
+import signUpService from "../services/user.services.js";
 
 const getUserProfile = async(req, res) => {
     const { query } = req.params;
@@ -32,6 +31,8 @@ const getUserProfile = async(req, res) => {
         console.log("Error in getUserProfile: ", err.message);
     }
 };
+
+
 
 const signupUser = async(req, res) => {
     try {
@@ -73,97 +74,57 @@ const signupUser = async(req, res) => {
     }
 };
 
+
+
 const signupUserBabbl = async(req, res) => {
     try {
-        const { first_name, last_name, username, age, phone, profilePic } = req.body;
-        const user = await User.findOne({ $or: [{ phone }, { username }] });
+        const { 
+            first_name, 
+            last_name, 
+            username, 
+            age, 
+            phone, 
+            profilePic , 
+            lat , 
+            long 
+        } = req.body;
 
-        let email = makeid(9)
+        const ip = req.ip;
 
-        if (user) {
-            return res.status(400).json({ error: "User already exists" });
-        }
 
-        if (profilePic) {
-            let buf = Buffer.from(profilePic.replace(/^data:image\/\w+;base64,/, ""), 'base64')
 
-            let fileName = uuidv4();
+        const JoiSchema = userValidation.signUp;
+        await JoiSchema.validateAsync({
+            age,
+            lat,
+            long
+        });
 
-            const type = profilePic.split(';')[0].split('/')[1];
+        res.status(201).json(
+            await signUpService(
+                first_name, 
+                last_name, 
+                username, 
+                age, 
+                phone, 
+                profilePic , 
+                lat , 
+                long  ,
+                ip           
+            )
+        )
 
-            let params_data = {
-                Key: `${fileName.substr(fileName.length - 15)}.${type}`,
-                Body: buf,
-                ContentEncoding: 'base64',
-                ContentType: `image/${type}`,
-                Bucket: "amplifibucketfiles",
-                ACL: "public-read"
-            };
 
-            const { Location, Key } = await s3.upload(params_data).promise();
-            let location = Location;
-            let key = Key;
-            const newUser = new User({
-                first_name: first_name,
-                last_name: last_name,
-                username: username,
-                age: age,
-                phone: phone,
-                profilePic: location,
-                email: email,
-                ip: req.ip,
-            });
-            await newUser.save();
+    } 
+    catch (err) {
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+    
 
-            if (newUser) {
-                const token = await generateTokenAndSetCookie(newUser, res);
-
-                res.status(201).json({
-                    _id: newUser._id,
-                    first_name: newUser.first_name,
-                    last_name: newUser.last_name,
-                    username: newUser.username,
-                    age: newUser.age,
-                    profilePic: newUser.profilePic,
-                    ip: user.ip,
-                    email: email,
-                    token: token
-                });
-            } else {
-                res.status(400).json({ error: "Invalid user data" });
-            }
-        } else {
-            const newUser = new User({
-                first_name: first_name,
-                last_name: last_name,
-                username: username,
-                age: age,
-                email: email,
-                phone: phone,
-                ip: req.ip,
-            });
-            await newUser.save();
-
-            if (newUser) {
-                const token = await generateTokenAndSetCookie(newUser, res);
-
-                res.status(201).json({
-                    _id: newUser._id,
-                    first_name: newUser.first_name,
-                    last_name: newUser.last_name,
-                    username: newUser.username,
-                    age: newUser.age,
-                    profilePic: newUser.profilePic,
-                    ip: newUser.ip,
-                    token: token
-                });
-            } else {
-                res.status(400).json({ error: "Invalid user data" });
-            }
-        }
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-        console.log("Error in signupUser: ", err.message);
     }
 };
 

@@ -61,6 +61,17 @@ const userSchema = mongoose.Schema({
         type: Boolean,
         default: false,
     },
+
+    // location Cordinated of user
+    lat: {
+        type: String,
+        default: "",
+    },
+    long: {
+        type: String,
+        default: "",
+    },
+
 }, {
     timestamps: true,
 });
