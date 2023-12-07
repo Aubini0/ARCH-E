@@ -56,6 +56,7 @@ const createPost = async(req, res) => {
 };
 
 
+
 // Update a post
 const updatePost = async(req, res) => {
     const { postId } = req.params; // Assuming you have a route parameter for postId
