@@ -39,4 +39,5 @@ app.use("/api/posts", postRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reposts", repostRoutes);
 
-app.listen(PORT, '0.0.0.0');
+app.listen(PORT, () =>
+    console.log(`Server started at http://localhost:${PORT}`));
