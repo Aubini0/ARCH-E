@@ -18,6 +18,7 @@ const app = express();
 
 
 app.use(cors());
+app.options('*', cors()); // include before other routes
 
 const PORT = process.env.PORT || 5000;
 
