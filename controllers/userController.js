@@ -33,6 +33,8 @@ const getUserProfile = async(req, res) => {
     }
 };
 
+
+
 const signupUser = async(req, res) => {
     try {
         const { name, email, username, password } = req.body;
@@ -72,6 +74,8 @@ const signupUser = async(req, res) => {
         console.log("Error in signupUser: ", err.message);
     }
 };
+
+
 
 const signupUserBabbl = async(req, res) => {
     try {
