@@ -22,7 +22,10 @@ router.get("/profile/:query", getUserProfile);
 router.get("/suggested/:id", protectRoute, getSuggestedUsers);
 router.post("/signup", signupUser);
 router.post("/babbl/signup", signupUserBabbl);
-router.post("/createTOTP", CreateTOTP);
+
+// commenting this route to prevent twillio auth error for now
+// router.post("/createTOTP", CreateTOTP);
+
 router.post("/verifyTOTP", VerifyTOTP);
 router.post("/login", loginUser);
 router.post("/babbl/login", loginUserBabbl);
