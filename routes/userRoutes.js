@@ -13,6 +13,7 @@ import {
     loginUserBabbl,
     CreateTOTP,
     VerifyTOTP,
+    verifyAccess,
 } from "../controllers/userController.js";
 import protectRoute from "../middlewares/protectRoute.js";
 
@@ -34,5 +35,9 @@ router.post("/follow/:userId/:id", protectRoute, followUnFollowUser); // Toggle 
 router.put("/update/:id", protectRoute, updateUser);
 router.put("/freeze", protectRoute, freezeAccount);
 router.get("/friends", protectRoute, getUserFriends);
+
+
+// dummy route to check user access
+router.get("/verify-access" , protectRoute , verifyAccess)
 
 export default router;

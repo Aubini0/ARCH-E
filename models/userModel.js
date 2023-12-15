@@ -28,8 +28,8 @@ const userSchema = mongoose.Schema({
     },
     email: {
         type: String,
-        required: false,
-        unique: false,
+        required: true,
+        unique: true,
     },
     password: {
         type: String,
@@ -39,7 +39,7 @@ const userSchema = mongoose.Schema({
     phone: {
         type: String,
         maxLength: 15,
-        required: true,
+        required: false,
     },
     profilePic: {
         type: String,

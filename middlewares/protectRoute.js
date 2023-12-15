@@ -9,7 +9,7 @@ const protectRoute = async(req, res, next) => {
     console.log("bearerToken", bearerToken);
 
     if (!bearerToken) {
-        return res.status(403).send("a token is required for authentication")
+        return res.status(403).send("A token is required for authentication")
     }
     try {
         // const token = bearerToken.substring(7)
