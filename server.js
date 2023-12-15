@@ -12,21 +12,12 @@ import cors from "cors";
 
 dotenv.config();
 
-connectDB();
 
 const app = express();
 
-app.use(function(req, res, next){
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, accept, access-control-allow-origin');
-
-    if ('OPTIONS' == req.method) res.send(200);
-    else next();
-});
 
 
-// app.use(cors());
+app.use(cors());
 // app.options('*', cors()); // include before other routes
 
 const PORT = process.env.PORT || 5000;
@@ -49,5 +40,16 @@ app.use("/api/posts", postRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reposts", repostRoutes);
 
-app.listen(PORT, () =>
-    console.log(`Server started at http://localhost:${PORT}`));
+
+
+(async()=>{
+    // wait for db to connect then proceed
+    await connectDB();
+
+    // start server to listen at specified port
+    app.listen(PORT, () =>
+        console.log(`Server started at http://localhost:${PORT}`)
+    );
+
+})();
+

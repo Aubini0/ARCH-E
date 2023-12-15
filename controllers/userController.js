@@ -10,7 +10,9 @@ import { v4 as uuidv4 } from "uuid";
 import { sendOTP, makeid } from "../utils/helpers/generateOTP.js"
 import speakeasy from "speakeasy";
 import userValidation from "../validatiors/users.validators.js";
-import signUpService from "../services/user.services.js";
+
+
+import { signUpService , signInService }from "../services/user.services.js";
 
 const getUserProfile = async(req, res) => {
     const { query } = req.params;
@@ -79,14 +81,10 @@ const signupUser = async(req, res) => {
 const signupUserBabbl = async(req, res) => {
     try {
         const { 
-            first_name, 
-            last_name, 
-            username, 
-            age, 
-            phone, 
-            profilePic , 
-            lat , 
-            long 
+            first_name, last_name, 
+            email,password, age, 
+            profilePic , phone,
+            lat , long 
         } = req.body;
 
         const ip = req.ip;
@@ -95,24 +93,17 @@ const signupUserBabbl = async(req, res) => {
 
         const JoiSchema = userValidation.signUp;
         await JoiSchema.validateAsync({
-            age,
-            lat,
-            long,
-            phone,
-            username
+            age, lat,
+            long, email,
+            password, 
         });
 
         res.status(201).json(
             await signUpService(
-                first_name, 
-                last_name, 
-                username, 
-                age, 
-                phone, 
-                profilePic , 
-                lat , 
-                long  ,
-                ip 
+                first_name, last_name, 
+                email, password,
+                age, phone, profilePic , 
+                lat ,long  ,ip 
             )
         )
 
@@ -129,6 +120,65 @@ const signupUserBabbl = async(req, res) => {
 
     }
 };
+
+const loginUserBabbl = async(req, res) => {
+    try {
+        const { email , password } = req.body;
+
+        const JoiSchema = userValidation.signIn;
+        await JoiSchema.validateAsync({
+            email, password, 
+        });
+
+        let response = await signInService(
+            email, password,
+        )
+
+
+        res.status(201).json(
+            response
+        )
+
+
+        // let tokenValidates = speakeasy.totp.verify({
+        //     secret: phone,
+        //     encoding: 'base32',
+        //     token: otp,
+        //     window: 15
+        // });
+
+        // if (tokenValidates == false) {
+        //     res.status(400).json({ error: "Invalid OTP" });
+        // }
+
+        // const user = await User.findOne({ phone });
+
+        // const token = await generateTokenAndSetCookie(user, res);
+
+        // res.status(200).json({
+        //     _id: user._id,
+        //     first_name: user.first_name,
+        //     last_name: user.last_name,
+        //     phone: user.phone,
+        //     username: user.username,
+        //     profilePic: user.profilePic,
+        //     ip: user.ip,
+        //     token
+        // });
+
+    } catch (err) {
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+
+    }
+};
+
+
+
 
 
 const loginUser = async(req, res) => {
@@ -165,41 +215,6 @@ const loginUser = async(req, res) => {
     }
 };
 
-const loginUserBabbl = async(req, res) => {
-    try {
-        console.log(req.body);
-        const { phone, otp } = req.body;
-
-        let tokenValidates = speakeasy.totp.verify({
-            secret: phone,
-            encoding: 'base32',
-            token: otp,
-            window: 15
-        });
-
-        if (tokenValidates == false) {
-            res.status(400).json({ error: "Invalid OTP" });
-        }
-
-        const user = await User.findOne({ phone });
-
-        const token = await generateTokenAndSetCookie(user, res);
-
-        res.status(200).json({
-            _id: user._id,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            phone: user.phone,
-            username: user.username,
-            profilePic: user.profilePic,
-            ip: user.ip,
-            token
-        });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-        console.log("Error in loginUser: ", error.message);
-    }
-};
 
 const logoutUser = (req, res) => {
     try {
@@ -406,6 +421,23 @@ const VerifyTOTP = async(req, res) => {
     }
 };
 
+
+const verifyAccess = async(req, res) => {
+    try {
+
+        res.status(200).json({ 
+            success: true , 
+            // ...req.user.userId,
+            message : "Authenticated" 
+        });
+    } catch (err) {
+        res.status(500).json({ 
+            success: false,
+            error: err.message,
+         });
+    }
+};
+
 export {
     signupUser,
     loginUser,
@@ -420,4 +452,5 @@ export {
     loginUserBabbl,
     CreateTOTP,
     VerifyTOTP,
+    verifyAccess
 };

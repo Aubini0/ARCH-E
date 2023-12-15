@@ -36,31 +36,70 @@ const userValidation = {
         }),
 
 
-        phone: Joi.string().pattern(/^\+[1-9]\d{1,14}$/)
+        // phone: Joi.string().pattern(/^\+[1-9]\d{1,14}$/)
+        //     .required()
+        //     .error(() => {
+        //     throw {
+        //         status: 200,
+        //         statusCode: 400,
+        //         success: false,
+        //         message: "Phone Number is required",
+        //     };
+        // }),
+
+
+        email: Joi.string().email()
             .required()
             .error(() => {
             throw {
                 status: 200,
                 statusCode: 400,
                 success: false,
-                message: "Phone Number is required",
+                message: "Valid Email is required",
             };
         }),
 
 
-        username: Joi.string()
+        password: Joi.string().min(6).alphanum()
             .required()
             .error(() => {
             throw {
                 status: 200,
                 statusCode: 400,
                 success: false,
-                message: "Username is required",
+                message: "Password is required & should be minimum 6 character long",
             };
         }),
 
 
       }),
+
+    signIn: Joi.object().keys({
+        email: Joi.string().email()
+            .required()
+            .error(() => {
+            throw {
+                status: 200,
+                statusCode: 400,
+                success: false,
+                message: "Valid Email is required",
+            };
+        }),
+
+        password: Joi.string()
+            .required()
+            .error(() => {
+            throw {
+                status: 200,
+                statusCode: 400,
+                success: false,
+                message: "Password is required",
+            };
+        }),
+
+
+    }),
+
     
 }
 
