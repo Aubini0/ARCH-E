@@ -81,7 +81,7 @@ const signupUser = async(req, res) => {
 const signupUserBabbl = async(req, res) => {
     try {
         const { 
-            first_name, last_name, 
+            full_name, 
             email,password, age, 
             profilePic , phone,
             lat , long 
@@ -94,13 +94,13 @@ const signupUserBabbl = async(req, res) => {
         const JoiSchema = userValidation.signUp;
         await JoiSchema.validateAsync({
             age, lat,
-            long, email,
-            password, 
+            long, full_name,
+            email, password, 
         });
 
         res.status(201).json(
             await signUpService(
-                first_name, last_name, 
+                full_name, 
                 email, password,
                 age, phone, profilePic , 
                 lat ,long  ,ip 
@@ -110,6 +110,7 @@ const signupUserBabbl = async(req, res) => {
 
     } 
     catch (err) {
+        console.log({err})
         const { status } = err;
         const s = status ? status : 500;
         res.status(s).send({
@@ -130,14 +131,11 @@ const loginUserBabbl = async(req, res) => {
             email, password, 
         });
 
-        let response = await signInService(
-            email, password,
-        )
-
 
         res.status(201).json(
-            response
-        )
+            await signInService(
+                email, password,
+            ))
 
 
         // let tokenValidates = speakeasy.totp.verify({

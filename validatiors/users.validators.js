@@ -48,6 +48,18 @@ const userValidation = {
         // }),
 
 
+        full_name: Joi.string()
+            .required()
+            .error(() => {
+            throw {
+                status: 200,
+                statusCode: 400,
+                success: false,
+                message: "Full Name is required",
+            };
+        }),
+
+
         email: Joi.string().email()
             .required()
             .error(() => {

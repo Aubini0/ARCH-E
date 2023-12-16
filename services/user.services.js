@@ -6,10 +6,11 @@ import {
     hashPassword , 
     validatePassword 
 } from "../utils/helpers/passwordSettersAndValidators.js";
+import { v4 as uuidv4 } from "uuid";
 
 
 const signUpService = async ( 
-    first_name,  last_name, 
+    full_name, 
     email, password, 
     age, phone, 
     profilePic , lat , 
@@ -59,7 +60,7 @@ const signUpService = async (
 
     // add user to DB
     const newUser = new User({
-        first_name: first_name, last_name: last_name,
+        full_name : full_name,
         username: username, age: age, phone: phone,
         profilePic: profPicLocation, password : password,
         email: email, ip: ip, lat : lat, long : long
@@ -73,9 +74,9 @@ const signUpService = async (
         return {
             success: true,
             _id: newUser._id,
-            first_name: newUser.first_name,
-            last_name: newUser.last_name,
+            full_name: newUser.full_name,
             username: newUser.username,
+            email : newUser.email,
             age: newUser.age,
             profilePic: newUser.profilePic,
             ip: newUser.ip,
@@ -98,6 +99,7 @@ const signUpService = async (
 const signInService = async ( 
     email, password, 
 ) => {
+    
 
     const user = await User.findOne({ email });
 
