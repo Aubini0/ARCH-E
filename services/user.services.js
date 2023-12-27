@@ -139,7 +139,44 @@ const signInService = async (
 };
 
 
+const verifyAccessService = async ( 
+    req, 
+) => {
+    let userInfo = req.user.userId;
+    let userToken = req.user.token;
+
+    let dropData = [ "password" , "createdAt" , "updatedAt" , "ip" , "__v" ]
+
+    if(userInfo && userToken){
+        Object.keys( userInfo ).map((item_)=>{
+            if (dropData.includes(item_)){
+                delete userInfo[item_]
+            }
+        })
+
+
+        return {
+            success: true,
+            data : { ...userInfo },
+            token : userToken,
+            message: "Logged In Successfully",
+            };          
+
+    }
+
+    throw {
+        success: false,
+        status: 404,
+        message: "Record Not found",
+    };          
+
+    
+
+}
+
+
 export {
     signUpService,
-    signInService
+    signInService,
+    verifyAccessService
 }
