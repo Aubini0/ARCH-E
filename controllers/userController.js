@@ -110,7 +110,7 @@ const signupUserBabbl = async(req, res) => {
 
     } 
     catch (err) {
-        console.log({err})
+        // console.log({err})
         const { status } = err;
         const s = status ? status : 500;
         res.status(s).send({
