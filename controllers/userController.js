@@ -12,7 +12,7 @@ import speakeasy from "speakeasy";
 import userValidation from "../validatiors/users.validators.js";
 
 
-import { signUpService , signInService }from "../services/user.services.js";
+import { signUpService , signInService , verifyAccessService }from "../services/user.services.js";
 
 const getUserProfile = async(req, res) => {
     const { query } = req.params;
@@ -33,8 +33,6 @@ const getUserProfile = async(req, res) => {
         console.log("Error in getUserProfile: ", err.message);
     }
 };
-
-
 
 const signupUser = async(req, res) => {
     try {
@@ -75,8 +73,6 @@ const signupUser = async(req, res) => {
         console.log("Error in signupUser: ", err.message);
     }
 };
-
-
 
 const signupUserBabbl = async(req, res) => {
     try {
@@ -150,9 +146,6 @@ const loginUserBabbl = async(req, res) => {
 };
 
 
-
-
-
 const loginUser = async(req, res) => {
     try {
         console.log(req.body);
@@ -186,7 +179,6 @@ const loginUser = async(req, res) => {
         console.log("Error in loginUser: ", error.message);
     }
 };
-
 
 const logoutUser = (req, res) => {
     try {
@@ -396,17 +388,18 @@ const VerifyTOTP = async(req, res) => {
 
 const verifyAccess = async(req, res) => {
     try {
+        res.status(200).json(
+            await verifyAccessService( req )
+        );
 
-        res.status(200).json({ 
-            success: true , 
-            // ...req.user.userId,
-            message : "Authenticated" 
-        });
     } catch (err) {
-        res.status(500).json({ 
-            success: false,
-            error: err.message,
-         });
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+
     }
 };
 
