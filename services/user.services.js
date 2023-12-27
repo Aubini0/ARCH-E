@@ -107,7 +107,7 @@ const signInService = async (
     if (!user) {
         throw {
             success: false,
-            status: 400,
+            status: 404,
             message: "Email Not Found",
             };          
     }

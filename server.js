@@ -8,7 +8,7 @@ import messageRoutes from "./routes/messageRoutes.js";
 import repostRoutes from "./routes/repostRoutes.js";
 import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
-// import { app, server } from "./socket/socket.js";
+// import { app } from "./socket/socket.js";
 
 dotenv.config();
 
@@ -18,7 +18,6 @@ const app = express();
 
 
 app.use(cors());
-// app.options('*', cors()); // include before other routes
 
 const PORT = process.env.PORT || 5000;
 

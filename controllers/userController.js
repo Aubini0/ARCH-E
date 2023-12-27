@@ -98,7 +98,7 @@ const signupUserBabbl = async(req, res) => {
             email, password, 
         });
 
-        res.status(201).json(
+        res.status(200).json(
             await signUpService(
                 full_name, 
                 email, password,
@@ -137,32 +137,6 @@ const loginUserBabbl = async(req, res) => {
                 email, password,
             ))
 
-
-        // let tokenValidates = speakeasy.totp.verify({
-        //     secret: phone,
-        //     encoding: 'base32',
-        //     token: otp,
-        //     window: 15
-        // });
-
-        // if (tokenValidates == false) {
-        //     res.status(400).json({ error: "Invalid OTP" });
-        // }
-
-        // const user = await User.findOne({ phone });
-
-        // const token = await generateTokenAndSetCookie(user, res);
-
-        // res.status(200).json({
-        //     _id: user._id,
-        //     first_name: user.first_name,
-        //     last_name: user.last_name,
-        //     phone: user.phone,
-        //     username: user.username,
-        //     profilePic: user.profilePic,
-        //     ip: user.ip,
-        //     token
-        // });
 
     } catch (err) {
         const { status } = err;

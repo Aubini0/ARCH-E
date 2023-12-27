@@ -6,7 +6,7 @@ const userValidation = {
           .required()
           .error(() => {
             throw {
-              status: 200,
+              status: 400,
               statusCode: 400,
               success: false,
               message: "Age is required & should be a number",
@@ -17,7 +17,7 @@ const userValidation = {
             .required()
             .error(() => {
             throw {
-                status: 200,
+                status: 400,
                 statusCode: 400,
                 success: false,
                 message: "Latitute is required & should be a number",
@@ -28,7 +28,7 @@ const userValidation = {
             .required()
             .error(() => {
             throw {
-                status: 200,
+                status: 400,
                 statusCode: 400,
                 success: false,
                 message: "Longitute is required & should be a number",
@@ -36,23 +36,12 @@ const userValidation = {
         }),
 
 
-        // phone: Joi.string().pattern(/^\+[1-9]\d{1,14}$/)
-        //     .required()
-        //     .error(() => {
-        //     throw {
-        //         status: 200,
-        //         statusCode: 400,
-        //         success: false,
-        //         message: "Phone Number is required",
-        //     };
-        // }),
-
 
         full_name: Joi.string()
             .required()
             .error(() => {
             throw {
-                status: 200,
+                status: 400,
                 statusCode: 400,
                 success: false,
                 message: "Full Name is required",
@@ -64,7 +53,7 @@ const userValidation = {
             .required()
             .error(() => {
             throw {
-                status: 200,
+                status: 400,
                 statusCode: 400,
                 success: false,
                 message: "Valid Email is required",
@@ -72,11 +61,11 @@ const userValidation = {
         }),
 
 
-        password: Joi.string().min(6).alphanum()
+        password: Joi.string().min(6)
             .required()
             .error(() => {
             throw {
-                status: 200,
+                status: 400,
                 statusCode: 400,
                 success: false,
                 message: "Password is required & should be minimum 6 character long",
@@ -91,7 +80,7 @@ const userValidation = {
             .required()
             .error(() => {
             throw {
-                status: 200,
+                status: 400,
                 statusCode: 400,
                 success: false,
                 message: "Valid Email is required",
@@ -102,7 +91,7 @@ const userValidation = {
             .required()
             .error(() => {
             throw {
-                status: 200,
+                status: 400,
                 statusCode: 400,
                 success: false,
                 message: "Password is required",
