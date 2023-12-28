@@ -8,12 +8,12 @@ import messageRoutes from "./routes/messageRoutes.js";
 import repostRoutes from "./routes/repostRoutes.js";
 import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
-// import { app } from "./socket/socket.js";
+import { app  , server} from "./socket/socket.js";
 
 dotenv.config();
 
 
-const app = express();
+// const app = express();
 
 
 
@@ -46,7 +46,7 @@ app.use("/api/reposts", repostRoutes);
     await connectDB();
 
     // start server to listen at specified port
-    app.listen(PORT, () =>
+    server.listen(PORT, () =>
         console.log(`Server started at http://localhost:${PORT}`)
     );
 

@@ -3,9 +3,16 @@ import http from "http";
 import express from "express";
 import Message from "../models/messageModel.js";
 import Conversation from "../models/conversationModel.js";
+import { 
+    joinQueue, 
+    getOnlineUsers, 
+    leaveQueue 
+} from "../socketHandlers/callSocketsHandler.js";
+
 
 const app = express();
 const server = http.createServer(app);
+
 
 const io = new Server(server, {
     cors: {
@@ -19,6 +26,9 @@ export const getRecipientSocketId = (recipientId) => {
 };
 
 const userSocketMap = {}; // userId: socketId
+let onlineUsers = {}; // online users queue
+
+
 
 io.on("connection", (socket) => {
     console.log("user connected", socket.id);
@@ -26,6 +36,22 @@ io.on("connection", (socket) => {
 
     if (userId != "undefined") userSocketMap[userId] = socket.id;
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+
+
+    // online user event
+    socket.on("joinQueue" , async( data )=>{
+        joinQueue( socket , data , onlineUsers )
+    })
+
+    socket.on("getOnlineUsers" , async()=>{
+        getOnlineUsers( onlineUsers )
+    })
+
+    socket.on("leaveQueue" , async( data )=>{
+        leaveQueue(data , onlineUsers)
+    })
+
 
     socket.on("markMessagesAsSeen", async({ conversationId, userId }) => {
         try {
