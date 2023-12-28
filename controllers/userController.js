@@ -128,7 +128,7 @@ const loginUserBabbl = async(req, res) => {
         });
 
 
-        res.status(201).json(
+        res.status(200).json(
             await signInService(
                 email, password,
             ))

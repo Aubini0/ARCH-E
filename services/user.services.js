@@ -7,6 +7,8 @@ import {
     validatePassword 
 } from "../utils/helpers/passwordSettersAndValidators.js";
 import { v4 as uuidv4 } from "uuid";
+import { formatUserData } from "../utils/helpers/commonFuncs.js"
+
 
 
 const signUpService = async ( 
@@ -71,19 +73,15 @@ const signUpService = async (
     if (newUser) {
         const token = await generateTokenAndSetCookie(newUser);
 
-        return {
+        formatUserData( newUser._doc )
+
+        return{
             success: true,
-            _id: newUser._id,
-            full_name: newUser.full_name,
-            username: newUser.username,
-            email : newUser.email,
-            age: newUser.age,
-            profilePic: newUser.profilePic,
-            ip: newUser.ip,
-            token: token,
-            lat : lat,
-            long : long
-        };
+            data : { ...newUser._doc },
+            token,
+            message : "Signed Up In Successfully"
+        }
+
         
     } 
     else {
@@ -114,18 +112,16 @@ const signInService = async (
 
     if( validatePassword(  user , password ) ){
         const token = await generateTokenAndSetCookie(user);
+
+        formatUserData( user._doc )
+
         return{
             success: true,
-            _id: user._id,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            phone: user.phone,
-            username: user.username,
-            profilePic: user.profilePic,
-            ip: user.ip,
+            data : { ...user._doc },
             token,
             message : "Logged In Successfully"
         }
+
 
     }
     else{
@@ -145,14 +141,9 @@ const verifyAccessService = async (
     let userInfo = req.user.userId;
     let userToken = req.user.token;
 
-    let dropData = [ "password" , "createdAt" , "updatedAt" , "ip" , "__v" ]
 
     if(userInfo && userToken){
-        Object.keys( userInfo ).map((item_)=>{
-            if (dropData.includes(item_)){
-                delete userInfo[item_]
-            }
-        })
+        formatUserData( userInfo )
 
 
         return {
