@@ -2,7 +2,7 @@
 
 const joinQueue = async( socket , data, queue )=>{
     let payload = data.payload;
-    queue[ payload._id   ] = socket
+    queue[ payload.email   ] = socket
     matchUsers( queue )
 }
 
@@ -30,8 +30,8 @@ const matchUsers = ( queue )=>{
 
 
         let channel_name = `${keys_[0]}-${keys_[1]}`
-        user1.emit('matched', { payload : { userId : keys_[1] , channel_name }   });
-        user2.emit('matched', { payload : { userId : keys_[0] , channel_name  }  });
+        user1.emit('matched', { payload : { userId : keys_[1] , channel_name , username : keys_[1] }   });
+        user2.emit('matched', { payload : { userId : keys_[0] , channel_name , username : keys_[0] }  });
 
 
         delete queue[keys_[0]]
@@ -41,6 +41,8 @@ const matchUsers = ( queue )=>{
         console.log('Users matched > ' , queue);
     }
 }
+
+
 
 export { 
     joinQueue ,
