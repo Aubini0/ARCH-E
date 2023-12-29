@@ -40,6 +40,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/reposts", repostRoutes);
 
 
+console.log("ok")
 
 (async()=>{
     // wait for db to connect then proceed
