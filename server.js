@@ -23,8 +23,7 @@ app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
     const method = req.method;
     const url = req.url;
-    console.log(`[${timestamp}] ${method} ${url}`);
-    // Continue with the request chain
+    console.log(`RequestLogs :> ${timestamp} ${method} ${url}`);
     next();
 });
 
@@ -35,6 +34,7 @@ const PORT = process.env.PORT || 5000;
 //   api_key: process.env.CLOUDINARY_API_KEY,
 //   api_secret: process.env.CLOUDINARY_API_SECRET,
 // });
+
 
 // Middlewares
 app.use(express.json({ limit: "100mb" })); // To parse JSON data in the req.body
