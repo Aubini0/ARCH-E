@@ -1,4 +1,26 @@
 import Joi from "joi"
+import isBase64 from "is-base64";
+import imageType from "image-type";
+
+
+// Custom validation function for base64 encoded images
+const validateBase64Image = (value, helpers) => {
+    if (!isBase64(value, { mimeRequired: true })) {
+      return helpers.error('any.invalid');
+    }
+  
+    const buffer = Buffer.from(value, 'base64');
+    const type = imageType(buffer);
+  
+    if (!type) {
+      return helpers.error('any.invalid');
+    }
+  
+    // You can add additional checks based on the image type or other criteria  
+    return buffer;
+};
+
+
 
 const userValidation = {
     signUp: Joi.object().keys({
@@ -71,6 +93,17 @@ const userValidation = {
                 message: "Password is required & should be minimum 6 character long",
             };
         }),
+
+        profilePic : Joi.string().custom( validateBase64Image )
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Profile Pic should be a valid base64 string",
+            };
+        }),
+
 
 
       }),
@@ -157,13 +190,13 @@ const userValidation = {
             };
           }),
 
-        profilePic : Joi.string()
+        profilePic : Joi.string().custom( validateBase64Image )
             .error(() => {
             throw {
                 status: 400,
                 statusCode: 400,
                 success: false,
-                message: "Profile Pic should be a base64 string",
+                message: "Profile Pic should be a valid base64 string",
             };
         }),
 

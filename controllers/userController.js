@@ -39,6 +39,7 @@ const signupUserBabbl = async(req, res) => {
             age, lat,
             long, full_name,
             email, password, 
+            profilePic
         });
 
         res.status(200).json(
