@@ -147,15 +147,16 @@ const userValidation = {
         }),
 
         
-        age: Joi.string()
-            .error(() => {
+        age: Joi.number().integer()
+          .required()
+          .error(() => {
             throw {
-                status: 400,
-                statusCode: 400,
-                success: false,
-                message: "Bio should be string",
+              status: 400,
+              statusCode: 400,
+              success: false,
+              message: "Age is required & should be a number",
             };
-        }),
+          }),
 
         profilePic : Joi.string()
             .error(() => {
