@@ -23,7 +23,7 @@ app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
     const method = req.method;
     const url = req.url;
-    console.log(`RequestLogs :> ${timestamp} ${method} ${url}`);
+    console.log(`RequestLogs :> ${timestamp} , ${method} , ${url}`);
     next();
 });
 
