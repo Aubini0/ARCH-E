@@ -8,7 +8,7 @@ const protectRoute = async(req, res, next) => {
 
 
     if (!bearerToken) {
-        res.status(403).json({
+        return res.status(403).json({
             success:  false,
             error : "A token is required for authentication"
         })
@@ -27,7 +27,7 @@ const protectRoute = async(req, res, next) => {
             next();
         }
         else{
-            res.status(401).json({
+            return res.status(401).json({
                 success : false,
                 error : "Invalid Token"
             })    
@@ -35,7 +35,7 @@ const protectRoute = async(req, res, next) => {
 
 
     } catch (error) {
-        res.status(401).json({
+        return res.status(401).json({
             success : false,
             error : "Invalid Token"
         })
