@@ -148,7 +148,6 @@ const userValidation = {
 
         
         age: Joi.number().integer()
-          .required()
           .error(() => {
             throw {
               status: 400,
