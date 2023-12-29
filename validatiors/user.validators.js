@@ -99,7 +99,77 @@ const userValidation = {
         }),
 
 
-    }),
+    }),    
+
+
+    upadteUser: Joi.object().keys({
+        full_name: Joi.string()
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Full Name should be string",
+            };
+        }),
+
+        password: Joi.string().min(6)
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Password should be 6 character long",
+            };
+        }),
+
+        
+        username: Joi.string()
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Username should be string",
+            };
+        }),
+
+
+        
+        bio: Joi.string()
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Bio should be string",
+            };
+        }),
+
+        
+        age: Joi.string()
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Bio should be string",
+            };
+        }),
+
+        profilePic : Joi.string()
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Profile Pic should be a base64 string",
+            };
+        }),
+
+
+
+    }),    
 
     
 }

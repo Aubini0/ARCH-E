@@ -9,70 +9,17 @@ import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { sendOTP, makeid } from "../utils/helpers/generateOTP.js"
 import speakeasy from "speakeasy";
-import userValidation from "../validatiors/users.validators.js";
+import userValidation from "../validatiors/user.validators.js";
 
 
-import { signUpService , signInService , verifyAccessService }from "../services/user.services.js";
+import { 
+    signUpService , 
+    signInService , 
+    verifyAccessService , 
+    updateUserService 
+}from "../services/user.services.js";
 
-const getUserProfile = async(req, res) => {
-    const { query } = req.params;
-
-    try {
-        let user;
-        if (mongoose.Types.ObjectId.isValid(query)) {
-            user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
-        } else {
-            user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
-        }
-
-        if (!user) return res.status(404).json({ error: "User not found" });
-
-        res.status(200).json(user);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-        console.log("Error in getUserProfile: ", err.message);
-    }
-};
-
-const signupUser = async(req, res) => {
-    try {
-        const { name, email, username, password } = req.body;
-        const user = await User.findOne({ $or: [{ email }, { username }] });
-
-        if (user) {
-            return res.status(400).json({ error: "User already exists" });
-        }
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        const newUser = new User({
-            name,
-            email,
-            username,
-            password: hashedPassword,
-        });
-        await newUser.save();
-
-        if (newUser) {
-            const token = await generateTokenAndSetCookie(newUser, res);
-
-            res.status(201).json({
-                _id: newUser._id,
-                name: newUser.name,
-                email: newUser.email,
-                username: newUser.username,
-                bio: newUser.bio,
-                profilePic: newUser.profilePic,
-                token
-            });
-        } else {
-            res.status(400).json({ error: "Invalid user data" });
-        }
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-        console.log("Error in signupUser: ", err.message);
-    }
-};
+// <---------------------- ( Modified & Refactored For New Flow ) ----------------------> //
 
 const signupUserBabbl = async(req, res) => {
     try {
@@ -142,6 +89,122 @@ const loginUserBabbl = async(req, res) => {
           error: err.message,
         });
 
+    }
+};
+
+const updateUserBabbl = async(req , res)=>{
+    try {
+        const { 
+            full_name , password , username, 
+            bio , age , profilePic } = req.body;
+        const userInfo = req.user;
+
+        const JoiSchema = userValidation.upadteUser;
+        await JoiSchema.validateAsync({
+            full_name, password, 
+            username, bio , age,
+            profilePic
+        });
+
+
+        res.status(200).json(
+            await updateUserService(
+                userInfo, full_name,
+                password, username,
+                bio, age, profilePic
+        ))
+
+
+    } catch (err) {
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+
+    }
+}
+
+const verifyAccess = async(req, res) => {
+    try {
+        res.status(200).json(
+            await verifyAccessService( req )
+        );
+
+    } catch (err) {
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+
+    }
+};
+// <---------------------- ( Modified & Refactored For New Flow ) ----------------------> //
+
+
+
+
+
+const getUserProfile = async(req, res) => {
+    const { query } = req.params;
+
+    try {
+        let user;
+        if (mongoose.Types.ObjectId.isValid(query)) {
+            user = await User.findOne({ _id: query }).select("-password").select("-updatedAt");
+        } else {
+            user = await User.findOne({ username: query }).select("-password").select("-updatedAt");
+        }
+
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        res.status(200).json(user);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+        console.log("Error in getUserProfile: ", err.message);
+    }
+};
+
+const signupUser = async(req, res) => {
+    try {
+        const { name, email, username, password } = req.body;
+        const user = await User.findOne({ $or: [{ email }, { username }] });
+
+        if (user) {
+            return res.status(400).json({ error: "User already exists" });
+        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        const newUser = new User({
+            name,
+            email,
+            username,
+            password: hashedPassword,
+        });
+        await newUser.save();
+
+        if (newUser) {
+            const token = await generateTokenAndSetCookie(newUser, res);
+
+            res.status(201).json({
+                _id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                username: newUser.username,
+                bio: newUser.bio,
+                profilePic: newUser.profilePic,
+                token
+            });
+        } else {
+            res.status(400).json({ error: "Invalid user data" });
+        }
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+        console.log("Error in signupUser: ", err.message);
     }
 };
 
@@ -386,22 +449,7 @@ const VerifyTOTP = async(req, res) => {
 };
 
 
-const verifyAccess = async(req, res) => {
-    try {
-        res.status(200).json(
-            await verifyAccessService( req )
-        );
 
-    } catch (err) {
-        const { status } = err;
-        const s = status ? status : 500;
-        res.status(s).send({
-          success: err.success,
-          error: err.message,
-        });
-
-    }
-};
 
 export {
     signupUser,
@@ -413,9 +461,13 @@ export {
     getUserProfile,
     getSuggestedUsers,
     freezeAccount,
-    signupUserBabbl,
-    loginUserBabbl,
     CreateTOTP,
     VerifyTOTP,
+
+
+    // Modified Routes with code refactored and validations
+    signupUserBabbl,
+    loginUserBabbl,
+    updateUserBabbl,
     verifyAccess
 };

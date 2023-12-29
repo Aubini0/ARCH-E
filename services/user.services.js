@@ -7,9 +7,10 @@ import {
     validatePassword 
 } from "../utils/helpers/passwordSettersAndValidators.js";
 import { v4 as uuidv4 } from "uuid";
-import { formatUserData } from "../utils/helpers/commonFuncs.js"
+import { formatUserData , parsingBufferImage } from "../utils/helpers/commonFuncs.js"
 
 
+import { uploadFileToS3 , deleteFileFromS3 } from "../utils/helpers/fileUploads.js"
 
 const signUpService = async ( 
     full_name, 
@@ -39,24 +40,14 @@ const signUpService = async (
 
     // upload profile picture if provided
     if (profilePic) {
-        let buf = Buffer.from(profilePic.replace(/^data:image\/\w+;base64,/, ""), 'base64')
 
-        let fileName = uuidv4();
+        let { fileName , type , buf } = parsingBufferImage( profilePic )        
 
-        const type = profilePic.split(';')[0].split('/')[1];
-
-        let params_data = {
-            Key: `${fileName.substr(fileName.length - 15)}.${type}`,
-            Body: buf,
-            ContentEncoding: 'base64',
-            ContentType: `image/${type}`,
-            Bucket: "amplifibucketfiles",
-            ACL: "public-read"
-        };
-
-        const { Location, Key } = await s3.upload(params_data).promise();
-        let key = Key;
-        profPicLocation = Location;
+        profPicLocation = await uploadFileToS3( 
+            `${fileName.substr(fileName.length - 15)}.${type}`,
+            buf, 'base64', `image/${type}`,
+            process.env.S3BUCKET_PROFILEIMAGES, 'public-read'
+        )
 
     } 
 
@@ -138,7 +129,7 @@ const signInService = async (
 const verifyAccessService = async ( 
     req, 
 ) => {
-    let userInfo = req.user.userId;
+    let userInfo = req.user._doc;
     let userToken = req.user.token;
 
 
@@ -165,9 +156,75 @@ const verifyAccessService = async (
 
 }
 
+const updateUserService = async(
+    userInfo, full_name , password , 
+    username, bio , age, profilePic
+)=>{
+        
+        let existingUsername;
+
+        if(username){
+            existingUsername = await User.findOne({  username });
+        }
+
+        if(existingUsername){
+            throw{
+                success: false,
+                status: 400,
+                message: "Username already exist",        
+            }
+        }
+
+        // hash password if provided
+        if(password){
+            password = hashPassword(password)
+        }
+        
+        // upload profile picture if provided
+        if (profilePic) {
+
+            if(userInfo.profilePic){
+                let img = userInfo.profilePic.split(".com/")[1].split("/")[1];
+                await deleteFileFromS3( img , process.env.S3BUCKET_PROFILEIMAGES )
+            }
+
+            let { fileName , type , buf } = parsingBufferImage( profilePic )        
+
+
+
+            profilePic = await uploadFileToS3( 
+                `${fileName.substr(fileName.length - 15)}.${type}`,
+                buf, 'base64', `image/${type}`,
+                process.env.S3BUCKET_PROFILEIMAGES, 'public-read',
+            )
+        } 
+
+        let updateData = {
+            full_name , password, username,
+            bio, age, profilePic    
+        }
+
+        let filter = {
+            _id : userInfo._id
+        }
+
+        let updateUser = await User.findOneAndUpdate( filter , updateData , {new: true});
+
+        formatUserData( updateUser._doc )
+
+        return {
+            success: true,
+            data : { ...updateUser._doc },
+            message: "User updated Successfully",
+        };            
+
+}
+
 
 export {
     signUpService,
     signInService,
-    verifyAccessService
+    verifyAccessService,
+    updateUserService
+    
 }
