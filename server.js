@@ -19,6 +19,15 @@ const app = express();
 
 app.use(cors());
 
+app.use((req, res, next) => {
+    const timestamp = new Date().toISOString();
+    const method = req.method;
+    const url = req.url;
+    console.log(`[${timestamp}] ${method} ${url}`);
+    // Continue with the request chain
+    next();
+});
+
 const PORT = process.env.PORT || 5000;
 
 // cloudinary.config({
@@ -39,8 +48,6 @@ app.use("/api/posts", postRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reposts", repostRoutes);
 
-
-console.log("ok")
 
 (async()=>{
     // wait for db to connect then proceed
