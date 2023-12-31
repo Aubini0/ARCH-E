@@ -9,7 +9,7 @@ import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
 import { sendOTP, makeid } from "../utils/helpers/generateOTP.js"
 import speakeasy from "speakeasy";
-import userValidation from "../validatiors/user.validators.js";
+import userValidation from "../validatiors/v2/user.validators.js";
 
 
 import { 
@@ -17,9 +17,9 @@ import {
     signInService , 
     verifyAccessService , 
     updateUserService 
-}from "../services/user.services.js";
+}from "../services/v2/user.services.js";
 
-// <---------------------- ( Modified & Refactored For New Flow ) ----------------------> //
+// <---------------------- ( V2 APIs ) ----------------------> //
 
 const signupUserBabbl = async(req, res) => {
     try {
@@ -143,7 +143,8 @@ const verifyAccess = async(req, res) => {
 
     }
 };
-// <---------------------- ( Modified & Refactored For New Flow ) ----------------------> //
+
+// <---------------------- ( V2 APIs ) ----------------------> //
 
 
 

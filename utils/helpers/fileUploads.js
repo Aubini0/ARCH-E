@@ -18,6 +18,8 @@ const uploadFileToS3 = async(
         ACL: file_acl,
     };
 
+    console.log({params_data})
+
     const { Location, Key } = await s3.upload(params_data).promise();
     return Location;
 }
@@ -28,6 +30,7 @@ const deleteFileFromS3 =  async( file_key , file_bucket )=>{
         Bucket: file_bucket,
     }
 
+    console.log({params_remove})
 
     let deleteResponce = await s3.deleteObject(params_remove).promise();
     return deleteResponce;

@@ -19,8 +19,18 @@ const parsingBufferImage = ( image )=>{
 }
 
 
+const parsingBufferAudio = ( audio )=>{
+    const buf = Buffer.from(audio, 'base64');
+    const fileName = uuidv4() + '.mp3'; // Generate a unique filename
+    const type = audio.split(';')[0].split('/')[1];
+
+    return { fileName , type , buf }
+
+}
+
 
 export {
     formatUserData,
-    parsingBufferImage
+    parsingBufferImage,
+    parsingBufferAudio
 }

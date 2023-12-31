@@ -12,6 +12,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "audio-type": "^2.2.1",
         "aws-sdk": "^2.1482.0",
         "bcryptjs": "^2.4.3",
         "bluebird": "^3.7.2",
@@ -24,6 +25,7 @@
         "image-type": "^5.2.0",
         "is-base64": "^1.1.0",
         "joi": "^17.11.0",
+        "joi-objectid": "^4.0.2",
         "jsonwebtoken": "^9.0.1",
         "mongoose": "^7.4.0",
         "multer": "^1.4.5-lts.1",
