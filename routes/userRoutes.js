@@ -34,10 +34,12 @@ router.put("/freeze", protectRoute, freezeAccount);
 router.get("/friends", protectRoute, getUserFriends);
 
 
-// Babble routes
+
+// V2 API Routes
 router.post("/babbl/signup", signupUserBabbl);
 router.post("/babbl/login", loginUserBabbl);
 router.put("/babbl/update", protectRoute, updateUserBabbl);
 router.get("/verify-access" , protectRoute , verifyAccess)
+
 
 export default router;

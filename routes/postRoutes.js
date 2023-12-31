@@ -9,7 +9,7 @@ import {
     getUserPosts,
     deleteComment,
     getAllPosts,
-    fetchMatchingUsers
+    fetchMatchingUsers,
 } from "../controllers/postController.js";
 import protectRoute from "../middlewares/protectRoute.js";
 
@@ -28,5 +28,7 @@ router.put("/reply/:id", protectRoute, replyToPost);
 router.delete("/reply/delete/:id/:replyId", protectRoute, deleteComment);
 // router.put('/upvote/:postId/:userId', protectRoute, upvotePost);
 // router.put('/downvote/:postId/:userId', protectRoute, downvotePost);
+
+
 
 export default router;

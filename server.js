@@ -6,6 +6,13 @@ import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import repostRoutes from "./routes/repostRoutes.js";
+
+
+// -------------- V2 Routes -------------- //
+import postRoutesV2 from "./routes/v2/postRoutesV2.js"
+// -------------- V2 Routes -------------- //
+
+
 import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
 // import { app } from "./socket/socket.js";
@@ -47,6 +54,15 @@ app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/reposts", repostRoutes);
+
+
+
+
+// V2 API Routes
+app.use("/api/v2/posts", postRoutesV2);
+
+
+
 
 
 (async()=>{

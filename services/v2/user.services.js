@@ -1,16 +1,16 @@
-import User from "../models/userModel.js";
-import { upload, s3 } from "../db/bucketUploadClient.js";
-import { sendOTP, makeid } from "../utils/helpers/generateOTP.js"
-import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
+import User from "../../models/userModel.js";
+import { upload, s3 } from "../../db/bucketUploadClient.js";
+import { sendOTP, makeid } from "../../utils/helpers/generateOTP.js"
+import generateTokenAndSetCookie from "../../utils/helpers/generateTokenAndSetCookie.js";
 import { 
     hashPassword , 
     validatePassword 
-} from "../utils/helpers/passwordSettersAndValidators.js";
+} from "../../utils/helpers/passwordSettersAndValidators.js";
 import { v4 as uuidv4 } from "uuid";
-import { formatUserData , parsingBufferImage } from "../utils/helpers/commonFuncs.js"
+import { formatUserData , parsingBufferImage } from "../../utils/helpers/commonFuncs.js"
 
 
-import { uploadFileToS3 , deleteFileFromS3 } from "../utils/helpers/fileUploads.js"
+import { uploadFileToS3 , deleteFileFromS3 } from "../../utils/helpers/fileUploads.js"
 
 const signUpService = async ( 
     full_name, 
@@ -189,7 +189,6 @@ const updateUserService = async(
             }
 
             let { fileName , type , buf } = parsingBufferImage( profilePic )        
-
 
 
             profilePic = await uploadFileToS3( 
