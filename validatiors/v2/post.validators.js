@@ -6,20 +6,34 @@ Joi.objectId = objectId(Joi);
 
 
 // Custom validation function for base64 encoded images
-const validateBase64Audio = (value, helpers) => {
-    if (!isBase64(value , { mimeRequired: true } )) {
+// const validateBase64Audio = (value, helpers) => {
+    
+//     if (!isBase64(value , { mimeRequired: true } )) {
+//         return helpers.error('any.invalid');
+//     }
+
+//     console.log( "<----->" )
+
+
+//     const buffer = Buffer.from(value, 'base64');
+
+
+//     // You can add additional checks based on the image type or other criteria  
+//     return buffer;
+// };
+
+
+const validateBase64Audio = (value, helpers)=>{
+    try {
+        // Attempt to decode the Base64 string
+        atob(value);
+        return true;
+    } catch (error) {
+        console.log(error)
+        // An error will be thrown if the string is not valid Base64
         return helpers.error('any.invalid');
     }
-
-
-    const buffer = Buffer.from(value, 'base64');
-
-
-    // You can add additional checks based on the image type or other criteria  
-    return buffer;
-};
-
-
+}
 
 
 
@@ -37,7 +51,7 @@ const postValidation = {
                 };
         }),
 
-        audio: Joi.string().custom(validateBase64Audio)
+        audio: Joi.string()
         .required()
         .error(() => {
             throw {

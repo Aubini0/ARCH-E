@@ -48,7 +48,16 @@ const getFeedPostServiceV2 = async( userId )=>{
     let isAuthenticated = false;
     let user = null;
     // Pipeline for aggregation
-    let pipeline = [];
+    let pipeline = [
+        {
+            $lookup: {
+                from: "users",           // The name of the collection to join with
+                localField: "postedBy",  // The field from the posts collection
+                foreignField: "_id",  // The field from the users collection
+                as: "postedBy"           // The alias for the joined information
+            }
+        },
+    ];
 
     if (userId) {
         user = await User.findById(userId);
@@ -80,7 +89,40 @@ const getFeedPostServiceV2 = async( userId )=>{
 
     pipeline.push(sampleStage);
 
-    console.log( pipeline )
+    pipeline.push(        
+        {
+            $project: {
+                'postedBy.password': 0,
+                'postedBy.__v' : 0,
+                'postedBy.ip' : 0,
+                'postedBy.createdAt' : 0,
+                'postedBy.updatedAt' : 0
+            }
+        },        
+    )
+    pipeline.push(
+        {
+            $project: {
+                _id: 1,
+                'postedBy': 1,
+                postedFrom: 1,
+                parentPost: 1,
+                repostCount: 1,
+                text: 1,
+                audio: 1,
+                img: 1,
+                likes: 1,
+                upVote: 1,
+                downVote: 1,
+                replies: 1,
+                createdAt: 1,
+                updatedAt: 1
+            }
+        }        
+    )
+
+
+
 
     const feedPosts = await Post.aggregate(pipeline);
 
