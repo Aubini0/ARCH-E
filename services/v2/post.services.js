@@ -9,10 +9,12 @@ const createPostServiceV2 = async (
     try{
 
         let { fileName , type , buf } = parsingBufferAudio( audio )        
-        console.log({type})
+        // console.log({type})
         let audioPath = await uploadFileToS3( 
             `${fileName}`,
-            buf, 'base64', `audio/${type}`,
+            buf, 'base64', 
+            // `audio/${type}`,
+            `audio/mp3`,
             process.env.S3BUCKET_POSTAUDIOS, 'public-read'
         )
     
