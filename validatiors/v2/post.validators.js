@@ -7,7 +7,7 @@ Joi.objectId = objectId(Joi);
 
 // Custom validation function for base64 encoded images
 // const validateBase64Audio = (value, helpers) => {
-    
+
 //     if (!isBase64(value , { mimeRequired: true } )) {
 //         return helpers.error('any.invalid');
 //     }
@@ -23,7 +23,7 @@ Joi.objectId = objectId(Joi);
 // };
 
 
-const validateBase64Audio = (value, helpers)=>{
+const validateBase64Audio = (value, helpers) => {
     try {
         // Attempt to decode the Base64 string
         atob(value);
@@ -49,18 +49,18 @@ const postValidation = {
                     success: false,
                     message: "Post Text is required",
                 };
-        }),
+            }),
 
         audio: Joi.string()
-        .required()
-        .error(() => {
-            throw {
-                status: 400,
-                statusCode: 400,
-                success: false,
-                message: "Audio should be a valid base64 audio string",
-            };
-        }),
+            .required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Audio should be a valid base64 audio string",
+                };
+            }),
 
     }),
 
@@ -75,7 +75,29 @@ const postValidation = {
                     success: false,
                     message: "Provide a valid userId",
                 };
-        }),
+            }),
+
+        page: Joi.number().integer().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Page No required",
+                };
+            }),
+
+        limit: Joi.number().integer().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Number of rows required",
+                };
+            }),
+
+
 
 
     }),
