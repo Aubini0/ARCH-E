@@ -18,7 +18,7 @@ const uploadFileToS3 = async(
         ACL: file_acl,
     };
 
-    console.log({params_data})
+    // console.log({params_data})
 
     const { Location, Key } = await s3.upload(params_data).promise();
     return Location;

@@ -12,7 +12,7 @@ const createPostServiceV2 = async (
         console.log({type})
         let audioPath = await uploadFileToS3( 
             `${fileName}`,
-            buf, 'base64', `audio/mp3`,
+            buf, 'base64', `audio/${type}`,
             process.env.S3BUCKET_POSTAUDIOS, 'public-read'
         )
     
@@ -34,11 +34,10 @@ const createPostServiceV2 = async (
     
     }
     catch(err){
-        console.log(err)
         throw{
             success: false,
             status: 400,
-            message: "Username already exist",        
+            message: err.message,        
         }
     }
 };
