@@ -20,9 +20,20 @@ const parsingBufferImage = ( image )=>{
 
 
 const parsingBufferAudio = ( audio )=>{
-    const buf = Buffer.from(audio, 'base64');
-    const type = audio.split(';')[0].split('/')[1];
-    const fileName = uuidv4() + `.mp3`; // Generate a unique filename
+    let type;
+    let stripped_audio = audio.split("base64,")
+
+    if(stripped_audio.length > 1){
+        stripped_audio = stripped_audio[1];
+        type = audio.split(';')[0].split('/')[1];
+    }
+    else{
+        type = "mp3"
+        stripped_audio = audio;
+    }
+
+    const buf = Buffer.from(stripped_audio , 'base64');
+    const fileName = uuidv4() + `.${type}`; 
 
     return { fileName , type , buf }
 
