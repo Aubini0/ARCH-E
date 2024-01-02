@@ -42,12 +42,20 @@ const createPostV2 = async(req, res) => {
 const getFeedPostsV2 = async(req , res)=>{
     try {
         let userId = req.params.id  // Set userId to null if id is not provided
+        
+        let { page , limit } = req.query;
+
+        page = page ? page == 0 ? 1 : page  : 1;
+        limit =  limit ? limit  : 20
+        page = parseInt(page);
+        limit = parseInt(limit)
+
         const JoiSchema = postValidation.getFeedPosts;
         await JoiSchema.validateAsync({
-            userId
+            userId, page, limit
         });
 
-        res.status(200).json(await getFeedPostServiceV2(userId))
+        res.status(200).json(await getFeedPostServiceV2(userId , page , limit))
 
 
     } 
