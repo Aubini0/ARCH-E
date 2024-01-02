@@ -33,7 +33,8 @@ const parsingBufferAudio = ( audio )=>{
     }
 
     const buf = Buffer.from(stripped_audio , 'base64');
-    const fileName = uuidv4() + `.${type}`; 
+    // const fileName = uuidv4() + `.${type}`; 
+    const fileName = uuidv4() + `.mp3`; 
 
     return { fileName , type , buf }
 
