@@ -1,6 +1,9 @@
 import Joi from "joi"
 import isBase64 from "is-base64";
 import imageType from "image-type";
+import objectId from "joi-objectid"
+
+Joi.objectId = objectId(Joi);
 
 
 // Custom validation function for base64 encoded images
@@ -106,7 +109,7 @@ const userValidation = {
 
 
 
-      }),
+    }),
 
     signIn: Joi.object().keys({
         email: Joi.string().email()
@@ -133,7 +136,6 @@ const userValidation = {
 
 
     }),    
-
 
     upadteUser: Joi.object().keys({
         full_name: Joi.string()
@@ -204,7 +206,19 @@ const userValidation = {
 
     }),    
 
-    
+    followUnFollowUser: Joi.object().keys({
+        targetUserId: Joi.objectId()
+            .required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Provide a valid userId",
+                };
+        })
+
+    }),        
 }
 
 

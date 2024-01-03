@@ -6,16 +6,35 @@ const replySchema = mongoose.Schema({
         ref: "User",
         required: true,
     },
+    
+    postId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Post",
+        required: true,
+    },
+
     text: {
         type: String,
         required: true,
     },
+
     userProfilePic: {
         type: String,
     },
+
     username: {
         type: String,
+        required : true,
     },
+
+
+    parentReply : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Reply"
+    }
+
+
+
 }, {
     timestamps: true,
 });
