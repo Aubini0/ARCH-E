@@ -230,6 +230,14 @@ const updateUserService = async (
 
 
 const followUnFollowServiceV2 = async (currentUser, targetUserId) => {
+    
+    if( currentUser._id.toString() === targetUserId){
+        throw {
+            success: false,
+            status: 400,
+            message: "User cannot follow/unFollow him self",
+        }
+    }
 
     const targetUser = await findRecordById( User , targetUserId , "Clicked User not found" )
 
