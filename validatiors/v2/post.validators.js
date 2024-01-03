@@ -104,6 +104,47 @@ const postValidation = {
 
 
 
+
+    likeUnLikePost: Joi.object().keys({
+        postId: Joi.objectId()
+            .required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Provide a valid postId",
+                };
+            })
+
+    }),
+
+    replyToPost: Joi.object().keys({
+        postId: Joi.objectId()
+            .required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Provide a valid postId",
+                };
+        }),
+
+        text: Joi.string()
+            .required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Comment Text is required",
+                };
+        })
+
+    }),
+
+
 }
 
 

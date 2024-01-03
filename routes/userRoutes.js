@@ -35,7 +35,10 @@ router.get("/friends", protectRoute, getUserFriends);
 
 
 
-// V2 API Routes
+// V2 API Routes 
+// Tasks to do Later On
+// Needed to be moved to v2/ subdirectory of routes, Controllers, services 
+// Change path from /babble/* to /* as it would be served via /api/v2 from server file
 router.post("/babbl/signup", signupUserBabbl);
 router.post("/babbl/login", loginUserBabbl);
 router.put("/babbl/update", protectRoute, updateUserBabbl);

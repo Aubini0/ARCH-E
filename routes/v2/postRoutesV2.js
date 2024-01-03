@@ -1,16 +1,22 @@
 import express from "express";
 import {
     createPostV2,
-    getFeedPostsV2
+    replyToPostV2,
+    getFeedPostsV2,
+    likeUnlikePostV2
 } from "../../controllers/v2/postControllerV2.js";
 import protectRoute from "../../middlewares/protectRoute.js";
 
 
 const router = express.Router();
 
+// Private Routes
 router.post("/create", protectRoute, createPostV2);
-router.get("/feed/:id?", getFeedPostsV2);
+router.put("/like/:id", protectRoute, likeUnlikePostV2);
+router.post("/comment", protectRoute, replyToPostV2);
 
+// Public Routes
+router.get("/feed/:id?", getFeedPostsV2);
 
 
 export default router;

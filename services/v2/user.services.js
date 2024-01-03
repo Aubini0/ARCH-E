@@ -2,22 +2,30 @@ import User from "../../models/userModel.js";
 import { upload, s3 } from "../../db/bucketUploadClient.js";
 import { sendOTP, makeid } from "../../utils/helpers/generateOTP.js"
 import generateTokenAndSetCookie from "../../utils/helpers/generateTokenAndSetCookie.js";
-import { 
-    hashPassword , 
-    validatePassword 
+import {
+    hashPassword,
+    validatePassword
 } from "../../utils/helpers/passwordSettersAndValidators.js";
 import { v4 as uuidv4 } from "uuid";
-import { formatUserData , parsingBufferImage } from "../../utils/helpers/commonFuncs.js"
+import { formatUserData, parsingBufferImage } from "../../utils/helpers/commonFuncs.js"
 
 
-import { uploadFileToS3 , deleteFileFromS3 } from "../../utils/helpers/fileUploads.js"
+import { uploadFileToS3, deleteFileFromS3 } from "../../utils/helpers/fileUploads.js"
 
-const signUpService = async ( 
-    full_name, 
-    email, password, 
-    age, phone, 
-    profilePic , lat , 
-    long ,ip
+import { 
+    updateRecord ,
+    createRecord ,
+    findRecordById , 
+} from "../../utils/helpers/commonDbQueries.js";
+
+
+
+const signUpService = async (
+    full_name,
+    email, password,
+    age, phone,
+    profilePic, lat,
+    long, ip
 ) => {
     let profPicLocation;
     const user = await User.findOne({ email });
@@ -28,7 +36,7 @@ const signUpService = async (
             success: false,
             status: 400,
             message: "User already exists",
-            };          
+        };
 
     }
 
@@ -41,22 +49,22 @@ const signUpService = async (
     // upload profile picture if provided
     if (profilePic) {
 
-        let { fileName , type , buf } = parsingBufferImage( profilePic )        
+        let { fileName, type, buf } = parsingBufferImage(profilePic)
 
-        profPicLocation = await uploadFileToS3( 
+        profPicLocation = await uploadFileToS3(
             `${fileName.substr(fileName.length - 15)}.${type}`,
             buf, 'base64', `image/${type}`,
             process.env.S3BUCKET_PROFILEIMAGES, 'public-read'
         )
 
-    } 
+    }
 
     // add user to DB
     const newUser = new User({
-        full_name : full_name,
+        full_name: full_name,
         username: username, age: age, phone: phone,
-        profilePic: profPicLocation, password : password,
-        email: email, ip: ip, lat : lat, long : long
+        profilePic: profPicLocation, password: password,
+        email: email, ip: ip, lat: lat, long: long
     });
 
 
@@ -64,31 +72,31 @@ const signUpService = async (
     if (newUser) {
         const token = await generateTokenAndSetCookie(newUser);
 
-        formatUserData( newUser._doc )
+        formatUserData(newUser._doc)
 
-        return{
+        return {
             success: true,
-            data : { ...newUser._doc },
+            data: { ...newUser._doc },
             token,
-            message : "Signed Up In Successfully"
+            message: "Signed Up In Successfully"
         }
 
-        
-    } 
+
+    }
     else {
         throw {
             success: false,
             status: 400,
             message: "Invalid user data",
-            };          
+        };
     }
 };
 
 
-const signInService = async ( 
-    email, password, 
+const signInService = async (
+    email, password,
 ) => {
-    
+
 
     const user = await User.findOne({ email });
 
@@ -98,51 +106,51 @@ const signInService = async (
             success: false,
             status: 404,
             message: "Email Not Found",
-            };          
+        };
     }
 
-    if( validatePassword(  user , password ) ){
+    if (validatePassword(user, password)) {
         const token = await generateTokenAndSetCookie(user);
 
-        formatUserData( user._doc )
+        formatUserData(user._doc)
 
-        return{
+        return {
             success: true,
-            data : { ...user._doc },
+            data: { ...user._doc },
             token,
-            message : "Logged In Successfully"
+            message: "Logged In Successfully"
         }
 
 
     }
-    else{
+    else {
         throw {
             success: false,
             status: 400,
             message: "Password Incorrect",
-            };          
+        };
     }
 
 };
 
 
-const verifyAccessService = async ( 
-    req, 
+const verifyAccessService = async (
+    req,
 ) => {
     let userInfo = req.user._doc;
     let userToken = req.user.token;
 
 
-    if(userInfo && userToken){
-        formatUserData( userInfo )
+    if (userInfo && userToken) {
+        formatUserData(userInfo)
 
 
         return {
             success: true,
-            data : { ...userInfo },
-            token : userToken,
+            data: { ...userInfo },
+            token: userToken,
             message: "Logged In Successfully",
-            };          
+        };
 
     }
 
@@ -150,80 +158,112 @@ const verifyAccessService = async (
         success: false,
         status: 404,
         message: "Record Not found",
-    };          
+    };
 
-    
+
 
 }
 
-const updateUserService = async(
-    userInfo, full_name , password , 
-    username, bio , age, profilePic
-)=>{
+const updateUserService = async (
+    userInfo, full_name, password,
+    username, bio, age, profilePic
+) => {
+
+    let existingUsername;
+
+    if (username) {
+        existingUsername = await User.findOne({ username });
+    }
+
+    if (existingUsername) {
+        throw {
+            success: false,
+            status: 400,
+            message: "Username already exist",
+        }
+    }
+
+    // hash password if provided
+    if (password) {
+        password = hashPassword(password)
+    }
+
+    // upload profile picture if provided
+    if (profilePic) {
+
+        if (userInfo.profilePic) {
+            let img = userInfo.profilePic.split(".com/")[1].split("/")[1];
+            await deleteFileFromS3(img, process.env.S3BUCKET_PROFILEIMAGES)
+        }
+
+        let { fileName, type, buf } = parsingBufferImage(profilePic)
+
+
+        profilePic = await uploadFileToS3(
+            `${fileName.substr(fileName.length - 15)}.${type}`,
+            buf, 'base64', `image/${type}`,
+            process.env.S3BUCKET_PROFILEIMAGES, 'public-read',
+        )
+    }
+
+    let updateData = {
+        full_name, password, username,
+        bio, age, profilePic
+    }
+
+    let filter = {
+        _id: userInfo._id
+    }
+
+    let updateUser = await User.findOneAndUpdate(filter, updateData, { new: true });
+
+    formatUserData(updateUser._doc)
+
+    return {
+        success: true,
+        data: { ...updateUser._doc },
+        message: "User updated Successfully",
+    };
+
+}
+
+
+
+const followUnFollowServiceV2 = async (currentUser, targetUserId) => {
+
+    const targetUser = await findRecordById( User , targetUserId , "Clicked User not found" )
+
+    const isFollowing = currentUser.following.includes( targetUserId );
+
+    if (isFollowing) {
+        // Unfollow user
         
-        let existingUsername;
-
-        if(username){
-            existingUsername = await User.findOne({  username });
-        }
-
-        if(existingUsername){
-            throw{
-                success: false,
-                status: 400,
-                message: "Username already exist",        
-            }
-        }
-
-        // hash password if provided
-        if(password){
-            password = hashPassword(password)
-        }
-        
-        // upload profile picture if provided
-        if (profilePic) {
-
-            if(userInfo.profilePic){
-                let img = userInfo.profilePic.split(".com/")[1].split("/")[1];
-                await deleteFileFromS3( img , process.env.S3BUCKET_PROFILEIMAGES )
-            }
-
-            let { fileName , type , buf } = parsingBufferImage( profilePic )        
-
-
-            profilePic = await uploadFileToS3( 
-                `${fileName.substr(fileName.length - 15)}.${type}`,
-                buf, 'base64', `image/${type}`,
-                process.env.S3BUCKET_PROFILEIMAGES, 'public-read',
-            )
-        } 
-
-        let updateData = {
-            full_name , password, username,
-            bio, age, profilePic    
-        }
-
-        let filter = {
-            _id : userInfo._id
-        }
-
-        let updateUser = await User.findOneAndUpdate( filter , updateData , {new: true});
-
-        formatUserData( updateUser._doc )
-
+        await User.findByIdAndUpdate(targetUserId, { $pull: { followers: currentUser._id } });
+        await User.findByIdAndUpdate(currentUser._id, { $pull: { following: targetUserId } });
         return {
             success: true,
-            data : { ...updateUser._doc },
-            message: "User updated Successfully",
-        };            
+            data: {  },
+            message: "User Un-Followed Successfully",
+        };
 
-}
+    } else {
+        // Follow user
+        await User.findByIdAndUpdate(targetUserId, { $push: { followers: currentUser._id } });
+        await User.findByIdAndUpdate(currentUser._id, { $push: { following: targetUserId } });
+        return {
+            success: true,
+            data: {  },
+            message: "User Followed Successfully",
+        };
+    }
+
+};
 
 
 export {
     signUpService,
     signInService,
     verifyAccessService,
-    updateUserService
-    
+    updateUserService,
+    followUnFollowServiceV2
 }
