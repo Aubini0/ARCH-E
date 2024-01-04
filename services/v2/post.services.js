@@ -1,6 +1,6 @@
 import Post from "../../models/postModel.js";
 import User from "../../models/userModel.js";
-import Reply from "../../models/replyModel.js";
+import Comment from "../../models/commentModel.js";
 import { uploadFileToS3 } from "../../utils/helpers/fileUploads.js"
 import { parsingBufferAudio } from "../../utils/helpers/commonFuncs.js";
 import { 
@@ -58,6 +58,7 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
 
     const { ObjectId } = Types;
     let objectUserId;
+    let feedPosts = []; 
     if(userId){
         objectUserId = new ObjectId(userId);
     }
@@ -77,7 +78,7 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
 
 
 
-    const feedPosts = rawFeedPosts.map(post => {
+    feedPosts = rawFeedPosts.map(post => {
         // Convert Mongoose document to plain JavaScript object
         const postObject = post.toObject();
 
@@ -102,10 +103,10 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
 
 
     if (!feedPosts || feedPosts.length === 0) {
-        throw {
-            success: false,
-            status: 404,
-            message: "No feed posts found",
+        return {
+            success: true,
+            data: { feedPosts, totalCount },
+            message: "Random posts returned Successfully",
         }
     }
 
@@ -157,7 +158,7 @@ const replyToPostServiceV2 = async ( currentUser , postId , text ) => {
     };
 
 
-    const comment =  await createRecord( Reply , commentBody );
+    const comment =  await createRecord( Comment , commentBody );
 
     const updatePostBody = { 
         $push: { replies: comment._id },
@@ -179,12 +180,12 @@ const getPostCommentsServiceV2 = async (postId, page, limit) => {
 
     await findRecordById( Post , postId , "Post Not Found against this ID" )
 
-    let totalCount = await Reply.countDocuments({ postId });
+    let totalCount = await Comment.countDocuments({ postId });
     totalCount = Math.round(totalCount / parseInt(limit))
     totalCount = totalCount == 0 ? 1 : totalCount
 
 
-    const comments = await Reply.find({ postId })
+    const comments = await Comment.find({ postId })
         .sort({ createdAt: -1 }) // Sort by most recent
         .skip((page - 1) * limit)
         .limit(Number(limit))
@@ -211,6 +212,7 @@ const getPostCommentsServiceV2 = async (postId, page, limit) => {
 const getFollowedFeedPostServiceV2 = async (currentUser, page, limit) => {
 
     let followedIds = currentUser.following;
+    let feedPosts = [];
 
     let totalCount = await getRecordsCount( Post ,  { postedBy: { $in: followedIds } } , limit )
 
@@ -226,7 +228,7 @@ const getFollowedFeedPostServiceV2 = async (currentUser, page, limit) => {
     )
 
 
-    const feedPosts = rawFeedPosts.map(post => {
+    feedPosts = rawFeedPosts.map(post => {
         // Convert Mongoose document to plain JavaScript object
         const postObject = post.toObject();
 
@@ -248,10 +250,10 @@ const getFollowedFeedPostServiceV2 = async (currentUser, page, limit) => {
 
 
     if (!feedPosts || feedPosts.length === 0) {
-        throw {
-            success: false,
-            status: 404,
-            message: "No feed posts found",
+        return {
+            success: true,
+            data: { feedPosts , totalCount },
+            message: "Followed Posts returned Successfully",    
         }
     }
 
