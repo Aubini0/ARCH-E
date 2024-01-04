@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const replySchema = mongoose.Schema({
+const commentSchema = mongoose.Schema({
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
@@ -30,7 +30,7 @@ const replySchema = mongoose.Schema({
 
     parentReply : {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Reply"
+        ref: "Comment"
     }
 
 
@@ -39,6 +39,6 @@ const replySchema = mongoose.Schema({
     timestamps: true,
 });
 
-const Reply = mongoose.model("Reply", replySchema);
+const Comment = mongoose.model("Comment", commentSchema);
 
-export default Reply;
+export default Comment;
