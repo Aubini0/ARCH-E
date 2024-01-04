@@ -48,7 +48,7 @@ const postSchema = mongoose.Schema({
 	},
 	replies: {
 		type: [mongoose.Schema.Types.ObjectId],
-		ref: "Reply",
+		ref: "Comment",
 		default: [],		
 	},
 }, {
