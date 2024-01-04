@@ -103,8 +103,6 @@ const postValidation = {
     }),
 
 
-
-
     likeUnLikePost: Joi.object().keys({
         postId: Joi.objectId()
             .required()

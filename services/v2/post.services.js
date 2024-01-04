@@ -8,6 +8,8 @@ import {
     createRecord ,
     findRecordById , 
 } from "../../utils/helpers/commonDbQueries.js";
+import { Types } from 'mongoose'; // Import Types from mongoose
+
 
 const createPostServiceV2 = async (
     userInfo, text, audio
@@ -52,13 +54,19 @@ const createPostServiceV2 = async (
 
 const getFeedPostServiceV2 = async (userId, page, limit) => {
 
+    const { ObjectId } = Types;
+    let objectUserId;
+    if(userId){
+        objectUserId = new ObjectId(userId);
+    }
+
     let totalCount = await Post.countDocuments();
 
     totalCount = Math.round(totalCount / parseInt(limit))
     totalCount = totalCount == 0 ? 1 : totalCount
 
 
-    const feedPosts = await Post.find()
+    const rawFeedPosts = await Post.find()
         .sort({ createdAt: -1 }) // Sort by most recent
         .skip((page - 1) * limit)
         .limit(Number(limit))
@@ -67,6 +75,30 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
             select: "-password -ip -createdAt -updatedAt -__v"
         })
         .exec();
+
+
+    const feedPosts = rawFeedPosts.map(post => {
+        // Convert Mongoose document to plain JavaScript object
+        const postObject = post.toObject();
+
+
+        // Default values for followed & liked booleans
+        postObject.postedBy.followed = false;
+        postObject.liked = false;
+
+        // Check if userId is in followers list of the content creator
+        if (postObject.postedBy.followers.includes(userId)) {
+            postObject.postedBy.followed = true;
+        }
+
+        const userIdExists = postObject.likes.some(id => id.equals( objectUserId ));
+        if (userIdExists) {
+            postObject.liked = true;
+        }
+
+        return postObject;
+    });
+
 
 
     if (!feedPosts || feedPosts.length === 0) {
