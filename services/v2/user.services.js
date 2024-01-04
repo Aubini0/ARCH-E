@@ -241,16 +241,16 @@ const followUnFollowServiceV2 = async (currentUser, targetUserId) => {
 
     const targetUser = await findRecordById( User , targetUserId , "Clicked User not found" )
 
-    const isFollowing = currentUser.following.includes( targetUserId );
+    const followed = currentUser.following.includes( targetUserId );
 
-    if (isFollowing) {
+    if (followed) {
         // Unfollow user
         
         await User.findByIdAndUpdate(targetUserId, { $pull: { followers: currentUser._id } });
         await User.findByIdAndUpdate(currentUser._id, { $pull: { following: targetUserId } });
         return {
             success: true,
-            data: {  },
+            data: { followed : !followed },
             message: "User Un-Followed Successfully",
         };
 
@@ -260,7 +260,7 @@ const followUnFollowServiceV2 = async (currentUser, targetUserId) => {
         await User.findByIdAndUpdate(currentUser._id, { $push: { following: targetUserId } });
         return {
             success: true,
-            data: {  },
+            data: { followed : !followed },
             message: "User Followed Successfully",
         };
     }
