@@ -7,6 +7,8 @@ import {
     updateRecord ,
     createRecord ,
     findRecordById , 
+    getRecordsCount ,
+    fetchPaginatedRecords
 } from "../../utils/helpers/commonDbQueries.js";
 import { Types } from 'mongoose'; // Import Types from mongoose
 
@@ -60,21 +62,19 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
         objectUserId = new ObjectId(userId);
     }
 
-    let totalCount = await Post.countDocuments();
-
-    totalCount = Math.round(totalCount / parseInt(limit))
-    totalCount = totalCount == 0 ? 1 : totalCount
+    let totalCount = await getRecordsCount( Post , {}  , limit );
 
 
-    const rawFeedPosts = await Post.find()
-        .sort({ createdAt: -1 }) // Sort by most recent
-        .skip((page - 1) * limit)
-        .limit(Number(limit))
-        .populate({
-            path: "postedBy",
-            select: "-password -ip -createdAt -updatedAt -__v"
-        })
-        .exec();
+    let query_obj = {  }
+    let sorted_criteria = { createdAt: -1 }
+    let populate_criteria = { 
+        path: "postedBy", select: "-password -ip -createdAt -updatedAt -__v" 
+        }
+
+    const rawFeedPosts = await fetchPaginatedRecords( 
+        Post , query_obj , sorted_criteria , page , limit , populate_criteria
+    )
+
 
 
     const feedPosts = rawFeedPosts.map(post => {
@@ -115,7 +115,6 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
         message: "Random posts returned Successfully",
     };
 }
-
 
 
 const likeUnlikePostServiceV2 = async (currentUser, postId) => {
@@ -175,9 +174,100 @@ const replyToPostServiceV2 = async ( currentUser , postId , text ) => {
 };
 
 
+
+const getPostCommentsServiceV2 = async (postId, page, limit) => {
+
+    await findRecordById( Post , postId , "Post Not Found against this ID" )
+
+    let totalCount = await Reply.countDocuments({ postId });
+    totalCount = Math.round(totalCount / parseInt(limit))
+    totalCount = totalCount == 0 ? 1 : totalCount
+
+
+    const comments = await Reply.find({ postId })
+        .sort({ createdAt: -1 }) // Sort by most recent
+        .skip((page - 1) * limit)
+        .limit(Number(limit))
+        .exec();
+
+
+    if (!comments || comments.length === 0) {
+        throw {
+            success: false,
+            status: 404,
+            message: "No Comments for this Post found",
+        }
+    }
+
+    return {
+        success: true,
+        data: { comments , totalCount },
+        message: "Comments returned Successfully",
+    };
+}
+
+
+
+const getFollowedFeedPostServiceV2 = async (currentUser, page, limit) => {
+
+    let followedIds = currentUser.following;
+
+    let totalCount = await getRecordsCount( Post ,  { postedBy: { $in: followedIds } } , limit )
+
+
+    let query_obj = { postedBy: { $in: followedIds } }
+    let sorted_criteria = { createdAt: -1 }
+    let populate_criteria = { 
+        path: "postedBy", select: "-password -ip -createdAt -updatedAt -__v" 
+        }
+
+    const rawFeedPosts = await fetchPaginatedRecords( 
+        Post , query_obj , sorted_criteria , page , limit , populate_criteria
+    )
+
+
+    const feedPosts = rawFeedPosts.map(post => {
+        // Convert Mongoose document to plain JavaScript object
+        const postObject = post.toObject();
+
+
+        // Default values for followed & liked booleans
+        postObject.postedBy.followed = true;
+        postObject.liked = false;
+
+
+
+        const userIdExists = postObject.likes.some(id => id.equals( currentUser._id ));
+        if (userIdExists) {
+            postObject.liked = true;
+        }
+
+        return postObject;
+    });
+
+
+
+    if (!feedPosts || feedPosts.length === 0) {
+        throw {
+            success: false,
+            status: 404,
+            message: "No feed posts found",
+        }
+    }
+
+    return {
+        success: true,
+        data: { feedPosts , totalCount },
+        message: "Followed Posts returned Successfully",
+    };
+}
+
+
 export {
     createPostServiceV2,
     getFeedPostServiceV2,
     replyToPostServiceV2,
-    likeUnlikePostServiceV2
+    likeUnlikePostServiceV2,
+    getPostCommentsServiceV2,
+    getFollowedFeedPostServiceV2
 }

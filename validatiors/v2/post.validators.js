@@ -143,6 +143,49 @@ const postValidation = {
     }),
 
 
+
+    getFeedPostComments: Joi.object().keys({
+
+        postId: Joi.objectId()
+            .required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Provide a valid postId",
+                };
+            }),
+
+        page: Joi.number().integer().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Page No required",
+                };
+            }),
+
+        limit: Joi.number().integer().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Number of rows required",
+                };
+            }),
+
+
+
+
+    }),
+
+
+
+  
+
 }
 
 
