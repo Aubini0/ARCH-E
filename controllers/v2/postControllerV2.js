@@ -4,7 +4,9 @@ import {
     createPostServiceV2  , 
     getFeedPostServiceV2 ,
     replyToPostServiceV2 ,
-    likeUnlikePostServiceV2
+    likeUnlikePostServiceV2 ,
+    getPostCommentsServiceV2,
+    getFollowedFeedPostServiceV2
 } from "../../services/v2/post.services.js"
 
 const createPostV2 = async(req, res) => {
@@ -136,9 +138,80 @@ const replyToPostV2 = async(req , res)=>{
 }
 
 
+const getPostCommentsV2 = async(req , res)=>{
+    try {
+        let { id : postId } = req.params  
+        let { page , limit } = req.query;
+
+
+        page = page ? page == 0 ? 1 : page  : 1;
+        limit =  limit ? limit  : 20
+        page = parseInt(page);
+        limit = parseInt(limit)
+
+
+        const JoiSchema = postValidation.getFeedPostComments;
+        await JoiSchema.validateAsync({
+            postId, page, limit
+        });
+
+        res.status(200).json( await getPostCommentsServiceV2( postId , page , limit ) )
+
+
+    } 
+    catch (err) {
+        console.log(err)
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+    
+
+    }
+
+}
+
+
+const getFollowedFeedPostsV2 = async(req , res)=>{
+    try {
+        let { page , limit } = req.query;
+        const currentUser = req.user;
+        page = page ? page == 0 ? 1 : page  : 1;
+        limit =  limit ? limit  : 20
+        page = parseInt(page);
+        limit = parseInt(limit)
+
+        const JoiSchema = postValidation.getFeedPosts;
+        await JoiSchema.validateAsync({
+            page, limit
+        });
+
+        res.status(200).json( await getFollowedFeedPostServiceV2( currentUser , page , limit ) )
+
+
+    } 
+    catch (err) {
+        console.log(err)
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+    
+
+    }
+
+}
+
+
 export { 
     createPostV2,
     replyToPostV2,
     getFeedPostsV2,
-    likeUnlikePostV2
+    likeUnlikePostV2,
+    getPostCommentsV2,
+    getFollowedFeedPostsV2
 };

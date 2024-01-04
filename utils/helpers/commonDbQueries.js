@@ -31,8 +31,31 @@ const updateRecord = async( model , id , update_body )=>{
     return toBeupdatedRecord;
 }   
 
+
+
+const fetchPaginatedRecords = async( model , query_obj , sorted_criteria ,  page , limit , populate_criteria )=>{
+    const paginatedRecords = await model.find({ ...query_obj })
+        .sort({ ...sorted_criteria }) // Sort by most recent
+        .skip((page - 1) * limit)
+        .limit(Number(limit))
+        .populate({ ...populate_criteria })
+        .exec();
+
+    return paginatedRecords
+}
+
+
+const getRecordsCount = async( model , query_obj  , limit)=>{
+    let totalCount = await model.countDocuments({ ...query_obj });
+    totalCount = Math.round(totalCount / parseInt(limit))
+    totalCount = totalCount == 0 ? 1 : totalCount
+    return totalCount;
+}
+
 export {
     createRecord,
     updateRecord,
     findRecordById,
+    getRecordsCount,
+    fetchPaginatedRecords
 }
