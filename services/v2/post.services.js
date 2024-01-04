@@ -90,13 +90,13 @@ const likeUnlikePostServiceV2 = async (currentUser, postId) => {
 
     const post = await findRecordById( Post ,  postId , "Post not found" )
 
-    const userLikedPost = post.likes.includes(currentUser._id);
+    const liked = post.likes.includes(currentUser._id);
 
-    if (userLikedPost) {
+    if (liked) {
         await updateRecord( Post ,  postId , { $pull: { likes: currentUser._id } });
         return {
             success: true,
-            data: {},
+            data: { liked : !liked },
             message: "Post UnLiked Successfully",
         };
     }
@@ -105,7 +105,7 @@ const likeUnlikePostServiceV2 = async (currentUser, postId) => {
 
         return {
             success: true,
-            data: {},
+            data: { liked : !liked },
             message: "Post Liked Successfully",
         };
     }
