@@ -52,9 +52,17 @@ const getRecordsCount = async( model , query_obj  , limit)=>{
     return totalCount;
 }
 
+
+const deleteRecord = async(model , id)=>{
+    let deletedResponce = await model.findByIdAndDelete(id);
+    return deletedResponce;
+
+}
+
 export {
     createRecord,
     updateRecord,
+    deleteRecord,
     findRecordById,
     getRecordsCount,
     fetchPaginatedRecords

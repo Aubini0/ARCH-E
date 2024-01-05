@@ -183,6 +183,18 @@ const postValidation = {
     }),
 
 
+    deletePost: Joi.object().keys({
+        postId: Joi.objectId()
+            .required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Provide a valid postId",
+                };
+        })
+    }),
 
   
 

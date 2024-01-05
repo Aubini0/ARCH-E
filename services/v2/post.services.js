@@ -1,11 +1,12 @@
 import Post from "../../models/postModel.js";
 import User from "../../models/userModel.js";
 import Comment from "../../models/commentModel.js";
-import { uploadFileToS3 } from "../../utils/helpers/fileUploads.js"
+import { uploadFileToS3 , deleteFileFromS3 } from "../../utils/helpers/fileUploads.js"
 import { parsingBufferAudio } from "../../utils/helpers/commonFuncs.js";
 import { 
     updateRecord ,
     createRecord ,
+    deleteRecord ,
     findRecordById , 
     getRecordsCount ,
     fetchPaginatedRecords
@@ -265,8 +266,44 @@ const getFollowedFeedPostServiceV2 = async (currentUser, page, limit) => {
 }
 
 
+
+
+const deletePostServiceV2 = async ( currentUser , postId  ) => {
+    const post = await findRecordById( Post ,  postId , "Post not found" );
+
+    if( post.postedBy.toString() !== currentUser._id.toString() ){
+        throw {
+            success: false,
+            status: 401,
+            message: "Unauthorized to delete this post",
+        }
+    }
+
+
+    let audioFileName = post.audio.split(".com/")[1].split("/")[1];
+
+    await deleteFileFromS3( audioFileName , process.env.S3BUCKET_POSTAUDIOS )
+
+    let resp = await deleteRecord( Post , postId );
+
+    
+
+    return {
+        success: true,
+        data: {  },
+        message: "Post Deleted Successfully",
+    };
+
+};
+
+
+
+
+
+
 export {
     createPostServiceV2,
+    deletePostServiceV2,
     getFeedPostServiceV2,
     replyToPostServiceV2,
     likeUnlikePostServiceV2,
