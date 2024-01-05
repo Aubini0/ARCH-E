@@ -1,5 +1,6 @@
 import express from "express";
 import {
+    deletePostV2,
     createPostV2,
     replyToPostV2,
     getFeedPostsV2,    
@@ -16,8 +17,9 @@ const router = express.Router();
 router.post("/create", protectRoute, createPostV2);
 router.put("/like/:id", protectRoute, likeUnlikePostV2);
 router.post("/comment", protectRoute, replyToPostV2);
-
 router.get("/followed-feed", protectRoute , getFollowedFeedPostsV2);
+router.delete("/delete/:id", protectRoute, deletePostV2);
+
 
 
 // Public Routes

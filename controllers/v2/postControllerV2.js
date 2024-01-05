@@ -2,6 +2,7 @@
 import postValidation from "../../validatiors/v2/post.validators.js";
 import { 
     createPostServiceV2  , 
+    deletePostServiceV2,
     getFeedPostServiceV2 ,
     replyToPostServiceV2 ,
     likeUnlikePostServiceV2 ,
@@ -207,7 +208,38 @@ const getFollowedFeedPostsV2 = async(req , res)=>{
 }
 
 
+
+
+const deletePostV2 = async(req , res)=>{
+    try {
+        let { id : postId } = req.params;
+        let currentUser = req.user;
+
+        const JoiSchema = postValidation.deletePost;
+        await JoiSchema.validateAsync({
+            postId
+        });
+
+        res.status(200).json( await deletePostServiceV2(currentUser , postId) )
+
+
+    } 
+    catch (err) {
+        console.log(err)
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+    
+
+    }
+}
+
+
 export { 
+    deletePostV2,
     createPostV2,
     replyToPostV2,
     getFeedPostsV2,
