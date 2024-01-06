@@ -18,14 +18,14 @@ const commentSchema = mongoose.Schema({
         required: true,
     },
 
-    userProfilePic: {
-        type: String,
-    },
+    // userProfilePic: {
+    //     type: String,
+    // },
 
-    username: {
-        type: String,
-        required : true,
-    },
+    // username: {
+    //     type: String,
+    //     required : true,
+    // },
 
 
     parentReply : {

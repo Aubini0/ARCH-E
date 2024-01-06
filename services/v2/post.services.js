@@ -159,8 +159,6 @@ const replyToPostServiceV2 = async ( currentUser , postId , text ) => {
         userId: currentUser._id,
         text: text,
         postId : postId,
-        userProfilePic: currentUser.profilePic,
-        username: currentUser.username,
     };
 
 
@@ -192,12 +190,24 @@ const getPostCommentsServiceV2 = async (postId, page, limit) => {
     totalCount = totalCount == 0 ? 1 : totalCount
 
 
-    const comments = await Comment.find({ postId })
+    const rawComments = await Comment.find({ postId })
         .sort({ createdAt: -1 }) // Sort by most recent
         .skip((page - 1) * limit)
         .limit(Number(limit))
+        .populate({
+           path: "userId", select: "_id username profilePic" 
+        })        
         .exec();
 
+    const comments = rawComments.map((comment) => {
+        const commentObject = comment.toObject();
+        commentObject.userProfilePic = commentObject.userId.profilePic;
+        commentObject.username = commentObject.userId.username;
+        commentObject.userId = commentObject.userId._id;
+
+        return commentObject;
+
+    });
 
     if (!comments || comments.length === 0) {
         throw {
