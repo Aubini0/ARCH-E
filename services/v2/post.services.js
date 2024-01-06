@@ -239,10 +239,13 @@ const getFollowedFeedPostServiceV2 = async (currentUser, page, limit) => {
         // Convert Mongoose document to plain JavaScript object
         const postObject = post.toObject();
 
+        const likesCount = post.likes.length;
 
+    
         // Default values for followed & liked booleans
         postObject.postedBy.followed = true;
         postObject.liked = false;
+        postObject.totalLikes = likesCount;
 
 
 
