@@ -1,10 +1,11 @@
 
 import postValidation from "../../validatiors/v2/post.validators.js";
 import { 
-    createPostServiceV2  , 
-    deletePostServiceV2,
+    createPostServiceV2 , 
+    deletePostServiceV2 ,
     getFeedPostServiceV2 ,
     replyToPostServiceV2 ,
+    deleteCommentServiceV2 ,
     likeUnlikePostServiceV2 ,
     getPostCommentsServiceV2,
     getFollowedFeedPostServiceV2
@@ -238,11 +239,41 @@ const deletePostV2 = async(req , res)=>{
 }
 
 
+
+const deleteCommentV2 = async(req , res)=>{
+    try {
+        let { id : commentId } = req.params;
+        let currentUser = req.user;
+
+        const JoiSchema = postValidation.deleteComment;
+        await JoiSchema.validateAsync({
+            commentId
+        });
+
+        res.status(200).json( await deleteCommentServiceV2( currentUser , commentId ) );
+
+
+    } 
+    catch (err) {
+        console.log(err)
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+    
+
+    }
+}
+
+
 export { 
     deletePostV2,
     createPostV2,
     replyToPostV2,
     getFeedPostsV2,
+    deleteCommentV2,
     likeUnlikePostV2,
     getPostCommentsV2,
     getFollowedFeedPostsV2
