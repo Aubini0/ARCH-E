@@ -172,6 +172,7 @@ const updateUserService = async (
     let existingUsername;
 
     if (username) {
+        username = username.toLowerCase();
         existingUsername = await User.findOne({ username });
     }
 
