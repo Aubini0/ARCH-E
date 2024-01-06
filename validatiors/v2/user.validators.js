@@ -171,7 +171,7 @@ const userValidation = {
 
 
         
-        bio: Joi.string()
+        bio: Joi.string().allow('')
             .error(() => {
             throw {
                 status: 400,

@@ -100,6 +100,11 @@ const updateUserBabbl = async(req , res)=>{
             bio , age , profilePic } = req.body;
         const userInfo = req.user;
 
+        console.log({ 
+            full_name , password , username ,
+            bio , age 
+        })
+
         const JoiSchema = userValidation.upadteUser;
         await JoiSchema.validateAsync({
             full_name, password, 
