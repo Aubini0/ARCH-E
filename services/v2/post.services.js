@@ -82,11 +82,14 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
     feedPosts = rawFeedPosts.map(post => {
         // Convert Mongoose document to plain JavaScript object
         const postObject = post.toObject();
+        // Get total likes of this post
+        const likesCount = post.likes.length;
 
 
         // Default values for followed & liked booleans
         postObject.postedBy.followed = false;
         postObject.liked = false;
+        postObject.totalLikes = likesCount;
 
         // Check if userId is in followers list of the content creator
         if (postObject.postedBy.followers.includes(userId)) {
@@ -97,6 +100,8 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
         if (userIdExists) {
             postObject.liked = true;
         }
+
+
 
         return postObject;
     });
@@ -162,7 +167,8 @@ const replyToPostServiceV2 = async ( currentUser , postId , text ) => {
     const comment =  await createRecord( Comment , commentBody );
 
     const updatePostBody = { 
-        $push: { replies: comment._id },
+        // $push: { replies: comment._id },
+        $inc: { totalComments: 1 },
     }
 
     const updatedPost = await updateRecord( Post , postId , updatePostBody )
@@ -298,7 +304,29 @@ const deletePostServiceV2 = async ( currentUser , postId  ) => {
 
 
 
+const deleteCommentServiceV2 = async ( currentUser , commentId  ) => {
+    const comment = await findRecordById( Comment ,  commentId , "Comment not found" );
 
+    if( comment.userId.toString() !== currentUser._id.toString() ){
+        throw {
+            success: false,
+            status: 401,
+            message: "Unauthorized to delete this Comment",
+        }
+    }
+
+
+    let resp = await deleteRecord( Comment , commentId );
+
+    
+
+    return {
+        success: true,
+        data: {  },
+        message: "Comment Deleted Successfully",
+    };
+
+};
 
 
 export {
@@ -306,6 +334,7 @@ export {
     deletePostServiceV2,
     getFeedPostServiceV2,
     replyToPostServiceV2,
+    deleteCommentServiceV2,
     likeUnlikePostServiceV2,
     getPostCommentsServiceV2,
     getFollowedFeedPostServiceV2

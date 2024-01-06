@@ -198,6 +198,21 @@ const postValidation = {
 
   
 
+
+    deleteComment: Joi.object().keys({
+        commentId: Joi.objectId()
+            .required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Provide a valid commentId",
+                };
+        })
+    }),
+
+
 }
 
 
