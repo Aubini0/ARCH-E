@@ -329,6 +329,16 @@ const deleteCommentServiceV2 = async ( currentUser , commentId  ) => {
     }
 
 
+
+    const updatePostBody = { 
+        $inc: { totalComments: -1 },
+    }
+    const postId = comment.postId;
+
+    const updatedPost = await updateRecord( Post , postId , updatePostBody )
+
+
+
     let resp = await deleteRecord( Comment , commentId );
 
     
