@@ -21,8 +21,7 @@ const postSchema = mongoose.Schema({
 		default: 0,
 	},
 	text: {
-		type: String,
-		maxLength: 500,
+		type: String
 	},
 	audio: {
 		type: String,
