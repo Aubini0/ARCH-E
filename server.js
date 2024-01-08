@@ -73,7 +73,7 @@ app.use("/api/v2/posts", postRoutesV2);
 
     // start server to listen at specified port
     app.listen(PORT, () =>
-        console.log(`Server started at http://localhost:${PORT}`)
+        console.log(`Server started at :> http://localhost:${PORT}`)
     );
 
 })();
