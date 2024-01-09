@@ -8,7 +8,10 @@ import { google } from "googleapis";
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const REDIRECT_URL = 'http://localhost:3000/api/v2/users/auth/google/callback';
+// const REDIRECT_URL = 'http://localhost:3000/api/v2/users/auth/google/callback';
+
+const REDIRECT_URL = 'https://api.babblchat.com/api/v2/users/auth/google/callback';
+
 
 const oauth2Client = new google.auth.OAuth2(
     CLIENT_ID,
