@@ -16,7 +16,7 @@ const userSchema = mongoose.Schema({
     },
     age: {
         type: String,
-        required: true,
+        required: false,
     },
     ip: {
         type: String,
@@ -67,6 +67,17 @@ const userSchema = mongoose.Schema({
         type: String,
         default: "",
     },
+
+    // Google Tokens 
+    google_access_token : {
+        type : String,
+        default : ""
+    },
+
+    google_refresh_token : {
+        type : String,
+        default : ""
+    }
 
 }, {
     timestamps: true,

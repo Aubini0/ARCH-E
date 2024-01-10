@@ -7,7 +7,12 @@ import {
     validatePassword
 } from "../../utils/helpers/passwordSettersAndValidators.js";
 import { v4 as uuidv4 } from "uuid";
-import { formatUserData, parsingBufferImage } from "../../utils/helpers/commonFuncs.js"
+import { 
+    formatUserData, 
+    parsingBufferImage , 
+    getRequest , 
+    calculateAge 
+} from "../../utils/helpers/commonFuncs.js"
 
 
 import { uploadFileToS3, deleteFileFromS3 } from "../../utils/helpers/fileUploads.js"
@@ -17,6 +22,28 @@ import {
     createRecord ,
     findRecordById , 
 } from "../../utils/helpers/commonDbQueries.js";
+
+import { google } from "googleapis";
+
+
+
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const REDIRECT_URL = `${process.env.REDIRECT_BASE_URL}/api/v2/users/auth/google/callback`;
+
+const oauth2Client = new google.auth.OAuth2(
+    CLIENT_ID,
+    CLIENT_SECRET,
+    REDIRECT_URL
+);
+  
+const scopes = [
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/user.birthday.read'
+];
+
+
 
 
 
@@ -107,6 +134,19 @@ const signInService = async (
             status: 404,
             message: "Email Not Found",
         };
+    }
+
+    if(user.google_access_token){
+        const token = await generateTokenAndSetCookie(user);
+
+        formatUserData(user._doc)
+
+        return {
+            success: true,
+            data: { ...user._doc },
+            token,
+            message: "Logged In Successfully"
+        }
     }
 
     if (validatePassword(user, password)) {
@@ -269,10 +309,88 @@ const followUnFollowServiceV2 = async (currentUser, targetUserId) => {
 };
 
 
+const gogogleAuthServiceV2 = async( )=>{
+    const url = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: scopes,
+        include_granted_scopes: true
+    });   
+    
+    return url;
+
+}
+
+
+const googleCallBackServiceV2 = async(code , ip)=>{
+        let url = process.env.LOGIN_POPUP;
+        let userAge;
+        let { tokens } = await oauth2Client.getToken(code);
+        const { access_token , refresh_token } = tokens;
+
+        let profileUrl = "https://www.googleapis.com/oauth2/v1/userinfo";
+        let ageUrl = `https://people.googleapis.com/v1/people/me?personFields=birthdays&key=${process.env.GOOGLE_API_KEY}`;
+        let headers = { Authorization: `Bearer ${access_token}` };
+
+        const profile = await getRequest( profileUrl , headers );
+        const ageData = await getRequest( ageUrl , headers );
+        const birthdays = ageData.birthdays;
+
+        console.log(birthdays)
+        if(birthdays){
+            let index;
+            if( birthdays.length > 1 ){ index = 1 }
+            else{ index = 0 };
+
+            let year = birthdays[ index ].date.year;
+            let month = birthdays[ index ].date.month;
+            let day = birthdays[ index ].date.day;
+            userAge = calculateAge(day , month , year);
+        }
+
+        try{
+            const newUser = new User({
+                full_name: profile.name,
+                username: profile.email , age: userAge,
+                profilePic: profile.picture,
+                email: profile.email, ip: ip, 
+                google_access_token : access_token,
+                google_refresh_token : refresh_token,
+            });
+    
+            await newUser.save();
+            if (newUser) {
+                const token = await generateTokenAndSetCookie(newUser);
+    
+                url = `${url}?status_code=200?token=${token}`
+                return url;            
+            }
+            else {
+                url = `${url}?status_code=400?token=""`
+                return url;
+            }    
+        }
+        catch(err){
+            if(err.code === 11000){
+                const user = await User.findOne({ email : profile.email });                
+                const token = await generateTokenAndSetCookie(user);
+                url = `${url}?status_code=200?token=${token}`
+                return url;                            
+            }
+            else{
+                url = `${url}?status_code=400?token=""`                
+                return url;
+            }
+        }
+          
+}
+
+
 export {
     signUpService,
     signInService,
     verifyAccessService,
     updateUserService,
-    followUnFollowServiceV2
+    followUnFollowServiceV2,
+    gogogleAuthServiceV2,
+    googleCallBackServiceV2
 }
