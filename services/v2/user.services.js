@@ -335,10 +335,15 @@ const googleCallBackServiceV2 = async(code , ip)=>{
         const ageData = await getRequest( ageUrl , headers );
         const birthdays = ageData.birthdays;
 
+        console.log(birthdays)
         if(birthdays){
-            let year = birthdays[1].date.year;
-            let month = birthdays[1].date.month;
-            let day = birthdays[1].date.day;
+            let index;
+            if( birthdays.length > 1 ){ index = 1 }
+            else{ index = 0 };
+
+            let year = birthdays[ index ].date.year;
+            let month = birthdays[ index ].date.month;
+            let day = birthdays[ index ].date.day;
             userAge = calculateAge(day , month , year);
         }
 

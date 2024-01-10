@@ -62,15 +62,17 @@ const googleAuthV2 = async(req, res) => {
 const googleCallBackV2 = async(req , res)=>{
     const { code } = req.query;
     const ip = req.ip;
+    let redirectUrl;
 
 
     try {
-        let redirectUrl = await googleCallBackServiceV2( code , ip )
+        redirectUrl = await googleCallBackServiceV2( code , ip )
         res.redirect( redirectUrl );
     }
     catch(err){
         console.error('Error:', err);
-        res.json({ status : false })    
+        redirectUrl = `${process.env.LOGIN_POPUP}?status_code=400?token=""`
+        res.redirect( redirectUrl );
     }
 
 }
