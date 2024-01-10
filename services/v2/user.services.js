@@ -371,8 +371,20 @@ const googleCallBackServiceV2 = async(code , ip)=>{
         }
         catch(err){
             if(err.code === 11000){
-                const user = await User.findOne({ email : profile.email });                
+                const user = await User.findOne({ email : profile.email });    
+
+                // If user already exist update its google_access_token
+                let updateData = {
+                    google_access_token : access_token
+                }
+                let filter = {
+                    _id: user._id
+                }           
+                let updateUser = await User.findOneAndUpdate(filter, updateData, { new: true });
+                // ---------------------------------------------------- //
+                
                 const token = await generateTokenAndSetCookie(user);
+
                 url = `${url}?status_code=200?token=${token}`
                 return url;                            
             }
