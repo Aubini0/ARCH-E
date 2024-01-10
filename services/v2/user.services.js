@@ -11,7 +11,8 @@ import {
     formatUserData, 
     parsingBufferImage , 
     getRequest , 
-    calculateAge 
+    calculateAge ,
+    prepareRedirectUrl
 } from "../../utils/helpers/commonFuncs.js"
 
 
@@ -328,8 +329,8 @@ const gogogleAuthServiceV2 = async( )=>{
 }
 
 
-const googleCallBackServiceV2 = async(code , ip)=>{
-        let url = process.env.LOGIN_POPUP;
+const googleCallBackServiceV2 = async(code , ip)=>{        
+        let url;
         let userAge;
         let { tokens } = await oauth2Client.getToken(code);
         const { access_token , refresh_token } = tokens;
@@ -367,11 +368,11 @@ const googleCallBackServiceV2 = async(code , ip)=>{
             if (newUser) {
                 const token = await generateTokenAndSetCookie(newUser);
     
-                url = `${url}?status_code=200?token=${token}`
+                url = prepareRedirectUrl( 200 , token )
                 return url;            
             }
             else {
-                url = `${url}?status_code=400?token=""`
+                url = prepareRedirectUrl( 400 )
                 return url;
             }    
         }
@@ -389,11 +390,11 @@ const googleCallBackServiceV2 = async(code , ip)=>{
                 
                 const token = await generateTokenAndSetCookie(user);
 
-                url = `${url}?status_code=200?token=${token}`
+                url = prepareRedirectUrl( 200 , token )
                 return url;                            
             }
             else{
-                url = `${url}?status_code=400?token=""`                
+                url = prepareRedirectUrl( 400 )
                 return url;
             }
         }
