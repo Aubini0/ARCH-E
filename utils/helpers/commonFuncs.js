@@ -72,11 +72,19 @@ const calculateAge = (day, month, year)=>{
 }
 
 
+const prepareRedirectUrl = ( status_code , token )=>{
+    if(!token){ token = "" }
+    if(!status_code){ status_code = 500 }
+    let url = `${process.env.LOGIN_POPUP}?status_code=${status_code}&token=${token}`;
+    return url;
+}
+
 
 export {
     getRequest,
     calculateAge,
     formatUserData,
     parsingBufferImage,
-    parsingBufferAudio
+    parsingBufferAudio,
+    prepareRedirectUrl
 }

@@ -6,6 +6,10 @@ import {
  } from "../../services/v2/user.services.js";
 
 
+ import { 
+    prepareRedirectUrl
+} from "../../utils/helpers/commonFuncs.js"
+
 
 
 
@@ -60,20 +64,20 @@ const googleAuthV2 = async(req, res) => {
 
 
 const googleCallBackV2 = async(req , res)=>{
+    let redirectUrl;
     const { code } = req.query;
     const ip = req.ip;
-    let redirectUrl;
-
 
     try {
         redirectUrl = await googleCallBackServiceV2( code , ip )
-        res.redirect( redirectUrl );
     }
     catch(err){
         console.error('Error:', err);
-        redirectUrl = `${process.env.LOGIN_POPUP}?status_code=400?token=""`
-        res.redirect( redirectUrl );
+        redirectUrl = prepareRedirectUrl( 400  )
     }
+
+    res.redirect( redirectUrl );
+
 
 }
 
