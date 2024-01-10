@@ -1,6 +1,14 @@
 import userValidation from "../../validatiors/v2/user.validators.js";
-// import { createPostServiceV2  , getFeedPostServiceV2} from "../../services/v2/post.services.js"
-import { followUnFollowServiceV2 } from "../../services/v2/user.services.js";
+import { 
+    followUnFollowServiceV2,
+    gogogleAuthServiceV2,
+    googleCallBackServiceV2
+ } from "../../services/v2/user.services.js";
+
+
+
+
+
 
 const followUnFollowUserV2 = async(req, res) => {
     try {
@@ -33,6 +41,42 @@ const followUnFollowUserV2 = async(req, res) => {
 };
 
 
+const googleAuthV2 = async(req, res) => {
+    try {
+        const url = await gogogleAuthServiceV2()
+        res.redirect(url);
+    } 
+    catch (err) {
+        // console.log({err})
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+    }
+};
+
+
+
+const googleCallBackV2 = async(req , res)=>{
+    const { code } = req.query;
+    const ip = req.ip;
+
+
+    try {
+        let redirectUrl = await googleCallBackServiceV2( code , ip )
+        res.redirect( redirectUrl );
+    }
+    catch(err){
+        console.error('Error:', err);
+        res.json({ status : false })    
+    }
+
+}
+
 export { 
     followUnFollowUserV2,
+    googleCallBackV2,
+    googleAuthV2
 };

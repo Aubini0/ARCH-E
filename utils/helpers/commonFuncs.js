@@ -1,7 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
 
 const formatUserData = ( userInfo )=>{
-    let dropData = [ "password" , "createdAt" , "updatedAt" , "ip" , "__v" ];
+    let dropData = [ "password" , "createdAt" , "updatedAt" , "ip" , "__v" , "google_refresh_token" ];
     Object.keys( userInfo ).map((item_)=>{
         if (dropData.includes(item_)){
             delete userInfo[item_]
@@ -41,7 +42,40 @@ const parsingBufferAudio = ( audio )=>{
 }
 
 
+const getRequest = async( url , headers )=>{
+    const { data } = await axios.get(url, {
+        headers: { ...headers },
+    });
+
+    return data;
+
+}
+
+
+const calculateAge = (day, month, year)=>{
+    const currentDate = new Date();
+    const birthDate = new Date(year, month - 1, day); // month is zero-indexed in JavaScript
+
+    let age = currentDate.getFullYear() - birthDate.getFullYear();
+
+    // Check if birthday has occurred this year
+    if (
+        currentDate.getMonth() < birthDate.getMonth() ||
+        (currentDate.getMonth() === birthDate.getMonth() &&
+        currentDate.getDate() < birthDate.getDate())
+    ) 
+    {
+        age--;
+    }
+
+    return age;
+}
+
+
+
 export {
+    getRequest,
+    calculateAge,
     formatUserData,
     parsingBufferImage,
     parsingBufferAudio
