@@ -15,6 +15,7 @@ import {
 } from "../../utils/helpers/commonFuncs.js"
 
 
+
 import { uploadFileToS3, deleteFileFromS3 } from "../../utils/helpers/fileUploads.js"
 
 import { 
@@ -315,8 +316,14 @@ const gogogleAuthServiceV2 = async( )=>{
         scope: scopes,
         include_granted_scopes: true
     });   
+
     
-    return url;
+    return {
+        success : true,
+        message : "Auth Url Generated",
+        data : { url }
+    }    
+    
 
 }
 
@@ -335,7 +342,7 @@ const googleCallBackServiceV2 = async(code , ip)=>{
         const ageData = await getRequest( ageUrl , headers );
         const birthdays = ageData.birthdays;
 
-        console.log(birthdays)
+        // console.log(birthdays)
         if(birthdays){
             let index;
             if( birthdays.length > 1 ){ index = 1 }
@@ -348,16 +355,15 @@ const googleCallBackServiceV2 = async(code , ip)=>{
         }
 
         try{
-            const newUser = new User({
-                full_name: profile.name,
-                username: profile.email , age: userAge,
-                profilePic: profile.picture,
-                email: profile.email, ip: ip, 
-                google_access_token : access_token,
-                google_refresh_token : refresh_token,
-            });
-    
-            await newUser.save();
+
+            let userPayload = {
+                full_name: profile.name, username: profile.email , age: userAge,
+                profilePic: profile.picture,email: profile.email, ip: ip, 
+                google_access_token : access_token, google_refresh_token : refresh_token,
+            }
+
+            const newUser = await createRecord( User , userPayload)
+
             if (newUser) {
                 const token = await generateTokenAndSetCookie(newUser);
     
@@ -377,10 +383,8 @@ const googleCallBackServiceV2 = async(code , ip)=>{
                 let updateData = {
                     google_access_token : access_token
                 }
-                let filter = {
-                    _id: user._id
-                }           
-                let updateUser = await User.findOneAndUpdate(filter, updateData, { new: true });
+                let updateUser = await updateRecord( User , user._id , updateData )
+
                 // ---------------------------------------------------- //
                 
                 const token = await generateTokenAndSetCookie(user);

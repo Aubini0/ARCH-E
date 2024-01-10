@@ -43,8 +43,8 @@ const followUnFollowUserV2 = async(req, res) => {
 
 const googleAuthV2 = async(req, res) => {
     try {
-        const url = await gogogleAuthServiceV2()
-        res.redirect(url);
+        res.status(200).json( await gogogleAuthServiceV2() )
+
     } 
     catch (err) {
         // console.log({err})
