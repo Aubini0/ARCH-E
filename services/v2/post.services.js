@@ -290,7 +290,7 @@ const getFollowedFeedPostServiceV2 = async (currentUser, page, limit) => {
 const deletePostServiceV2 = async ( currentUser , postId  ) => {
     const post = await findRecordById( Post ,  postId , "Post not found" );
 
-    if( post.postedBy.toString() !== currentUser._id.toString() ){
+    if( !currentUser.isSuperAdmin &&  ( post.postedBy.toString() !== currentUser._id.toString() ) ){
         throw {
             success: false,
             status: 401,
@@ -320,7 +320,7 @@ const deletePostServiceV2 = async ( currentUser , postId  ) => {
 const deleteCommentServiceV2 = async ( currentUser , commentId  ) => {
     const comment = await findRecordById( Comment ,  commentId , "Comment not found" );
 
-    if( comment.userId.toString() !== currentUser._id.toString() ){
+    if( !currentUser.isSuperAdmin && ( comment.userId.toString() !== currentUser._id.toString() ) ){
         throw {
             success: false,
             status: 401,

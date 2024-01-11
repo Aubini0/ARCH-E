@@ -77,6 +77,16 @@ const userSchema = mongoose.Schema({
     google_refresh_token : {
         type : String,
         default : ""
+    },
+
+    access_roles : {
+        type: [String],
+        default: [ "user" ],        
+    },
+
+    isSuperAdmin : {
+        type : Boolean,
+        default : false
     }
 
 }, {
