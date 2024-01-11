@@ -54,10 +54,13 @@ const signUpService = async (
     email, password,
     age, phone,
     profilePic, lat,
-    long, ip
+    long, ip , isSuperAdmin
 ) => {
     let profPicLocation;
+    let access_roles = [ "user" ]
     const user = await User.findOne({ email });
+
+
 
     // check if user exists or not
     if (user) {
@@ -88,12 +91,18 @@ const signUpService = async (
 
     }
 
+
+    if(isSuperAdmin){
+        access_roles.push("superAdmin")
+    }
+
     // add user to DB
     const newUser = new User({
         full_name: full_name,
         username: username, age: age, phone: phone,
         profilePic: profPicLocation, password: password,
-        email: email, ip: ip, lat: lat, long: long
+        email: email, ip: ip, lat: lat, long: long,
+        isSuperAdmin ,  access_roles 
     });
 
 
@@ -400,6 +409,12 @@ const googleCallBackServiceV2 = async(code , ip)=>{
         }
           
 }
+
+
+
+
+
+
 
 
 export {
