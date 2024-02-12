@@ -16,6 +16,8 @@ import userRoutesV2 from "./routes/v2/userRoutesV2.js";
 
 import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
+
+// Use this app instance if you want to run socket server
 // import { app } from "./socket/socket.js";
 
 dotenv.config();
@@ -36,12 +38,6 @@ app.use((req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
 
 
 // Middlewares
@@ -68,7 +64,7 @@ app.use("/api/v2/posts", postRoutesV2);
 
 
 (async()=>{
-    // wait for db to connect then proceed
+    // wait for the db to connect and then proceed
     await connectDB();
 
     // start server to listen at specified port
