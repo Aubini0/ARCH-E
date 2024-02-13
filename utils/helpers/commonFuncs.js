@@ -1,5 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
+import isBase64 from "is-base64";
+import imageType from "image-type";
+
 
 const formatUserData = ( userInfo )=>{
     let dropData = [ "password" , "createdAt" , "updatedAt" , "ip" , "__v" , "google_refresh_token" ];
@@ -80,11 +83,31 @@ const prepareRedirectUrl = ( status_code , token )=>{
 }
 
 
+
+const validateBase64Image = (value, helpers) => {
+    if (!isBase64(value, { mimeRequired: true })) {
+      return helpers.error('any.invalid');
+    }
+  
+    const buffer = Buffer.from(value, 'base64');
+    const type = imageType(buffer);
+  
+    if (!type) {
+      return helpers.error('any.invalid');
+    }
+  
+    // You can add additional checks based on the image type or other criteria  
+    return buffer;
+};
+
+
+
 export {
     getRequest,
     calculateAge,
     formatUserData,
     parsingBufferImage,
     parsingBufferAudio,
-    prepareRedirectUrl
+    prepareRedirectUrl,
+    validateBase64Image
 }

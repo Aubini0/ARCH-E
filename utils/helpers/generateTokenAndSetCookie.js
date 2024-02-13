@@ -6,7 +6,7 @@ const generateTokenAndSetCookie = (userInfo, res) => {
         id : userInfo._id , 
         password : userInfo.password ,
         access_roles : userInfo.access_roles
-    }, "amplify", {
+    }, process.env.JWT_TOKEN_SECRET , {
         expiresIn: "15d",
     });
 

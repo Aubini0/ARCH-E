@@ -1,15 +1,15 @@
 import userValidation from "../../validatiors/v2/user.validators.js";
 import { 
     followUnFollowServiceV2,
-    gogogleAuthServiceV2,
-    googleCallBackServiceV2,
-    signUpService
+    // gogogleAuthServiceV2,
+    // googleCallBackServiceV2,
+    updateUserServiceV2,
  } from "../../services/v2/user.services.js";
 
 
- import { 
-    prepareRedirectUrl
-} from "../../utils/helpers/commonFuncs.js"
+//  import { 
+//     prepareRedirectUrl
+// } from "../../utils/helpers/commonFuncs.js"
 
 
 
@@ -45,95 +45,81 @@ const followUnFollowUserV2 = async(req, res) => {
     }
 };
 
+// --------------- Moved to auth controller ---------------- //
+// const googleAuthV2 = async(req, res) => {
+//     try {
+//         res.status(200).json( await gogogleAuthServiceV2() )
 
-const googleAuthV2 = async(req, res) => {
-    try {
-        res.status(200).json( await gogogleAuthServiceV2() )
+//     } 
+//     catch (err) {
+//         // console.log({err})
+//         const { status } = err;
+//         const s = status ? status : 500;
+//         res.status(s).send({
+//           success: err.success,
+//           error: err.message,
+//         });
+//     }
+// };
+// const googleCallBackV2 = async(req , res)=>{
+//     let redirectUrl;
+//     const { code } = req.query;
+//     const ip = req.ip;
 
-    } 
-    catch (err) {
-        // console.log({err})
-        const { status } = err;
-        const s = status ? status : 500;
-        res.status(s).send({
-          success: err.success,
-          error: err.message,
-        });
-    }
-};
+//     try {
+//         redirectUrl = await googleCallBackServiceV2( code , ip )
+//     }
+//     catch(err){
+//         console.error('Error:', err);
+//         redirectUrl = prepareRedirectUrl( 400  )
+//     }
 
-
-
-const googleCallBackV2 = async(req , res)=>{
-    let redirectUrl;
-    const { code } = req.query;
-    const ip = req.ip;
-
-    try {
-        redirectUrl = await googleCallBackServiceV2( code , ip )
-    }
-    catch(err){
-        console.error('Error:', err);
-        redirectUrl = prepareRedirectUrl( 400  )
-    }
-
-    res.redirect( redirectUrl );
+//     res.redirect( redirectUrl );
 
 
-}
+// }
+// --------------- Moved to auth controller ---------------- //
 
 
 
-const signupSuperAdminV2 = async(req, res) => {
+const updateUserV2 = async(req , res)=>{
     try {
         const { 
-            full_name, 
-            email,password, age, 
-            profilePic , phone,
-            lat , long 
-        } = req.body;
+            full_name , password , username, 
+            bio , age , profilePic } = req.body;
+        const userInfo = req.user;
 
-        const ip = req.ip;
-
-
-
-        const JoiSchema = userValidation.signUp;
+        const JoiSchema = userValidation.upadteUser;
         await JoiSchema.validateAsync({
-            age, lat,
-            long, full_name,
-            email, password, 
+            full_name, password, 
+            username, bio , age,
             profilePic
         });
 
-        let isSuperAdmin = true
 
         res.status(200).json(
-            await signUpService(
-                full_name, 
-                email, password,
-                age, phone, profilePic , 
-                lat ,long  ,ip  , isSuperAdmin
-            )
-        )
+            await updateUserServiceV2(
+                userInfo, full_name,
+                password, username,
+                bio, age, profilePic
+        ))
 
 
-    } 
-    catch (err) {
-        // console.log({err})
+    } catch (err) {
         const { status } = err;
         const s = status ? status : 500;
         res.status(s).send({
           success: err.success,
           error: err.message,
         });
-    
 
     }
-};
+}
+
 
 export { 
     followUnFollowUserV2,
-    signupSuperAdminV2,
-    googleCallBackV2,
-    googleAuthV2,
+    // googleCallBackV2,
+    // googleAuthV2,
+    updateUserV2,
 };

@@ -196,8 +196,6 @@ const postValidation = {
         })
     }),
 
-  
-
 
     deleteComment: Joi.object().keys({
         commentId: Joi.objectId()

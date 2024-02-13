@@ -11,6 +11,7 @@ import repostRoutes from "./routes/repostRoutes.js";
 // -------------- V2 Routes -------------- //
 import postRoutesV2 from "./routes/v2/postRoutesV2.js"
 import userRoutesV2 from "./routes/v2/userRoutesV2.js";
+import authRoutesV2 from "./routes/v2/authRoutesV2.js";
 // -------------- V2 Routes -------------- //
 
 
@@ -58,7 +59,7 @@ app.use("/api/reposts", repostRoutes);
 // V2 API Routes
 app.use("/api/v2/users" , userRoutesV2);
 app.use("/api/v2/posts", postRoutesV2);
-
+app.use("/api/v2/auth", authRoutesV2);
 
 
 

@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 
 
 
+// validate JWT 
 const protectRoute = async(req, res, next) => {
     const bearerToken = await req.body.token || req.query.token || req.headers["authorization"]
 
@@ -14,7 +15,7 @@ const protectRoute = async(req, res, next) => {
         })
     }
     try {
-        const decoded = jwt.verify(bearerToken, "amplify")
+        const decoded = jwt.verify(bearerToken, process.env.JWT_TOKEN_SECRET)
 
         const user = await User.findOne({ 
             _id :  decoded.id , 
