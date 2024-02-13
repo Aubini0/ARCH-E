@@ -11,11 +11,14 @@ import repostRoutes from "./routes/repostRoutes.js";
 // -------------- V2 Routes -------------- //
 import postRoutesV2 from "./routes/v2/postRoutesV2.js"
 import userRoutesV2 from "./routes/v2/userRoutesV2.js";
+import authRoutesV2 from "./routes/v2/authRoutesV2.js";
 // -------------- V2 Routes -------------- //
 
 
 import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
+
+// Use this app instance if you want to run socket server
 // import { app } from "./socket/socket.js";
 
 dotenv.config();
@@ -37,12 +40,6 @@ app.use((req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-//   api_key: process.env.CLOUDINARY_API_KEY,
-//   api_secret: process.env.CLOUDINARY_API_SECRET,
-// });
-
 
 // Middlewares
 app.use(express.json({ limit: "100mb" })); // To parse JSON data in the req.body
@@ -62,13 +59,13 @@ app.use("/api/reposts", repostRoutes);
 // V2 API Routes
 app.use("/api/v2/users" , userRoutesV2);
 app.use("/api/v2/posts", postRoutesV2);
-
+app.use("/api/v2/auth", authRoutesV2);
 
 
 
 
 (async()=>{
-    // wait for db to connect then proceed
+    // wait for the db to connect and then proceed
     await connectDB();
 
     // start server to listen at specified port

@@ -1,156 +1,11 @@
 import User from "../models/userModel.js";
-import Post from "../models/postModel.js";
 import bcrypt from "bcryptjs";
 import generateTokenAndSetCookie from "../utils/helpers/generateTokenAndSetCookie.js";
-import { v2 as cloudinary } from "cloudinary";
-import { upload, s3 } from "../db/bucketUploadClient.js";
+import { s3 } from "../db/bucketUploadClient.js";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
 import { v4 as uuidv4 } from "uuid";
-import { sendOTP, makeid } from "../utils/helpers/generateOTP.js"
+import { sendOTP } from "../utils/helpers/generateOTP.js"
 import speakeasy from "speakeasy";
-import userValidation from "../validatiors/v2/user.validators.js";
-
-
-import { 
-    signUpService , 
-    signInService , 
-    verifyAccessService , 
-    updateUserService 
-}from "../services/v2/user.services.js";
-
-// <---------------------- ( V2 APIs ) ----------------------> //
-
-const signupUserBabbl = async(req, res) => {
-    try {
-        const { 
-            full_name, 
-            email,password, age, 
-            profilePic , phone,
-            lat , long 
-        } = req.body;
-
-        const ip = req.ip;
-
-
-
-        const JoiSchema = userValidation.signUp;
-        await JoiSchema.validateAsync({
-            age, lat,
-            long, full_name,
-            email, password, 
-            profilePic
-        });
-
-        res.status(200).json(
-            await signUpService(
-                full_name, 
-                email, password,
-                age, phone, profilePic , 
-                lat ,long  ,ip 
-            )
-        )
-
-
-    } 
-    catch (err) {
-        // console.log({err})
-        const { status } = err;
-        const s = status ? status : 500;
-        res.status(s).send({
-          success: err.success,
-          error: err.message,
-        });
-    
-
-    }
-};
-
-const loginUserBabbl = async(req, res) => {
-    try {
-        const { email , password } = req.body;
-
-        const JoiSchema = userValidation.signIn;
-        await JoiSchema.validateAsync({
-            email, password, 
-        });
-
-
-        res.status(200).json(
-            await signInService(
-                email, password,
-            ))
-
-
-    } catch (err) {
-        const { status } = err;
-        const s = status ? status : 500;
-        res.status(s).send({
-          success: err.success,
-          error: err.message,
-        });
-
-    }
-};
-
-const updateUserBabbl = async(req , res)=>{
-    try {
-        const { 
-            full_name , password , username, 
-            bio , age , profilePic } = req.body;
-        const userInfo = req.user;
-
-        // console.log({ 
-        //     full_name , password , username ,
-        //     bio , age 
-        // })
-
-        const JoiSchema = userValidation.upadteUser;
-        await JoiSchema.validateAsync({
-            full_name, password, 
-            username, bio , age,
-            profilePic
-        });
-
-
-        res.status(200).json(
-            await updateUserService(
-                userInfo, full_name,
-                password, username,
-                bio, age, profilePic
-        ))
-
-
-    } catch (err) {
-        const { status } = err;
-        const s = status ? status : 500;
-        res.status(s).send({
-          success: err.success,
-          error: err.message,
-        });
-
-    }
-}
-
-const verifyAccess = async(req, res) => {
-    try {
-        res.status(200).json(
-            await verifyAccessService( req )
-        );
-
-    } catch (err) {
-        const { status } = err;
-        const s = status ? status : 500;
-        res.status(s).send({
-          success: err.success,
-          error: err.message,
-        });
-
-    }
-};
-
-// <---------------------- ( V2 APIs ) ----------------------> //
-
 
 
 
@@ -438,8 +293,6 @@ const CreateTOTP = async(req, res) => {
     }
 };
 
-
-
 const VerifyTOTP = async(req, res) => {
     const { token, phone } = req.body;
     try {
@@ -471,11 +324,4 @@ export {
     freezeAccount,
     CreateTOTP,
     VerifyTOTP,
-
-
-    // Modified Routes with code refactored and validations
-    signupUserBabbl,
-    loginUserBabbl,
-    updateUserBabbl,
-    verifyAccess
 };
