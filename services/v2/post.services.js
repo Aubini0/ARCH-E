@@ -1,8 +1,7 @@
 import Post from "../../models/postModel.js";
-import User from "../../models/userModel.js";
 import Comment from "../../models/commentModel.js";
-import { uploadFileToS3 , deleteFileFromS3 } from "../../utils/helpers/fileUploads.js"
-import { parsingBufferAudio } from "../../utils/helpers/commonFuncs.js";
+import { uploadFileToS3 , deleteFileFromS3 , convertWavToMp3 } from "../../utils/helpers/fileHandlers.js"
+import { parsingBufferAudio , deleteFiles } from "../../utils/helpers/commonFuncs.js";
 import { 
     updateRecord ,
     createRecord ,
@@ -19,12 +18,33 @@ const createPostServiceV2 = async (
 ) => {
     try {
 
-        let { fileName, type, buf } = parsingBufferAudio(audio)
-        // console.log({type})
+        let { fileName, type, buf  } = parsingBufferAudio(audio);
+
+        // convert base64 of webm audio to mp3
+        let convertedFile = await convertWavToMp3( buf )
+
+        // files just created for conversion
+        // when our conversion code starts dealing in streams
+        // then remove this snippet to remove files explcitly
+        let filesToBeRemoved = [ 
+            `localStorage/${convertedFile.file_key}.webm`,
+            `localStorage/${convertedFile.file_key}.mp3`,
+        ]
+        deleteFiles(filesToBeRemoved)
+
+        if(!convertedFile.status){
+            throw {
+                success: false,
+                status: 400,
+                message: "Error while converting file to MP3",
+            }
+        
+        }
+
+
         let audioPath = await uploadFileToS3(
             `${fileName}`,
-            buf, 'base64',
-            // `audio/${type}`,
+            convertedFile.buffer, 'base64',
             `audio/mp3`,
             process.env.S3BUCKET_POSTAUDIOS, 'public-read'
         )
@@ -46,6 +66,7 @@ const createPostServiceV2 = async (
 
     }
     catch (err) {
+        console.log({err})
         throw {
             success: false,
             status: 400,

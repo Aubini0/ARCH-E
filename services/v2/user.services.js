@@ -7,7 +7,7 @@ import {
     parsingBufferImage , 
 } from "../../utils/helpers/commonFuncs.js"
 
-import { uploadFileToS3, deleteFileFromS3 } from "../../utils/helpers/fileUploads.js"
+import { uploadFileToS3, deleteFileFromS3 } from "../../utils/helpers/fileHandlers.js"
 
 import { 
     findRecordById , 

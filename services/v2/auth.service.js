@@ -5,7 +5,7 @@ import {
     validatePassword
 } from "../../utils/helpers/passwordSettersAndValidators.js";
 
-import { uploadFileToS3 } from "../../utils/helpers/fileUploads.js"
+import { uploadFileToS3 } from "../../utils/helpers/fileHandlers.js"
 
 import { google } from "googleapis";
 
