@@ -1,7 +1,10 @@
 import { s3 } from "../../db/bucketUploadClient.js"
-import ffmpeg from "fluent-ffmpeg"
 import fs from "fs";
 import { v4 as uuidv4 } from "uuid";
+
+import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg';
+import ffmpeg from "fluent-ffmpeg"
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 
 const uploadFileToS3 = async( 

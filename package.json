@@ -12,6 +12,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@ffmpeg-installer/ffmpeg": "^1.1.0",
         "atob": "^2.1.2",
         "audio-type": "^2.2.1",
         "aws-sdk": "^2.1482.0",
