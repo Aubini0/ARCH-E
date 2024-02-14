@@ -205,7 +205,7 @@ const updateUser = async(req, res) => {
                 Body: buf,
                 ContentEncoding: 'base64',
                 ContentType: `image/${type}`,
-                Bucket: "amplifibucketfiles",
+                Bucket: process.env.AWSS3BUCKETNAME,
                 ACL: "public-read"
             };
 

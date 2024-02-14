@@ -20,7 +20,7 @@ const createPost = async(req, res) => {
         const fileName = uuidv4() + '.mp3'; // Generate a unique filename
 
         const params = {
-            Bucket: "amplifibucketfiles",
+            Bucket: process.env.AWSS3BUCKETNAME,
             Key: fileName,
             Body: audioData,
             ContentType: "audio/mp3",
