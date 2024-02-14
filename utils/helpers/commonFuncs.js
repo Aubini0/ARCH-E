@@ -2,7 +2,8 @@ import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import isBase64 from "is-base64";
 import imageType from "image-type";
-
+import path from "path";
+import fs from "fs";
 
 const formatUserData = ( userInfo )=>{
     let dropData = [ "password" , "createdAt" , "updatedAt" , "ip" , "__v" , "google_refresh_token" ];
@@ -40,7 +41,7 @@ const parsingBufferAudio = ( audio )=>{
     // const fileName = uuidv4() + `.${type}`; 
     const fileName = uuidv4() + `.mp3`; 
 
-    return { fileName , type , buf }
+    return { fileName , type , buf   }
 
 }
 
@@ -102,8 +103,24 @@ const validateBase64Image = (value, helpers) => {
 
 
 
+const deleteFiles = ( filesToDelete )=>{
+    
+    // Loop through the files and delete them
+    filesToDelete.forEach((file) => {
+    
+        // Check if the file exists before attempting to delete
+        if (fs.existsSync(file)) {
+            // Delete the file
+            fs.unlinkSync(file);
+        }
+    });    
+}
+
+
+
 export {
     getRequest,
+    deleteFiles,
     calculateAge,
     formatUserData,
     parsingBufferImage,
