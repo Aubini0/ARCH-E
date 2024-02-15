@@ -47,15 +47,17 @@ app.use(express.urlencoded({ extended: true })); // To parse form data in the re
 app.use(cookieParser());
 app.set('trust proxy', true)
 
+
 // health check endpoint of load balancer. 
 // returning by default 200 so our EBS always stay healthy
-app.use("/" , async(req , res)=>{
+app.use("/health-check" , async(req , res)=>{
     // here is the route
     res.status(200).send({
         success: true,
         message : "health check endpoint"
       });    
 })
+
 
 // Routes
 app.use("/api/users", userRoutes);
@@ -70,6 +72,7 @@ app.use("/api/reposts", repostRoutes);
 app.use("/api/v2/users" , userRoutesV2);
 app.use("/api/v2/posts", postRoutesV2);
 app.use("/api/v2/auth", authRoutesV2);
+
 
 
 
