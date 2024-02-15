@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 // follow / un follow a user
-router.put("/follows/:id", protectRoute, followUnFollowUserV2); 
+router.put("/follows/:targetUserId", protectRoute, followUnFollowUserV2); 
 // update User profile
 router.put("/update", protectRoute, updateUserV2);
 

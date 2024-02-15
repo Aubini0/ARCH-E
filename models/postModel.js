@@ -54,7 +54,15 @@ const postSchema = mongoose.Schema({
 	totalComments : {
 		type : Number,
 		default : 0
+	},
+
+	shareId : {
+		type : String,
+		default : null,
+		unique : true
 	}
+
+
 
 }, {
 	timestamps: true,

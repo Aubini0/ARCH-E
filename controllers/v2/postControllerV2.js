@@ -5,10 +5,12 @@ import {
     deletePostServiceV2 ,
     getFeedPostServiceV2 ,
     replyToPostServiceV2 ,
+    getShareUrlServiceV2 ,
     deleteCommentServiceV2 ,
     likeUnlikePostServiceV2 ,
     getPostCommentsServiceV2,
-    getFollowedFeedPostServiceV2
+    getFollowedFeedPostServiceV2,
+    getPostFromShareUrlServiceV2
 } from "../../services/v2/post.services.js"
 
 const createPostV2 = async(req, res) => {
@@ -48,7 +50,7 @@ const createPostV2 = async(req, res) => {
 
 const getFeedPostsV2 = async(req , res)=>{
     try {
-        let { id : userId } = req.params  // Set userId to null if id is not provided
+        let { userId } = req.params  // Set userId to null if id is not provided
         let { page , limit } = req.query;
 
         page = page ? page == 0 ? 1 : page  : 1;
@@ -82,7 +84,7 @@ const getFeedPostsV2 = async(req , res)=>{
 
 const likeUnlikePostV2 = async(req , res)=>{
     try {
-        const { id: postId } = req.params;
+        const { postId } = req.params;
         const currentUser = req.user;
 
         const JoiSchema = postValidation.likeUnLikePost;
@@ -142,7 +144,7 @@ const replyToPostV2 = async(req , res)=>{
 
 const getPostCommentsV2 = async(req , res)=>{
     try {
-        let { id : postId } = req.params  
+        let { postId } = req.params  
         let { page , limit } = req.query;
 
 
@@ -213,7 +215,7 @@ const getFollowedFeedPostsV2 = async(req , res)=>{
 
 const deletePostV2 = async(req , res)=>{
     try {
-        let { id : postId } = req.params;
+        let { postId } = req.params;
         let currentUser = req.user;
 
         const JoiSchema = postValidation.deletePost;
@@ -242,7 +244,7 @@ const deletePostV2 = async(req , res)=>{
 
 const deleteCommentV2 = async(req , res)=>{
     try {
-        let { id : commentId } = req.params;
+        let { commentId } = req.params;
         let currentUser = req.user;
 
         const JoiSchema = postValidation.deleteComment;
@@ -268,13 +270,69 @@ const deleteCommentV2 = async(req , res)=>{
 }
 
 
+
+
+
+const getShareUrlV2 = async(req , res)=>{
+    try {
+        let { postId } = req.params  
+
+
+        const JoiSchema = postValidation.getShareUrl;
+        await JoiSchema.validateAsync({
+            postId
+        });
+
+        res.status(200).json( await getShareUrlServiceV2( postId ) )
+
+
+    } 
+    catch (err) {
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+    
+
+    }
+
+}
+
+
+
+
+const getPostFromShareUrlV2 = async(req , res)=>{
+    try {
+        let { shareId } = req.params  
+
+        res.status(200).json( await getPostFromShareUrlServiceV2( shareId ) )
+
+
+    } 
+    catch (err) {
+        const { status } = err;
+        const s = status ? status : 500;
+        res.status(s).send({
+          success: err.success,
+          error: err.message,
+        });
+    
+
+    }
+
+}
+
 export { 
     deletePostV2,
     createPostV2,
     replyToPostV2,
+    getShareUrlV2,
     getFeedPostsV2,
     deleteCommentV2,
     likeUnlikePostV2,
     getPostCommentsV2,
+    getPostFromShareUrlV2,
     getFollowedFeedPostsV2
 };
