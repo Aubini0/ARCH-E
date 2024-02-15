@@ -428,7 +428,7 @@ const getPostFromShareUrlServiceV2 = async ( shareId  ) => {
 
     return {
         success: true,
-        data: { post },
+        data: { post : post[0] },
         message: "Post Fetched Successfully",
     };
 
