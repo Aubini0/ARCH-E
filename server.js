@@ -50,6 +50,7 @@ app.set('trust proxy', true)
 // health check endpoint of load balancer. 
 // returning by default 200 so our EBS always stay healthy
 app.use("/" , async(req , res)=>{
+    // here is the route
     res.status(200).send({
         success: true,
         message : "health check endpoint"
