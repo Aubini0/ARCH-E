@@ -231,7 +231,7 @@ const gogogleAuthServiceV2 = async( )=>{
 }
 
 
-const googleCallBackServiceV2 = async(code , ip)=>{        
+const googleCallBackServiceV2 = async(code , ip)=>{     
         let url;
         let userAge;
         let { tokens } = await oauth2Client.getToken(code);

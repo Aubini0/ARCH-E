@@ -15,6 +15,24 @@ const findRecordById = async( model , id , err_msg , status_code = 404 )=>{
 }
 
 
+const findRecord = async( model , query_obj , err_msg , status_code = 404 )=>{
+    const record = await model.find({ ...query_obj })
+
+    if(!record){
+        throw {
+            success: false,
+            status: status_code,
+            message: err_msg,
+        }
+    }
+
+    return record;
+}
+
+
+
+
+
 const createRecord = async( model ,  obj_body )=>{
     const newRecord = new model({...obj_body});
     await newRecord.save();
@@ -60,6 +78,7 @@ const deleteRecord = async(model , id)=>{
 }
 
 export {
+    findRecord,
     createRecord,
     updateRecord,
     deleteRecord,

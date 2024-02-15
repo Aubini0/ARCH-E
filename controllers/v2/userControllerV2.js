@@ -10,7 +10,7 @@ import {
 
 const followUnFollowUserV2 = async(req, res) => {
     try {
-        const { id : targetUserId } = req.params;
+        const { targetUserId } = req.params;
         const currentUser = req.user;
 
 

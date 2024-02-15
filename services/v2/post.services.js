@@ -3,6 +3,7 @@ import Comment from "../../models/commentModel.js";
 import { uploadFileToS3 , deleteFileFromS3 , convertWavToMp3 } from "../../utils/helpers/fileHandlers.js"
 import { parsingBufferAudio , deleteFiles } from "../../utils/helpers/commonFuncs.js";
 import { 
+    findRecord,
     updateRecord ,
     createRecord ,
     deleteRecord ,
@@ -11,6 +12,10 @@ import {
     fetchPaginatedRecords
 } from "../../utils/helpers/commonDbQueries.js";
 import { Types } from 'mongoose'; // Import Types from mongoose
+import { nanoid } from 'nanoid'
+
+
+
 
 
 const createPostServiceV2 = async (
@@ -91,7 +96,7 @@ const getFeedPostServiceV2 = async (userId, page, limit) => {
     let query_obj = {  }
     let sorted_criteria = { createdAt: -1 }
     let populate_criteria = { 
-        path: "postedBy", select: "-password -ip -createdAt -updatedAt -__v" 
+        path: "postedBy", select: "-password -ip -createdAt -updatedAt -__v -password -ip -createdAt -updatedAt -__v -google_refresh_token -google_access_token -access_roles" 
         }
 
     const rawFeedPosts = await fetchPaginatedRecords( 
@@ -258,7 +263,7 @@ const getFollowedFeedPostServiceV2 = async (currentUser, page, limit) => {
     let query_obj = { postedBy: { $in: followedIds } }
     let sorted_criteria = { createdAt: -1 }
     let populate_criteria = { 
-        path: "postedBy", select: "-password -ip -createdAt -updatedAt -__v" 
+        path: "postedBy", select: "-password -ip -createdAt -updatedAt -__v -password -ip -createdAt -updatedAt -__v -google_refresh_token -google_access_token -access_roles" 
         }
 
     const rawFeedPosts = await fetchPaginatedRecords( 
@@ -373,13 +378,71 @@ const deleteCommentServiceV2 = async ( currentUser , commentId  ) => {
 };
 
 
+
+const getShareUrlServiceV2 = async ( postId  ) => {
+    let shareUrl;
+    let post = await findRecordById(Post , postId , "Post not found")
+
+    if(post.shareId){
+        shareUrl = `${process.env.CONTENT_PAGE_BASE_URL}/${post.shareId}`
+
+    }
+    else{
+        const shareId = nanoid(11);
+        let update_body = {
+           shareId : shareId
+        
+        }
+        await updateRecord(Post , postId , update_body )
+        shareUrl = `${process.env.CONTENT_PAGE_BASE_URL}/${shareId}`    
+    }
+
+    return {
+        success: true,
+        data: { shareUrl },
+        message: "Shareable url generated Successfully",
+    };
+
+};
+
+
+
+
+const getPostFromShareUrlServiceV2 = async ( shareId  ) => {
+    let query_obj = { shareId }
+    let sorted_criteria = { createdAt: -1 }
+    let populate_criteria = { 
+        path: "postedBy", select: "-password -ip -createdAt -updatedAt -__v -google_refresh_token -google_access_token -access_roles" 
+        }
+
+    const post = await fetchPaginatedRecords( 
+        Post , query_obj , sorted_criteria , 1 , 5 , populate_criteria
+    )
+    if(post.length == 0){
+        throw {
+            success: false,
+            status: 404,
+            message: "Post Not Found",
+        }
+    }
+
+    return {
+        success: true,
+        data: { post },
+        message: "Post Fetched Successfully",
+    };
+
+};
+
 export {
     createPostServiceV2,
     deletePostServiceV2,
+    getShareUrlServiceV2,
     getFeedPostServiceV2,
     replyToPostServiceV2,
     deleteCommentServiceV2,
     likeUnlikePostServiceV2,
     getPostCommentsServiceV2,
-    getFollowedFeedPostServiceV2
+    getFollowedFeedPostServiceV2,
+    getPostFromShareUrlServiceV2,
 }
