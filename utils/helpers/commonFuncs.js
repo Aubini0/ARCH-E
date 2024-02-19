@@ -103,6 +103,26 @@ const validateBase64Image = (value, helpers) => {
 
 
 
+const validateAudioMimeType = (value, helpers) => {
+    if (!value instanceof String){
+        return helpers.error('any.invalid');
+    }
+
+    value = value.split("/");
+    if (value.length <= 1){
+        return helpers.error('any.invalid');
+    }
+
+    if ( value[0].toLowerCase() != "audio" ){
+        return helpers.error('any.invalid');
+    }
+
+    return true
+};
+
+
+
+
 const deleteFiles = ( filesToDelete )=>{
     
     // Loop through the files and delete them
@@ -126,5 +146,6 @@ export {
     parsingBufferImage,
     parsingBufferAudio,
     prepareRedirectUrl,
-    validateBase64Image
+    validateBase64Image,
+    validateAudioMimeType
 }
