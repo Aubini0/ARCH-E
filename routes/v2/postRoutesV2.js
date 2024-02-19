@@ -12,13 +12,20 @@ import {
     getFollowedFeedPostsV2
 } from "../../controllers/v2/postControllerV2.js";
 import protectRoute from "../../middlewares/protectRoute.js";
+import multer from "multer";
 
 
 const router = express.Router();
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
+
+
+
 // Private Routes
 // create post
-router.post("/create", protectRoute, createPostV2);
+router.post("/create", protectRoute , upload.single("audio") , createPostV2);
 // like post
 router.put("/like/:postId", protectRoute, likeUnlikePostV2);
 // comment on a post
@@ -31,7 +38,6 @@ router.get("/followed-feed", protectRoute , getFollowedFeedPostsV2);
 router.delete("/delete/:postId", protectRoute, deletePostV2);
 // delete a comment on post
 router.delete("/delete-comment/:commentId", protectRoute, deleteCommentV2);
-//
 
 
 // Public Routes

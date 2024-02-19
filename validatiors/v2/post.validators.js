@@ -1,6 +1,7 @@
 import Joi from "joi"
 import objectId from "joi-objectid"
-import isBase64 from "is-base64";
+import { validateAudioMimeType } from "../../utils/helpers/commonFuncs.js"
+
 
 Joi.objectId = objectId(Joi);
 
@@ -51,14 +52,14 @@ const postValidation = {
                 };
             }),
 
-        audio: Joi.string()
+        mimeType: Joi.string().custom( validateAudioMimeType )
             .required()
             .error(() => {
                 throw {
                     status: 400,
                     statusCode: 400,
                     success: false,
-                    message: "Audio should be a valid base64 audio string",
+                    message: "Uploaded file should be an audio",
                 };
             }),
 

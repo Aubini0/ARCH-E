@@ -15,17 +15,18 @@ import {
 
 const createPostV2 = async(req, res) => {
     try {
-        const { 
-            text , audio
-        } = req.body;
+        let { file : audio } = req;
+        const { text } = req.body;
 
 
         const userInfo = req.user;
+        const mimeType = audio.mimetype;
 
+        // console.log({audio})
 
         const JoiSchema = postValidation.createPost;
         await JoiSchema.validateAsync({
-            text , audio
+            text , mimeType
         });
 
         res.status(200).json(

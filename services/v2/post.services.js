@@ -13,6 +13,7 @@ import {
 } from "../../utils/helpers/commonDbQueries.js";
 import { Types } from 'mongoose'; // Import Types from mongoose
 import { nanoid } from 'nanoid'
+import { v4 as uuidv4 } from "uuid";
 
 
 
@@ -23,33 +24,33 @@ const createPostServiceV2 = async (
 ) => {
     try {
 
-        let { fileName, type, buf  } = parsingBufferAudio(audio);
+        // let { fileName, type, buf  } = parsingBufferAudio(audio);
 
         // convert base64 of webm audio to mp3
-        let convertedFile = await convertWavToMp3( buf )
+        // let convertedFile = await convertWavToMp3( buf )
 
         // files just created for conversion
         // when our conversion code starts dealing in streams
         // then remove this snippet to remove files explcitly
-        let filesToBeRemoved = [ 
-            `localStorage/${convertedFile.file_key}.webm`,
-            `localStorage/${convertedFile.file_key}.mp3`,
-        ]
-        deleteFiles(filesToBeRemoved)
+        // let filesToBeRemoved = [ 
+        //     `localStorage/${convertedFile.file_key}.webm`,
+        //     `localStorage/${convertedFile.file_key}.mp3`,
+        // ]
+        // deleteFiles(filesToBeRemoved)
 
-        if(!convertedFile.status){
-            throw {
-                success: false,
-                status: 400,
-                message: "Error while converting file to MP3",
-            }
+        // if(!convertedFile.status){
+        //     throw {
+        //         success: false,
+        //         status: 400,
+        //         message: "Error while converting file to MP3",
+        //     }
         
-        }
+        // }
 
-
+        const fileName = uuidv4() + `.mp3`;
         let audioPath = await uploadFileToS3(
             `${fileName}`,
-            convertedFile.buffer, 'base64',
+            audio.buffer, 'base64',
             `audio/mp3`,
             process.env.S3BUCKET_POSTAUDIOS, 'public-read'
         )
