@@ -5,6 +5,8 @@ import imageType from "image-type";
 import path from "path";
 import fs from "fs";
 
+import crypto from "crypto"
+
 const formatUserData = ( userInfo )=>{
     let dropData = [ "password" , "createdAt" , "updatedAt" , "ip" , "__v" , "google_refresh_token" ];
     Object.keys( userInfo ).map((item_)=>{
@@ -52,8 +54,17 @@ const getRequest = async( url , headers )=>{
     });
 
     return data;
-
 }
+
+
+const postRequest = async( url , payload , headers  )=>{
+    const { data } = await axios.post(url , payload , {
+        headers: { ...headers },
+    });
+
+    return data;
+}
+
 
 
 const calculateAge = (day, month, year)=>{
@@ -76,12 +87,14 @@ const calculateAge = (day, month, year)=>{
 }
 
 
-const prepareRedirectUrl = ( status_code , token )=>{
+const prepareRedirectUrl = ( status_code , token , base_url = process.env.LOGIN_POPUP )=>{
     if(!token){ token = "" }
     if(!status_code){ status_code = 500 }
-    let url = `${process.env.LOGIN_POPUP}?status_code=${status_code}&token=${token}`;
+    let url = `${base_url}?status_code=${status_code}&token=${token}`;
     return url;
 }
+
+
 
 
 
@@ -138,8 +151,23 @@ const deleteFiles = ( filesToDelete )=>{
 
 
 
+
+const generateRandomString = (length) => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+
+    let randomString = Array.from(crypto.getRandomValues(new Uint8Array(length)))
+    .map(value => characters.charAt(value % charactersLength))
+    .join('');
+
+    return randomString;
+}
+
+
+
 export {
     getRequest,
+    postRequest,
     deleteFiles,
     calculateAge,
     formatUserData,
@@ -147,5 +175,6 @@ export {
     parsingBufferAudio,
     prepareRedirectUrl,
     validateBase64Image,
-    validateAudioMimeType
+    validateAudioMimeType,
+    generateRandomString,
 }
