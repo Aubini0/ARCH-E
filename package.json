@@ -37,6 +37,7 @@
         "multer-s3": "^3.0.1",
         "nanoid": "^5.0.5",
         "nodemon": "^3.0.1",
+        "request": "^2.88.2",
         "socket.io": "^4.7.2",
         "speakeasy": "^2.0.0",
         "twilio": "^4.19.3",

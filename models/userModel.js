@@ -79,6 +79,18 @@ const userSchema = mongoose.Schema({
         default : ""
     },
 
+    spotify_access_token : {
+        type : String,
+        default : ""
+    },
+
+    spotify_refresh_token : {
+        type : String,
+        default : ""
+    },
+
+
+
     access_roles : {
         type: [String],
         default: [ "user" ],        

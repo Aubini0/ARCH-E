@@ -27,9 +27,10 @@ dotenv.config();
 const app = express();
 
 
-
+// enable cors
 app.use(cors());
 
+// Middleware to log incomming requests
 app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
     const method = req.method;
@@ -37,6 +38,8 @@ app.use((req, res, next) => {
     console.log(`RequestLogs :> ${timestamp} , ${method} , ${url}`);
     next();
 });
+
+
 
 const PORT = process.env.PORT || 5000;
 

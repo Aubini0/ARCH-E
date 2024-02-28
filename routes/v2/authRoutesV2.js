@@ -6,7 +6,10 @@ import {
     verifyAccessV2,
     googleAuthV2,
     googleCallBackV2,
-    signupSuperAdminV2
+    signupSuperAdminV2,
+    spotifyAuthV2,
+    spotifyCallBackV2,
+    spotifyConnectToInternalV2
 } from "../../controllers/v2/authController.js";
 
   
@@ -26,6 +29,14 @@ router.get('/google', googleAuthV2);
 router.get('/google/callback', googleCallBackV2);
 // Creating SuperAdmin
 router.post('/superadmin/signup', signupSuperAdminV2);
+
+
+// Spotify Auth handler
+router.get("/spotify" , spotifyAuthV2)
+// Spotify Call back handler
+router.get("/spotify/callback" , spotifyCallBackV2)
+// Connect Spotify Tokens with Internal UserId
+router.put("/spotify/connect" , protectRoute  , spotifyConnectToInternalV2)
 
 
 
