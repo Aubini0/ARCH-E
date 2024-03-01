@@ -35,6 +35,7 @@ const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URL = `${process.env.REDIRECT_BASE_URL}/api/v2/auth/google/callback`;
 const SPOTIFY_REDIRECT_URL = `${process.env.REDIRECT_BASE_URL}/api/v2/auth/spotify/callback`;
 
+
 const oauth2Client = new google.auth.OAuth2(
     CLIENT_ID,
     CLIENT_SECRET,
@@ -288,10 +289,12 @@ const googleCallBackServiceV2 = async(code , ip)=>{
                 const token = await generateTokenAndSetCookie(newUser);
     
                 url = prepareRedirectUrl( 200 , token )
+                // console.log({ url })
                 return url;            
             }
             else {
                 url = prepareRedirectUrl( 400 )
+                // console.log({ url })
                 return url;
             }    
         }
@@ -310,10 +313,12 @@ const googleCallBackServiceV2 = async(code , ip)=>{
                 const token = await generateTokenAndSetCookie(user);
 
                 url = prepareRedirectUrl( 200 , token )
+                // console.log({ url })
                 return url;                            
             }
             else{
                 url = prepareRedirectUrl( 400 )
+                // console.log({ url })
                 return url;
             }
         }
@@ -348,13 +353,14 @@ const spotifyAuthServiceV2 = async( )=>{
 const spotifyCallBackServiceV2 = async(code , state , ip)=>{    
     let url; 
     let baseUrl;
+    let auth_type = 2;
     let client_id = process.env.SPOTIFY_CLIENT_ID;
     let client_secret = process.env.SPOTIFY_CLIENT_SECRET;
     let redirect_uri = SPOTIFY_REDIRECT_URL;
 
     if (state === null) {
         baseUrl = process.env.BORADCAST_POPUP + querystring.stringify({ error : "state_mismatch" })
-        url = prepareRedirectUrl( 403 , "" ,  baseUrl)
+        url = prepareRedirectUrl( 403 , "" , auth_type  ,  baseUrl)
         return url;
     }
 
@@ -378,14 +384,14 @@ const spotifyCallBackServiceV2 = async(code , state , ip)=>{
     if (access_token && refresh_token){
         let encoded_token =  tokenizePayload({ access_token  , refresh_token });
         baseUrl = process.env.BORADCAST_POPUP
-        url = prepareRedirectUrl( 200 , encoded_token ,  baseUrl)
-        console.log({url})
+        url = prepareRedirectUrl( 200 , encoded_token , auth_type ,  baseUrl)
+        // console.log({url})
         return url;    
 
     }
     else{
         baseUrl = process.env.BORADCAST_POPUP
-        url = prepareRedirectUrl( 403 , "" ,  baseUrl)
+        url = prepareRedirectUrl( 403 , "" , auth_type ,  baseUrl)
         return url;    
     }
 

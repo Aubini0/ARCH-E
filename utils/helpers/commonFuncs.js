@@ -87,10 +87,10 @@ const calculateAge = (day, month, year)=>{
 }
 
 
-const prepareRedirectUrl = ( status_code , token , base_url = process.env.LOGIN_POPUP )=>{
+const prepareRedirectUrl = ( status_code , token , auth_type= 1 , base_url = process.env.LOGIN_POPUP )=>{
     if(!token){ token = "" }
     if(!status_code){ status_code = 500 }
-    let url = `${base_url}?status_code=${status_code}&token=${token}`;
+    let url = `${base_url}?status_code=${status_code}&auth_type=${auth_type}&token=${token}`;
     return url;
 }
 
