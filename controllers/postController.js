@@ -1,11 +1,14 @@
 import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
-import Reply from "../models/replyModel.js";
+import Reply from "../models/commentModel.js";
 import dotenv from "dotenv";
 dotenv.config();
 import { v4 as uuidv4 } from "uuid";
 import { upload, s3 } from "../db/bucketUploadClient.js";
 import { Types } from 'mongoose'; // Import Types from mongoose
+
+
+
 
 const createPost = async(req, res) => {
     try {
@@ -17,7 +20,7 @@ const createPost = async(req, res) => {
         const fileName = uuidv4() + '.mp3'; // Generate a unique filename
 
         const params = {
-            Bucket: "amplifibucketfiles",
+            Bucket: process.env.AWSS3BUCKETNAME,
             Key: fileName,
             Body: audioData,
             ContentType: "audio/mp3",
@@ -390,4 +393,8 @@ const fetchMatchingUsers = async(req, res) => {
 }
 
 
-export { createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, deleteComment, getAllPosts, fetchMatchingUsers };
+export { 
+    createPost, getPost, deletePost, likeUnlikePost, replyToPost, getFeedPosts, getUserPosts, 
+    deleteComment, getAllPosts, fetchMatchingUsers , 
+
+};

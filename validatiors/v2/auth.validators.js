@@ -1,6 +1,8 @@
 import Joi from "joi"
+import { validateBase64Image } from "../../utils/helpers/commonFuncs.js"
 
-const userValidation = {
+
+const authValidation = {
     signUp: Joi.object().keys({
         age: Joi.number().integer()
           .required()
@@ -72,8 +74,19 @@ const userValidation = {
             };
         }),
 
+        profilePic : Joi.string().custom( validateBase64Image )
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Profile Pic should be a valid base64 string",
+            };
+        }),
 
-      }),
+
+
+    }),
 
     signIn: Joi.object().keys({
         email: Joi.string().email()
@@ -99,10 +112,27 @@ const userValidation = {
         }),
 
 
-    }),
+    }),    
 
-    
+
+
+    connectSpotifyInternal: Joi.object().keys({
+        spotifyToken: Joi.string()
+            .required()
+            .error(() => {
+            throw {
+                status: 400,
+                statusCode: 400,
+                success: false,
+                message: "Spotify Token is required",
+            };
+        }),
+
+    }),    
+
+
+
 }
 
 
-export default userValidation;
+export default authValidation;
