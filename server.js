@@ -18,13 +18,7 @@ import broadcastRoutesV2 from "./routes/v2/broadcastRoutesV2.js";
 
 import { v2 as cloudinary } from "cloudinary";
 import cors from "cors";
-<<<<<<< HEAD
 import { app  , server} from "./socket/socket.js";
-=======
-
-// Use this app instance if you want to run socket server
-// import { app } from "./socket/socket.js";
->>>>>>> d4bf054e1d145b508647da9035ffb0502f7e07ab
 
 dotenv.config();
 
