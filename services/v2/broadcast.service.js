@@ -14,7 +14,9 @@ const fetchUserPlayListsServiceV2 = async (
 ) => {
 
     let playLists = [];
-    let playListsUrl = `https://api.spotify.com/v1/me/playlists?limit=${limit}&offset=${offset}`
+    let savedTracksBaseUrl = "https://api.spotify.com/v1/me/tracks";
+    let playListsBaseUrl = "https://api.spotify.com/v1/me/playlists";
+    let playListsUrl = `${savedTracksBaseUrl}?limit=${limit}&offset=${offset}`
     let headers = requestHeaders( userInfo.spotify_access_token );
 
     try{
@@ -29,6 +31,7 @@ const fetchUserPlayListsServiceV2 = async (
     }
     catch(err){
         // console.log({err})
+
         if (err.response.status == 401){
 
             let resp = await refreshAndUpdateSpotifyToken( userInfo.spotify_refresh_token , userInfo._id );

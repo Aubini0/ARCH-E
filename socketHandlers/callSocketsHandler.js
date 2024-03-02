@@ -17,7 +17,7 @@ const getOnlineUsers = async( queue )=>{
 
 const matchUsers = ( queue )=>{
     let keys_ = Object.keys(queue);
-    console.log( keys_ )
+    console.log( "Queued Users > " , keys_ )
     if ( keys_.length >= 2) {
 
         // const user1 = queue.shift();
@@ -29,7 +29,9 @@ const matchUsers = ( queue )=>{
 
 
 
+        // This channle name needs to be unique having combo of host_id-uniquestamp
         let channel_name = `${keys_[0]}-${keys_[1]}`
+
         user1.emit('matched', { payload : { userId : keys_[1] , channel_name , username : keys_[1] }   });
         user2.emit('matched', { payload : { userId : keys_[0] , channel_name , username : keys_[0] }  });
 

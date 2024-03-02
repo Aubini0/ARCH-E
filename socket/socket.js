@@ -9,17 +9,22 @@ import {
     leaveQueue 
 } from "../socketHandlers/callSocketsHandler.js";
 
+const PORT = process.env.PORT || 5000;
 
+
+// Initializing Express.JS server
 const app = express();
+// Initalizing HTTP server to handle Socket.io + express.js app
 const server = http.createServer(app);
 
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: `http://localhost:${PORT}`,
         methods: ["GET", "POST"],
     },
 });
+
 
 export const getRecipientSocketId = (recipientId) => {
     return userSocketMap[recipientId];
@@ -83,4 +88,4 @@ io.on("connection", (socket) => {
     
 });
 
-export { io, server, app };
+export { io, server, app , PORT };
