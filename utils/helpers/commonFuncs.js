@@ -48,12 +48,11 @@ const parsingBufferAudio = ( audio )=>{
 }
 
 
-const getRequest = async( url , headers )=>{
+const getRequest = async( url , headers  )=>{
     const { data } = await axios.get(url, {
         headers: { ...headers },
     });
-
-    return data;
+    return data;    
 }
 
 
@@ -64,6 +63,7 @@ const postRequest = async( url , payload , headers  )=>{
 
     return data;
 }
+
 
 
 
@@ -89,7 +89,7 @@ const calculateAge = (day, month, year)=>{
 
 const prepareRedirectUrl = ( status_code , token , auth_type= 1 , base_url = process.env.LOGIN_POPUP )=>{
     if(!token){ token = "" }
-    if(!status_code){ status_code = 500 }
+    if(!status_code){ status_code = 500 }    
     let url = `${base_url}?status_code=${status_code}&auth_type=${auth_type}&token=${token}`;
     return url;
 }
