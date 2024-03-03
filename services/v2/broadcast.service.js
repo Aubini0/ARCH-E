@@ -129,16 +129,33 @@ const startBroadcastServiceV2 = async (
         broadCastChannelName,
     }
 
+
+    // refresh spotify token before starting broadcast
+    let resp = await refreshAndUpdateSpotifyToken( 
+        userInfo.spotify_refresh_token,
+        userInfo._id, update_body
+    )
+
+    if(!resp.status){
+        throw {
+            success: false,
+            status: 401,
+            message: "User not authorized, Login Again to spotify",
+        };        
+    }
+
+    let updatedUserInfo = resp.updatedInfo
+
     // publish this channel_name publically
     publishBroadcast( 
-        userInfo._id , 
+        updatedUserInfo._id , 
         broadCastChannelName , 
         broadCastName ,  
-        userInfo.full_name,
-        userInfo.spotify_access_token
+        updatedUserInfo.full_name,
+        updatedUserInfo.spotify_access_token
     );
 
-    await updateRecord(User , userInfo._id , update_body );
+    // await updateRecord(User , userInfo._id , update_body );
 
 
     return {
@@ -188,15 +205,33 @@ const joinBroadcastServiceV2 = async (
     //     };
     // }
 
+
+
+    // refresh spotify token before joining broadcast
+    let resp = await refreshAndUpdateSpotifyToken( 
+        userInfo.spotify_refresh_token,
+        userInfo._id
+    )
+
+    if(!resp.status){
+        throw {
+            success: false,
+            status: 401,
+            message: "User not authorized, Login Again to spotify",
+        };        
+    }
+
+    let updatedUserInfo = resp.updatedInfo
+
+
     joinBroadcast( 
-        userInfo._id,
+        updatedUserInfo._id,
         broadCastHost.broadCastChannelName , 
         broadCastHost.broadCastName ,  
         broadCastHost.full_name , 
-        userInfo.full_name ,
-        userInfo.spotify_access_token,
+        updatedUserInfo.full_name ,
+        updatedUserInfo.spotify_access_token,
         broadCastHost._id , 
-
     )
 
 
@@ -223,14 +258,20 @@ const playSongInBroadcastServiceV2 = async (
     }
 
     let activeListeners = userInfo.broadcastListeners;
+
+    // play song at host end
+    await playSong( userInfo.spotifyDeviceId , userInfo.spotify_access_token , uri )
+    // play song to all broadcast listeners 
     await Promise.all( activeListeners.map(async(item)=>{
+        // console.log({ item })
         await playSong( item.device_id , item.spotify_access_token , uri )
     }))
+
 
     return {
         success: true,
         data: { listenres : userInfo.broadcastListeners },
-        message: "BroadCast Joined Successfully",
+        message: "Song Streamed Successfully",
     };    
 
 

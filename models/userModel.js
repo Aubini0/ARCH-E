@@ -90,6 +90,11 @@ const userSchema = mongoose.Schema({
     },
 
 
+    spotifyDeviceId : {
+        type : String,
+        default : ""
+    },
+
     broadCastChannelName : {
         type : String,
         default : ""

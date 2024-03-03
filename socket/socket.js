@@ -9,7 +9,11 @@ import {
     leaveQueue 
 } from "../socketHandlers/callSocketsHandler.js";
 
-import { addBroadcastListner } from "../socketHandlers/listeners.js"
+import { 
+    addBroadcastListner , 
+    addPausePlayBackListner ,
+    addResumePlayBackListner 
+} from "../socketHandlers/listeners.js"
 
 const PORT = process.env.PORT || 5000;
 
@@ -38,12 +42,22 @@ let onlineUsers = {}; // online users queue
 
 
 io.on("connection", (socket) => {
-    console.log("user connected", socket.id);
+    console.log("ConnectedUser ::> ", socket.id);
     const userId = socket.handshake.query.userId;
 
     // listener for checking if spotify device had been setup at user device.
     socket.on("deviceSetup" , async(data)=>{
-        addBroadcastListner( data )
+        addBroadcastListner( data );
+    })
+
+    // listener for checking pause audio track event from host
+    socket.on("pause-song" , async(data)=>{
+        addPausePlayBackListner( data );
+    })
+
+    // listener for checking resume audio track event from host
+    socket.on("resume-song" , async(data)=>{
+        addResumePlayBackListner( data );
     })
 
 

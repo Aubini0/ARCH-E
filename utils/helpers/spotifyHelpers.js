@@ -17,7 +17,7 @@ const requestHeaders = ( access_token , headers =  {} )=>{
 
 
 
-const refreshAndUpdateSpotifyToken = async( refreshToken , userId )=>{
+const refreshAndUpdateSpotifyToken = async( refreshToken , userId , extra_update_params )=>{
     try{
 
         const url = "https://accounts.spotify.com/api/token";
@@ -37,15 +37,18 @@ const refreshAndUpdateSpotifyToken = async( refreshToken , userId )=>{
         const response = await postRequest( url , qs.stringify(data) , headers )
         const access_token = response.access_token;
 
+
+
         let update_body = {
-            spotify_access_token : access_token
+            spotify_access_token : access_token,
+            ...extra_update_params
         }
     
         // update user with its spotify access / refresh tokens
-        await updateRecord(User , userId , update_body )
+        let updatedInfo = await updateRecord(User , userId , update_body )
     
 
-        return { status : true , access_token };
+        return { status : true , access_token , updatedInfo };
     
     }
     catch(err){
@@ -57,28 +60,50 @@ const refreshAndUpdateSpotifyToken = async( refreshToken , userId )=>{
 
 
 
-const playSong = async( deviceId , access_token , track_uri )=>{
+const playSong = async( deviceId , access_token , track_uri , position_ms = 0 )=>{
     let playSongUrl = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`;
-    let extraHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' }
+    let extraHeaders = { 'Content-Type': 'application/json' }
     let headers = requestHeaders( access_token , extraHeaders );
  
     let data = {
-        "uris": [ track_uri ],
+        "uris" : [track_uri],
         "offset": {
-            "position": 5
+            "position": 0
         },
-        "position_ms": 0
+        "position_ms": position_ms
     }
 
 
-    const response = await putRequest( playSongUrl , qs.stringify(data) , headers )
-    console.log({response})
 
-
+    try{
+        const response = await putRequest( playSongUrl ,data , headers )
+        console.log({response})    
+    }
+    catch(err){
+        console.log({err})        
+    }
 }
+
+
+const pausePlayBack = async( device_id , access_token )=>{
+    let togglePlayBackUrl = `https://api.spotify.com/v1/me/player/pause?device_id=${device_id}`;
+    let headers = requestHeaders( access_token );
+
+    console.log({ togglePlayBackUrl , headers })
+    try{
+        let responce = await putRequest( togglePlayBackUrl , {} , headers  )
+        console.log({responce})    
+    }
+    catch(err){
+        console.log({err})
+    }
+}
+
+
 
 export {
     playSong,
+    pausePlayBack,
     requestHeaders,
     refreshAndUpdateSpotifyToken
 }
