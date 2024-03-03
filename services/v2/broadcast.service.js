@@ -4,29 +4,38 @@ import {
     postRequest,
 } from "../../utils/helpers/commonFuncs.js"
 import {
+    playSong,
     requestHeaders,
     refreshAndUpdateSpotifyToken
 } from "../../utils/helpers/spotifyHelpers.js";
+import { 
+    findRecord,
+    updateRecord ,
+} from "../../utils/helpers/commonDbQueries.js";
+import { nanoid } from 'nanoid'
+import { 
+    joinBroadcast ,
+    publishBroadcast ,
+} from "../../socketHandlers/emitters.js"
 
 
-const fetchUserPlayListsServiceV2 = async (
-    userInfo , limit , offset
+
+const fetchFromSpotifyLibraryServiceV2 = async (
+    spotifyEndpoint , userInfo , limit , offset
 ) => {
 
-    let playLists = [];
-    let savedTracksBaseUrl = "https://api.spotify.com/v1/me/tracks";
-    let playListsBaseUrl = "https://api.spotify.com/v1/me/playlists";
-    let playListsUrl = `${savedTracksBaseUrl}?limit=${limit}&offset=${offset}`
+    let items = [];
+    let playListsUrl = `${spotifyEndpoint}?limit=${limit}&offset=${offset}`
     let headers = requestHeaders( userInfo.spotify_access_token );
 
     try{
         let responce = await getRequest( playListsUrl , headers );
-        playLists = responce.items;
+        items = responce.items;
 
         return {
             success: true,
-            data: { playLists },
-            message: "User PlayLists Fetched Successfully",
+            data: { items },
+            message: "Fetched Successfully",
         };    
     }
     catch(err){
@@ -40,13 +49,13 @@ const fetchUserPlayListsServiceV2 = async (
                 
                 let headers = requestHeaders( accessToken );
                 let responce = await getRequest( playListsUrl , headers );
-                playLists = responce.items;
+                items = responce.items;
         
 
                 return {
                     success: true,
-                    data: { playLists },
-                    message: "User PlayLists Fetched Successfully",
+                    data: { items },
+                    message: "Fetched Successfully",
                 };    
         
             }
@@ -54,7 +63,7 @@ const fetchUserPlayListsServiceV2 = async (
                 throw {
                     success: false,
                     status: 401,
-                    message: "User not authorized to fetch playlists, Login Again to spotify",
+                    message: "User not authorized, Login Again to spotify",
                 };        
             }
 
@@ -63,7 +72,7 @@ const fetchUserPlayListsServiceV2 = async (
         throw {
             success: false,
             status: 400,
-            message: "PlayLists Not fetched",
+            message: "Items Not fetched",
         };
 
     }
@@ -71,8 +80,168 @@ const fetchUserPlayListsServiceV2 = async (
 
 }
 
+const startBroadcastServiceV2 = async (
+    name  , userInfo
+) => {
+
+    // if(user.broadCastStatus){
+    //     throw {
+    //         success: false,
+    //         status: 400,
+    //         message: "Cannot Start another broadcast before ending previous one",
+    //     };
+    // }
+
+    // Throw error in case user's spotify isnt connected
+    if (!userInfo.spotify_access_token){
+        throw {
+            success: false,
+            status: 400,
+            message: "Conenct Spotify Account First",
+        };
+    }
+
+    // TODO:
+        // Make a high level API call to spotify using access_token to verify if 
+        // user token is still valid, or has'nt removed access from his spotify
+        // account manually. 
+
+
+
+    let broadCastName = name;
+    let broadCastStatus = true;
+    let broadcastListeners = [];
+
+    // make a unique agora_channel name for this broadcast
+    let broadCastChannelName = `${userInfo._id}-${Date.now()}`;
+    // make a concize shareable id for broadcast 
+    let broadCastShareId = nanoid(11);
+    let shareUrl = `${process.env.BORADCAST_POPUP}${broadCastShareId}`
+
+
+    // update USER with broadcast channel_name against broadcasr_sharedId
+    // update broadcast status and members joined to true & [] respectively
+    let update_body = {
+        broadCastName,
+        broadCastStatus,
+        broadCastShareId,
+        broadcastListeners,
+        broadCastChannelName,
+    }
+
+    // publish this channel_name publically
+    publishBroadcast( 
+        userInfo._id , 
+        broadCastChannelName , 
+        broadCastName ,  
+        userInfo.full_name,
+        userInfo.spotify_access_token
+    );
+
+    await updateRecord(User , userInfo._id , update_body );
+
+
+    return {
+        success: true,
+        data: { shareUrl },
+        message: "BroadCast Started Successfully",
+    };    
+
+
+}
+
+const joinBroadcastServiceV2 = async (
+    broadCastShareId , userInfo
+) => {
+
+
+    // Throw error in case user's spotify isnt connected
+    if (!userInfo.spotify_access_token){
+        throw {
+            success: false,
+            status: 400,
+            message: "Conenct Spotify Account First",
+        };
+    }
+
+    // if (userInfo.broadCastStatus){
+    //     throw {
+    //         success: false,
+    //         status: 400,
+    //         message: "Already streaming broadcast",
+    //     };
+    // }
+
+    let query_obj = { broadCastShareId }
+
+    let broadCastHost = await findRecord( User , query_obj , "Broadcast ID Invalid" );
+    broadCastHost = broadCastHost[0];
+
+    // console.log({broadCastHost})
+
+    // check if broadcast is ended
+    // if (!broadCastHost.broadCastStatus){
+    //     throw {
+    //         success: false,
+    //         status: 400,
+    //         message: "Boradcast has ended",
+    //     };
+    // }
+
+    joinBroadcast( 
+        userInfo._id,
+        broadCastHost.broadCastChannelName , 
+        broadCastHost.broadCastName ,  
+        broadCastHost.full_name , 
+        userInfo.full_name ,
+        userInfo.spotify_access_token,
+        broadCastHost._id , 
+
+    )
+
+
+    return {
+        success: true,
+        data: {  },
+        message: "BroadCast Joined Successfully",
+    };    
+
+
+}
+
+
+const playSongInBroadcastServiceV2 = async (
+    uri , userInfo
+) => {
+    // Throw error in case user's spotify isnt connected
+    if (!userInfo.spotify_access_token){
+        throw {
+            success: false,
+            status: 400,
+            message: "Conenct Spotify Account First",
+        };
+    }
+
+    let activeListeners = userInfo.broadcastListeners;
+    await Promise.all( activeListeners.map(async(item)=>{
+        await playSong( item.device_id , item.spotify_access_token , uri )
+    }))
+
+    return {
+        success: true,
+        data: { listenres : userInfo.broadcastListeners },
+        message: "BroadCast Joined Successfully",
+    };    
+
+
+}
+
+
 
 export {
-    fetchUserPlayListsServiceV2,
+    joinBroadcastServiceV2,
+    startBroadcastServiceV2,
+    playSongInBroadcastServiceV2,
+    fetchFromSpotifyLibraryServiceV2,
 }
 

@@ -1,6 +1,6 @@
 import { model } from "mongoose";
 
-const findRecordById = async( model , id , err_msg , status_code = 404 )=>{
+const findRecordById = async( model , id , err_msg , status_code = 404  )=>{
     const record = await model.findById( id );
 
     if(!record){
@@ -18,7 +18,7 @@ const findRecordById = async( model , id , err_msg , status_code = 404 )=>{
 const findRecord = async( model , query_obj , err_msg , status_code = 404 )=>{
     const record = await model.find({ ...query_obj })
 
-    if(!record){
+    if(record.length == 0){
         throw {
             success: false,
             status: status_code,
@@ -52,6 +52,7 @@ const updateRecord = async( model , id , update_body )=>{
 
 
 const fetchPaginatedRecords = async( model , query_obj , sorted_criteria ,  page , limit , populate_criteria )=>{
+    
     const paginatedRecords = await model.find({ ...query_obj })
         .sort({ ...sorted_criteria }) // Sort by most recent
         .skip((page - 1) * limit)

@@ -1,5 +1,6 @@
 import { 
-    getRequest , 
+    getRequest ,
+    putRequest, 
     postRequest,
 } from "./commonFuncs.js";
 import qs from "qs";
@@ -56,7 +57,28 @@ const refreshAndUpdateSpotifyToken = async( refreshToken , userId )=>{
 
 
 
+const playSong = async( deviceId , access_token , track_uri )=>{
+    let playSongUrl = `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`;
+    let extraHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' }
+    let headers = requestHeaders( access_token , extraHeaders );
+ 
+    let data = {
+        "uris": [ track_uri ],
+        "offset": {
+            "position": 5
+        },
+        "position_ms": 0
+    }
+
+
+    const response = await putRequest( playSongUrl , qs.stringify(data) , headers )
+    console.log({response})
+
+
+}
+
 export {
+    playSong,
     requestHeaders,
     refreshAndUpdateSpotifyToken
 }

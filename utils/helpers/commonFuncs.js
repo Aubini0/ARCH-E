@@ -65,6 +65,14 @@ const postRequest = async( url , payload , headers  )=>{
 }
 
 
+const putRequest = async( url , payload , headers  )=>{
+    const { data } = await axios.put(url , payload , {
+        headers: { ...headers },
+    });
+
+    return data;
+}
+
 
 
 const calculateAge = (day, month, year)=>{
@@ -167,6 +175,7 @@ const generateRandomString = (length) => {
 
 export {
     getRequest,
+    putRequest,
     postRequest,
     deleteFiles,
     calculateAge,

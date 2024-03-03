@@ -208,6 +208,7 @@ const spotifyCallBackV2 = async(req , res)=>{
 
     try {
         redirectUrl = await spotifyCallBackServiceV2( code , state , ip )
+        console.log({redirectUrl})
     }
     catch(err){
         console.error('Error:', err);

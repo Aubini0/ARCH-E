@@ -32,6 +32,51 @@ const broadcastValidation = {
 
 
 
+    start: Joi.object().keys({
+        name: Joi.string().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Broadcast name required",
+                };
+            }),
+
+    }),
+
+
+    join: Joi.object().keys({
+        broadcastId: Joi.string().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Broadcast Id is required",
+                };
+            }),
+
+    }),
+
+
+
+    // TODO:
+        // Make a custom validator to calidate songs uri
+    play: Joi.object().keys({
+        uri: Joi.string().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "valid uri is required",
+                };
+            }),
+
+    }),
+
+
 }
 
 

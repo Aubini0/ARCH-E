@@ -90,6 +90,33 @@ const userSchema = mongoose.Schema({
     },
 
 
+    broadCastChannelName : {
+        type : String,
+        default : ""
+    },
+
+    broadCastName : {
+        type : String,
+        default : ""
+    },
+
+    broadCastShareId : {
+        type : String,
+        default : ""
+    },
+
+    broadCastStatus : {
+        type : Boolean,
+        default : false
+    },
+    broadcastListeners: {
+        type: [Object],
+        default: [],
+    },
+
+
+
+
 
     access_roles : {
         type: [String],

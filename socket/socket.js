@@ -9,6 +9,8 @@ import {
     leaveQueue 
 } from "../socketHandlers/callSocketsHandler.js";
 
+import { addBroadcastListner } from "../socketHandlers/listeners.js"
+
 const PORT = process.env.PORT || 5000;
 
 
@@ -38,6 +40,14 @@ let onlineUsers = {}; // online users queue
 io.on("connection", (socket) => {
     console.log("user connected", socket.id);
     const userId = socket.handshake.query.userId;
+
+    // listener for checking if spotify device had been setup at user device.
+    socket.on("deviceSetup" , async(data)=>{
+        addBroadcastListner( data )
+    })
+
+
+
 
     if (userId != "undefined") userSocketMap[userId] = socket.id;
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
@@ -85,6 +95,7 @@ io.on("connection", (socket) => {
         delete userSocketMap[userId];
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
     });
+    
     
 });
 
