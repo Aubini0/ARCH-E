@@ -1,9 +1,9 @@
 
 
 const joinQueue = async( socket , data, queue )=>{
-    let payload = data.payload;
-    queue[ payload.email   ] = socket
-    matchUsers( queue )
+    // let payload = data.payload;
+    // queue[ payload.email   ] = socket
+    // matchUsers( queue )
 }
 
 const leaveQueue = async( data , queue )=>{
@@ -40,7 +40,7 @@ const matchUsers = ( queue )=>{
         delete queue[keys_[1]]
 
 
-        console.log('Users matched > ' , queue);
+        // console.log('Users matched > ' , queue);
     }
 }
 

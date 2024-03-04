@@ -111,12 +111,13 @@ const startBroadcastServiceV2 = async (
     let broadCastName = name;
     let broadCastStatus = true;
     let broadcastListeners = [];
+    let broadCastCurrentTrack = "";
 
     // make a unique agora_channel name for this broadcast
     let broadCastChannelName = `${userInfo._id}-${Date.now()}`;
     // make a concize shareable id for broadcast 
     let broadCastShareId = nanoid(11);
-    let shareUrl = `${process.env.BORADCAST_POPUP}${broadCastShareId}`
+    let shareUrl = `${process.env.BORADCAST_POPUP}${userInfo.full_name}/${broadCastShareId}`
 
 
     // update USER with broadcast channel_name against broadcasr_sharedId
@@ -127,6 +128,7 @@ const startBroadcastServiceV2 = async (
         broadCastShareId,
         broadcastListeners,
         broadCastChannelName,
+        broadCastCurrentTrack,
     }
 
 
@@ -258,6 +260,14 @@ const playSongInBroadcastServiceV2 = async (
     }
 
     let activeListeners = userInfo.broadcastListeners;
+    
+    // update user with current track uri being streamed
+    let update_body = {
+        broadCastCurrentTrack : uri
+    }
+    await updateRecord(User , userInfo._id , update_body);
+
+
 
     // play song at host end
     await playSong( userInfo.spotifyDeviceId , userInfo.spotify_access_token , uri )

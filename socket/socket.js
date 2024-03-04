@@ -12,7 +12,9 @@ import {
 import { 
     addBroadcastListner , 
     addPausePlayBackListner ,
-    addResumePlayBackListner 
+    addResumePlayBackListner ,
+    addBroadcastEndedListner ,
+    addLeaveBroadcastListner
 } from "../socketHandlers/listeners.js"
 
 const PORT = process.env.PORT || 5000;
@@ -60,7 +62,15 @@ io.on("connection", (socket) => {
         addResumePlayBackListner( data );
     })
 
+    // listener for checking is user has left broadcast
+    socket.on("left-broadcast" , async(data)=>{
+        addLeaveBroadcastListner( data )
+    })
 
+    // listener for checking broadcast ended event from host
+    socket.on("broadcast-ended" ,async(data)=>{
+        addBroadcastEndedListner( data );
+    })
 
 
     if (userId != "undefined") userSocketMap[userId] = socket.id;
