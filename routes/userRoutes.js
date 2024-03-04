@@ -15,6 +15,8 @@ import protectRoute from "../middlewares/protectRoute.js";
 
 const router = express.Router();
 
+
+
 router.get("/profile/:query", getUserProfile);
 router.get("/suggested/:id", protectRoute, getSuggestedUsers);
 router.post("/signup", signupUser);

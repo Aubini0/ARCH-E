@@ -61,8 +61,13 @@ const spotify_scopes_list = [
     "playlist-modify-private",
     "playlist-modify-public",
     "user-library-read",
-    "user-library-modify"
+    "user-library-modify",
+    "user-modify-playback-state"
 ]
+
+
+
+
 // Convert into spotify readable format
 const spotify_scopes = spotify_scopes_list.join(" ")
 
@@ -379,6 +384,8 @@ const spotifyCallBackServiceV2 = async(code , state , ip)=>{
 
     let resp = await postRequest( getTokenUrl , qs.stringify(data) ,  headers )
     let {access_token , refresh_token} = resp;
+
+    console.log({access_token , refresh_token})
 
 
     if (access_token && refresh_token){

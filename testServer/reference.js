@@ -222,10 +222,19 @@
 
 
 
-// spotifyApi.play and spotifyApi.queue are placeholder functions representing the Spotify Web API calls to start playback and queue a song, respectively. You would need to replace these with the actual calls to the Spotify Web API using your application's authentication token and the correct endpoints.
-// We assume spotifyApi is an object that has been set up to interact with the Spotify Web API, likely through an SDK or a set of AJAX calls.
-// songs is an array that should contain the Spotify URI strings for the tracks you want to play or queue.
-// Remember to replace the placeholder functions with actual API calls and to ensure that your application has the correct permissions to control playback using the Spotify Web API. You will also need to handle the OAuth token lifecycle (i.e., refreshing it when it expires) and error handling for a smooth user experience.
+// spotifyApi.play and spotifyApi.queue are placeholder functions representing the 
+// Spotify Web API calls to start playback and queue a song, respectively. 
+// You would need to replace these with the actual calls to the Spotify Web API using your 
+// application's authentication token and the correct endpoints.
+
+
+// We assume spotifyApi is an object that has been set up to interact with the Spotify Web API, 
+// likely through an SDK or a set of AJAX calls.
+// songs is an array that should contain the Spotify URI strings 
+// for the tracks you want to play or queue.
+// Remember to replace the placeholder functions with actual API calls and to ensure that 
+// your application has the correct permissions to control playback using the Spotify Web API. 
+// You will also need to handle the OAuth token lifecycle (i.e., refreshing it when it expires) and error handling for a smooth user experience.
 
 
 

@@ -1,11 +1,12 @@
-import express from "express";
+import cors from "cors";
 import dotenv from "dotenv";
-import connectDB from "./db/connectDB.js";
+import express from "express";
 import cookieParser from "cookie-parser";
+import connectDB from "./db/connectDB.js";
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
-import messageRoutes from "./routes/messageRoutes.js";
 import repostRoutes from "./routes/repostRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 
 
 // -------------- V2 Routes -------------- //
@@ -16,17 +17,18 @@ import broadcastRoutesV2 from "./routes/v2/broadcastRoutesV2.js";
 // -------------- V2 Routes -------------- //
 
 
-import { v2 as cloudinary } from "cloudinary";
-import cors from "cors";
-
-// Use this app instance if you want to run socket server
-// import { app } from "./socket/socket.js";
+// -------------- Socket Server -------------- //
+// Use it incase you need socket handlers with express.js running
+import { app  , server , PORT} from "./socket/socket.js";
+// -------------- Socket Server -------------- //
 
 dotenv.config();
 
 
-const app = express();
 
+
+// Uncomment it to use normal express app without socket handlers
+// const app = express();
 
 // enable cors
 app.use(cors());
@@ -34,15 +36,12 @@ app.use(cors());
 // Middleware to log incomming requests
 app.use((req, res, next) => {
     const timestamp = new Date().toISOString();
-    const method = req.method;
-    const url = req.url;
-    console.log(`RequestLogs :> ${timestamp} , ${method} , ${url}`);
+    console.log(`Request >>> TimeStamp:- ${timestamp} , Endpoint:- ${req.url} , Method:- ${req.method}`);
     next();
 });
 
 
 
-const PORT = process.env.PORT || 5000;
 
 
 // Middlewares
@@ -63,7 +62,8 @@ app.use("/health-check" , async(req , res)=>{
 })
 
 
-// Routes
+
+// Old Routes in Amplified Repository
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/messages", messageRoutes);
@@ -83,13 +83,15 @@ app.use("/api/v2/broadcast" , broadcastRoutesV2);
 
 
 (async()=>{
+
     // wait for the db to connect and then proceed
     await connectDB();
 
     // start server to listen at specified port
-    app.listen(PORT, () =>
-        console.log(`Server started at :> http://localhost:${PORT}`)
+    server.listen(PORT, () =>
+        console.log(`Server started at http://localhost:${PORT}`)
     );
+
 
 })();
 
