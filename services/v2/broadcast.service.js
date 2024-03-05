@@ -39,7 +39,7 @@ const fetchFromSpotifyLibraryServiceV2 = async (
         };    
     }
     catch(err){
-        // console.log({err})
+        console.log({err})
 
         if (err.response.status == 401){
 
@@ -250,7 +250,6 @@ const joinBroadcastServiceV2 = async (
 
 
 }
-
 
 const playSongInBroadcastServiceV2 = async (
     uri , userInfo
