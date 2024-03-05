@@ -117,7 +117,12 @@ const startBroadcastServiceV2 = async (
     let broadCastChannelName = `${userInfo._id}-${Date.now()}`;
     // make a concize shareable id for broadcast 
     let broadCastShareId = nanoid(11);
-    let shareUrl = `${process.env.BORADCAST_POPUP}${userInfo.full_name}/${broadCastShareId}`
+
+
+    // TODO:
+    // add listen in url "listen"
+
+    let shareUrl = `${process.env.BORADCAST_POPUP}${broadCastShareId}`
 
 
     // update USER with broadcast channel_name against broadcasr_sharedId
