@@ -69,6 +69,14 @@ const fetchFromSpotifyLibraryServiceV2 = async (
 
 
         }
+
+        if(err.response.status == 403){
+            throw {
+                success: false,
+                status: 403,
+                message: "You are not authorized to use spotify API. Ask developer to add it to list of allowed users.",
+            };    
+        }
         throw {
             success: false,
             status: 400,
