@@ -74,6 +74,18 @@ const broadcastValidation = {
                 };
             }),
 
+
+        deviceId: Joi.string().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "DeviceId is required",
+                };
+            }),
+
+
     }),
 
 

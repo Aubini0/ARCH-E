@@ -25,6 +25,7 @@ const joinBroadcast = (
         channel_name , broadcast_name , host_name , 
         username , spotify_access_token , hostId
     }};
+    
     let socketEvent = `join-broadcast-${userId}`;
     io.emit( socketEvent , socketData );
 }

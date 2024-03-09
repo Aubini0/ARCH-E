@@ -161,21 +161,30 @@ const startBroadcastServiceV2 = async (
 
     let updatedUserInfo = resp.updatedInfo
 
-    // publish this channel_name publically
-    publishBroadcast( 
-        updatedUserInfo._id , 
-        broadCastChannelName , 
-        broadCastName ,  
-        updatedUserInfo.full_name,
-        updatedUserInfo.spotify_access_token
-    );
+    // firing socket event
+    // publishBroadcast( 
+    //     updatedUserInfo._id , 
+    //     broadCastChannelName , 
+    //     broadCastName ,  
+    //     updatedUserInfo.full_name,
+    //     updatedUserInfo.spotify_access_token
+    // );
 
     // await updateRecord(User , userInfo._id , update_body );
-
+    
+    let broadcastDetails = { 
+        channel_name : broadCastChannelName , 
+        broadcast_name : broadCastName , 
+        username : updatedUserInfo.full_name,
+        spotify_access_token  : updatedUserInfo.spotify_access_token
+    };
 
     return {
         success: true,
-        data: { shareUrl },
+        data: { 
+            shareUrl,
+            broadcastDetails
+        },
         message: "BroadCast Started Successfully",
     };    
 
@@ -239,20 +248,32 @@ const joinBroadcastServiceV2 = async (
     let updatedUserInfo = resp.updatedInfo
 
 
-    joinBroadcast( 
-        updatedUserInfo._id,
-        broadCastHost.broadCastChannelName , 
-        broadCastHost.broadCastName ,  
-        broadCastHost.full_name , 
-        updatedUserInfo.full_name ,
-        updatedUserInfo.spotify_access_token,
-        broadCastHost._id , 
-    )
+    // firing socket event
+    // joinBroadcast( 
+    //     updatedUserInfo._id,
+    //     broadCastHost.broadCastChannelName , 
+    //     broadCastHost.broadCastName ,  
+    //     broadCastHost.full_name , 
+    //     updatedUserInfo.full_name ,
+    //     updatedUserInfo.spotify_access_token,
+    //     broadCastHost._id , 
+    // )
+
+    let broadcastDetails = {  
+        channel_name : broadCastHost.broadCastChannelName , 
+        broadcast_name :broadCastHost.broadCastName , 
+        host_name : broadCastHost.full_name , 
+        username : updatedUserInfo.full_name , 
+        spotify_access_token : updatedUserInfo.spotify_access_token,
+        hostId : broadCastHost._id,
+        hostProfilePic : broadCastHost.profilePic
+    };
+
 
 
     return {
         success: true,
-        data: {  },
+        data: { broadcastDetails },
         message: "BroadCast Joined Successfully",
     };    
 
@@ -260,7 +281,7 @@ const joinBroadcastServiceV2 = async (
 }
 
 const playSongInBroadcastServiceV2 = async (
-    uri , userInfo
+    uri , deviceId , userInfo
 ) => {
     // Throw error in case user's spotify isnt connected
     if (!userInfo.spotify_access_token){
@@ -274,20 +295,19 @@ const playSongInBroadcastServiceV2 = async (
     let activeListeners = userInfo.broadcastListeners;
     
     // update user with current track uri being streamed
-    let update_body = {
-        broadCastCurrentTrack : uri
-    }
+    let update_body = { broadCastCurrentTrack : uri } 
     await updateRecord(User , userInfo._id , update_body);
 
+    // playSong on requested User end
+    await playSong( deviceId ,  userInfo.spotify_access_token , uri );
 
-
-    // play song at host end
-    await playSong( userInfo.spotifyDeviceId , userInfo.spotify_access_token , uri )
-    // play song to all broadcast listeners 
-    await Promise.all( activeListeners.map(async(item)=>{
-        // console.log({ item })
-        await playSong( item.device_id , item.spotify_access_token , uri )
-    }))
+    // // play song at host end
+    // await playSong( userInfo.spotifyDeviceId , userInfo.spotify_access_token , uri )
+    // // play song to all broadcast listeners 
+    // await Promise.all( activeListeners.map(async(item)=>{
+    //     // console.log({ item })
+    //     await playSong( item.device_id , item.spotify_access_token , uri )
+    // }))
 
 
     return {
