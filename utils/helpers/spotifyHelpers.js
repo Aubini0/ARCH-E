@@ -80,8 +80,14 @@ const playSong = async( deviceId , access_token , track_uri , position_ms = 0 )=
         console.log({response})    
     }
     catch(err){
-        console.log({err})        
+        console.log({err})
+        throw {
+            success: false,
+            status: 400,
+            message: "DeviceId not found",
+        }
     }
+
 }
 
 

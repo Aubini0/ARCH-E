@@ -94,7 +94,6 @@ const fetchSavedPlaylistsV2 = async(req, res) => {
     }
 };
 
-
 const startBroadcastV2 = async(req, res) => {
     try {
         const userInfo = req.user;
@@ -120,7 +119,6 @@ const startBroadcastV2 = async(req, res) => {
 
     }
 };
-
 
 const joinBroadcastV2 = async(req, res) => {
     try {
@@ -154,15 +152,15 @@ const joinBroadcastV2 = async(req, res) => {
 const playSongInBroadcastV2 = async(req, res) => {
     try {
         const userInfo = req.user;
-        let { uri } = req.body;
+        let { deviceId , uri } = req.body;
 
         const JoiSchema = broadcastValidation.play;
         await JoiSchema.validateAsync({
-            uri
+            uri , deviceId
         });        
 
         res.status(200).json(
-            await playSongInBroadcastServiceV2( uri , userInfo)
+            await playSongInBroadcastServiceV2( uri , deviceId , userInfo)
         );
 
 

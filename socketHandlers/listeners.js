@@ -9,6 +9,89 @@ import {
     pausePlayBack , 
 } from "../utils/helpers/spotifyHelpers.js"
 
+const addJoinRoomListner = async( socket , io , data )=>{
+    let payload = data.payload;
+    let socketRoom = payload.socketRoom;
+    if (socketRoom){
+        socket.join( socketRoom );
+        const clients = io.sockets.adapter.rooms.get( socketRoom )
+        if(clients){
+            let socketData = { payload : {  users : clients.size  }};
+            io.to(socketRoom).emit("onlineListeners" , socketData)
+        }
+
+    }
+}
+
+const addPLaySongListner = async( socket , data )=>{
+    let payload = data.payload;
+    let socketRoom = payload.socketRoom;
+    if (socketRoom){
+        let socketData = { payload : {  ...payload  }};
+        socket.to(socketRoom).emit("playSong" , socketData)
+    }
+}
+
+
+const addPauseSongListner = async( socket , data )=>{
+    let payload = data.payload;
+    let socketRoom = payload.socketRoom;
+    if (socketRoom){
+        let socketData = { payload : {  ...payload  }};
+        socket.to(socketRoom).emit("pauseSong" , socketData)
+    }
+}
+
+
+const addResumeSongListner = async( socket , data )=>{
+    let payload = data.payload;
+    let socketRoom = payload.socketRoom;
+    if (socketRoom){
+        let socketData = { payload : {  ...payload   }};
+        socket.to(socketRoom).emit("resumeSong" , socketData)
+    }
+}
+
+
+const addLeaveRoomListner = async( socket , data )=>{
+    let payload = data.payload;
+    let socketRoom = payload.socketRoom;
+    if (socketRoom){
+        socket.leave(socketRoom);
+    }
+}
+
+
+
+const addEndRoomListner = async( socket , data )=>{
+    let payload = data.payload;
+    let  userData  = payload.userData;
+    let socketRoom = payload.socketRoom;
+    if (socketRoom){
+        // clear broadcast related data
+        let update_body = {
+            broadCastName : "",
+            broadCastStatus : false,
+            broadCastShareId : "",
+            broadcastListeners : [],
+            broadCastChannelName : "",
+            broadCastCurrentTrack : "",
+            spotifyDeviceId : "",
+        }
+        await updateRecord(User , userData._id , update_body);
+
+        // notify to all clients that broadcast has ended
+        let socketData = { payload : {  ...payload  }};
+        socket.to(socketRoom).emit("broadcastEnded" , socketData)
+        // leave room
+        socket.leave(socketRoom);
+    }
+}
+
+
+
+
+
 const addBroadcastListner = async( data )=>{    
     let payload = data.payload;
     let { device_id , spotify_access_token , userId , hostId } = payload;
@@ -40,6 +123,7 @@ const addPausePlayBackListner = async( data )=>{
             let hostUser = await findRecordById( User , userId , "User not found");
             let broadcastListeners = hostUser.broadcastListeners;
 
+            
             await Promise.all( broadcastListeners.map(async(item)=>{
                 console.log({ item })
                 await pausePlayBack( item.device_id , item.spotify_access_token  )
@@ -130,6 +214,16 @@ const addLeaveBroadcastListner = async( data )=>{
 
 
 export { 
+    // New Listneres
+    addEndRoomListner,
+    addJoinRoomListner,
+    addPLaySongListner,
+    addPauseSongListner,
+    addLeaveRoomListner,
+    addResumeSongListner,
+
+
+    // Old Listneres (remove after new architecrure)
     addBroadcastListner,
     addPausePlayBackListner,
     addResumePlayBackListner,
