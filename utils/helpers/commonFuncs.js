@@ -2,10 +2,15 @@ import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import isBase64 from "is-base64";
 import imageType from "image-type";
-import path from "path";
 import fs from "fs";
-
 import crypto from "crypto"
+
+import User from "../../models/userModel.js"
+import { 
+    updateRecord 
+} from "./commonDbQueries.js";
+
+
 
 const formatUserData = ( userInfo )=>{
     let dropData = [ "password" , "createdAt" , "updatedAt" , "ip" , "__v" , "google_refresh_token" ];
@@ -172,6 +177,21 @@ const generateRandomString = (length) => {
 }
 
 
+const updateListenerCount = async ( io , socketRoom , userId )=>{
+    const clients = io.sockets.adapter.rooms.get( socketRoom )
+    console.log({clients})
+    if(clients){
+        let socketData = { payload : {  users : clients.size  }};
+        io.to(socketRoom).emit("onlineListeners" , socketData)
+        // update listeners count
+        if(userId){
+            let update_body = { broadcastListeners : clients.size }
+            await updateRecord(User , userId , update_body);    
+        }
+    }
+
+}
+
 
 export {
     getRequest,
@@ -184,6 +204,7 @@ export {
     parsingBufferAudio,
     prepareRedirectUrl,
     validateBase64Image,
-    validateAudioMimeType,
+    updateListenerCount,
     generateRandomString,
+    validateAudioMimeType,
 }

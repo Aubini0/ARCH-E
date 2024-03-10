@@ -121,8 +121,8 @@ const userSchema = mongoose.Schema({
     },
 
     broadcastListeners: {
-        type: [Object],
-        default: [],
+        type: Number,
+        default: 0,
     },
 
     // Fields to keep track of Broadcas variables //

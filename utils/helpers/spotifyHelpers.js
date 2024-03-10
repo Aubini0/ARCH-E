@@ -7,6 +7,7 @@ import qs from "qs";
 import User from "../../models/userModel.js";
 import { 
     updateRecord ,
+    findRecordById 
 } from "./commonDbQueries.js";
 
 
@@ -107,9 +108,19 @@ const pausePlayBack = async( device_id , access_token )=>{
 
 
 
+const checkAndPlaySong = async( hostId , device_id , spotify_access_token  )=>{
+    let broadcastHost = await findRecordById( User , hostId , "Host not found" );
+    let currentTrack = broadcastHost.broadCastCurrentTrack;
+    // console.log({currentTrack, broadcastHost})
+    if(currentTrack){
+        await playSong(device_id , spotify_access_token , currentTrack);
+    }
+}
+
 export {
     playSong,
     pausePlayBack,
     requestHeaders,
+    checkAndPlaySong,
     refreshAndUpdateSpotifyToken
 }
