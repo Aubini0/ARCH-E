@@ -11,7 +11,7 @@ import {
 
 const addJoinRoomListner = async( socket , io , data )=>{
     let payload = data.payload;
-    let socketRoom = payload.socketRoom;
+    let socketRoom = payload?.socketRoom;
     if (socketRoom){
         socket.join( socketRoom );
         const clients = io.sockets.adapter.rooms.get( socketRoom )
@@ -25,7 +25,7 @@ const addJoinRoomListner = async( socket , io , data )=>{
 
 const addPLaySongListner = async( socket , data )=>{
     let payload = data.payload;
-    let socketRoom = payload.socketRoom;
+    let socketRoom = payload?.socketRoom;
     if (socketRoom){
         let socketData = { payload : {  ...payload  }};
         socket.to(socketRoom).emit("playSong" , socketData)
@@ -35,7 +35,7 @@ const addPLaySongListner = async( socket , data )=>{
 
 const addPauseSongListner = async( socket , data )=>{
     let payload = data.payload;
-    let socketRoom = payload.socketRoom;
+    let socketRoom = payload?.socketRoom;
     if (socketRoom){
         let socketData = { payload : {  ...payload  }};
         socket.to(socketRoom).emit("pauseSong" , socketData)
@@ -45,7 +45,7 @@ const addPauseSongListner = async( socket , data )=>{
 
 const addResumeSongListner = async( socket , data )=>{
     let payload = data.payload;
-    let socketRoom = payload.socketRoom;
+    let socketRoom = payload?.socketRoom;
     if (socketRoom){
         let socketData = { payload : {  ...payload   }};
         socket.to(socketRoom).emit("resumeSong" , socketData)
@@ -55,7 +55,8 @@ const addResumeSongListner = async( socket , data )=>{
 
 const addLeaveRoomListner = async( socket , data )=>{
     let payload = data.payload;
-    let socketRoom = payload.socketRoom;
+    let socketRoom = payload?.socketRoom;
+    console.log({socketRoom})
     if (socketRoom){
         socket.leave(socketRoom);
     }
@@ -65,9 +66,9 @@ const addLeaveRoomListner = async( socket , data )=>{
 
 const addEndRoomListner = async( socket , data )=>{
     let payload = data.payload;
-    let  userData  = payload.userData;
-    let socketRoom = payload.socketRoom;
-    if (socketRoom){
+    let  userData  = payload?.userData;
+    let socketRoom = payload?.socketRoom;
+    if (socketRoom && userData){
         // clear broadcast related data
         let update_body = {
             broadCastName : "",
