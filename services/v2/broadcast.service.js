@@ -246,9 +246,73 @@ const playSongInBroadcastServiceV2 = async (
 
 
 
+const searchFromSpotifyServiceV2 = async (
+    userInfo , searchBaseUrl , query , limit , offset
+) => {
+
+    let items;
+    let searchUrl = `${searchBaseUrl}?q=${query}&type=track&limit=${limit}&offset=${offset}`
+    let headers = requestHeaders( userInfo.spotify_access_token );
+
+    try{
+        let responce = await getRequest( searchUrl , headers );
+        items = responce.tracks.items;
+        return {
+            success: true,
+            data: { items },
+            message: "Fetched Successfully",
+        };    
+    }
+    catch(err){
+        console.log({err})
+
+        if (err.response.status == 401){
+
+            let resp = await refreshAndUpdateSpotifyToken( userInfo.spotify_refresh_token , userInfo._id );
+            if(resp.status){
+                let accessToken = resp.access_token;
+                let headers = requestHeaders( accessToken );
+                let responce = await getRequest( searchUrl , headers );
+                items = responce.tracks.items;
+                return {
+                    success: true,
+                    data: { items },
+                    message: "Fetched Successfully",
+                };    
+            }
+            else{
+                throw {
+                    success: false,
+                    status: 401,
+                    message: "User not authorized, Login Again to spotify",
+                };        
+            }
+        }
+
+        if(err.response.status == 403){
+            throw {
+                success: false,
+                status: 403,
+                message: "You are not authorized to use spotify API. Ask developer to add it to list of allowed users.",
+            };    
+        }
+        throw {
+            success: false,
+            status: 400,
+            message: "Items Not fetched",
+        };
+
+    }
+
+
+}
+
+
+
 export {
     joinBroadcastServiceV2,
     startBroadcastServiceV2,
+    searchFromSpotifyServiceV2,
     playSongInBroadcastServiceV2,
     fetchFromSpotifyLibraryServiceV2,
 }
