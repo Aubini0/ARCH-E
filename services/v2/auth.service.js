@@ -52,12 +52,17 @@ const scopes = [
 
 // Enter scopes in human readable format
 const spotify_scopes_list = [
-    "streaming", // for setting up remote deviceID
-    "user-read-email", // for reading user email on spotify
-    "user-library-read", // for reading user saved songs in library
-    "playlist-read-private", // for reading user saved playlists that are private to him
-    // "user-modify-playback-state" // for modifying playback state in user other spotify device
-    
+    // for setting up remote deviceID and modifying playback. 
+    // It has intersection permissions with "user-modify-playback-state"
+    "streaming", 
+    // for reading user email on spotify
+    "user-read-email", 
+    // for reading user saved songs in library
+    "user-library-read", 
+    // for reading user saved playlists that are private to him
+    "playlist-read-private", 
+
+    // "user-modify-playback-state" // for modifying playback state in user other spotify device    
     // "playlist-read-collaborative",
     // "playlist-modify-private",
     // "playlist-modify-public",
