@@ -52,10 +52,13 @@ const scopes = [
 
 // Enter scopes in human readable format
 const spotify_scopes_list = [
+    
     "user-read-private",
     "user-read-email",
+    
     "streaming",
     "app-remote-control",
+
     "playlist-read-private",
     "playlist-read-collaborative",
     "playlist-modify-private",
@@ -63,6 +66,7 @@ const spotify_scopes_list = [
     "user-library-read",
     "user-library-modify",
     "user-modify-playback-state"
+
 ]
 
 

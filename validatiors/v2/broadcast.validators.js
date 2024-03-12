@@ -30,8 +30,6 @@ const broadcastValidation = {
             }),
     }),
 
-
-
     start: Joi.object().keys({
         name: Joi.string().required()
             .error(() => {
@@ -59,8 +57,6 @@ const broadcastValidation = {
 
     }),
 
-
-
     // TODO:
         // Make a custom validator to calidate songs uri
     play: Joi.object().keys({
@@ -86,6 +82,20 @@ const broadcastValidation = {
             }),
 
 
+    }),
+
+
+
+    search: Joi.object().keys({
+        query: Joi.string().required()
+            .error(() => {
+                throw {
+                    status: 400,
+                    statusCode: 400,
+                    success: false,
+                    message: "Please provide some query to search",
+                };
+            })
     }),
 
 
