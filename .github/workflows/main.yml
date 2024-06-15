@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main'
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set Up Environment Variables
+        run: |
+          touch .env
+          echo "AWSS3BUCKETNAME=${{ secrets.AWSS3BUCKETNAME }}" >> .env
+          echo "S3ACCESSKEYID=${{ secrets.S3ACCESSKEYID }}" >> .env
+          echo "S3SECRETACCESSKEY=${{ secrets.S3SECRETACCESSKEY }}" >> .env
+          echo "REGION=${{ secrets.REGION }}" >> .env
+          echo "USERMONGO=${{ secrets.USERMONGO }}" >> .env
+          echo "PASSWORDMONGO=${{ secrets.PASSWORDMONGO }}" >> .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "JWT_TOKEN_SECRET=${{ secrets.JWT_TOKEN_SECRET }}" >> .env
+          echo "S3BUCKET_PROFILEIMAGES=${{ secrets.S3BUCKET_PROFILEIMAGES }}" >> .env
+          echo "PORT=${{ secrets.PORT }}" >> .env
+          echo "HASHING_SALT=${{ secrets.HASHING_SALT }}" >> .env
+          cat .env
+
+      - name: Use node js
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: SSH Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: "${{ secrets.SSH_PRIVATE_KEY }}"
+          script_stop: true
+          script: |
+            cd /home/ubuntu/arch-e
+            git pull origin main
+            rm .env
+            touch .env
+            echo "AWSS3BUCKETNAME=${{ secrets.AWSS3BUCKETNAME }}" >> .env
+            echo "S3ACCESSKEYID=${{ secrets.S3ACCESSKEYID }}" >> .env
+            echo "S3SECRETACCESSKEY=${{ secrets.S3SECRETACCESSKEY }}" >> .env
+            echo "REGION=${{ secrets.REGION }}" >> .env
+            echo "USERMONGO=${{ secrets.USERMONGO }}" >> .env
+            echo "PASSWORDMONGO=${{ secrets.PASSWORDMONGO }}" >> .env
+            echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+            echo "JWT_TOKEN_SECRET=${{ secrets.JWT_TOKEN_SECRET }}" >> .env
+            echo "S3BUCKET_PROFILEIMAGES=${{ secrets.S3BUCKET_PROFILEIMAGES }}" >> .env
+            echo "PORT=${{ secrets.PORT }}" >> .env
+            echo "HASHING_SALT=${{ secrets.HASHING_SALT }}" >> .env
+            npm install
+            pm2 restart arch-e || pm2 start dist/server.js -i 1 --name arch-e
