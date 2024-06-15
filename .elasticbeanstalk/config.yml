@@ -1,13 +1,13 @@
 branch-defaults:
   main:
-    environment: AMPLIFI-env
+    environment: ARCH-E-env
 environment-defaults:
   AMPLIFI-env:
     branch: null
     repository: null
 global:
-  application_name: AMPLIFI BETA
-  default_ec2_keyname: AMPLIFI-SERVER
+  application_name: ARCH-E BETA
+  default_ec2_keyname: ARCH-E-SERVER
   default_platform: Node.js 18 running on 64bit Amazon Linux 2023
   default_region: us-east-1
   include_git_submodules: true
