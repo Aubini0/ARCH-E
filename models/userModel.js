@@ -1,149 +1,139 @@
 import mongoose from "mongoose";
 
-const userSchema = mongoose.Schema({
+const userSchema = mongoose.Schema(
+  {
     name: {
-        type: String,
-        required: false,
+      type: String,
+      required: false,
     },
     full_name: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     username: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    age: {
-        type: String,
-        required: false,
+      type: String,
+      required: true,
+      unique: true,
     },
     ip: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
+      type: String,
+      required: true,
+      unique: true,
     },
     password: {
-        type: String,
-        minLength: 6,
-        required: false,
+      type: String,
+      minLength: 6,
+      required: false,
     },
     phone: {
-        type: String,
-        maxLength: 15,
-        required: false,
+      type: String,
+      maxLength: 15,
+      required: false,
     },
     profilePic: {
-        type: String,
-        default: "",
+      type: String,
+      default: "",
     },
     followers: {
-        type: [String],
-        default: [],
+      type: [String],
+      default: [],
     },
     following: {
-        type: [String],
-        default: [],
+      type: [String],
+      default: [],
     },
     bio: {
-        type: String,
-        default: "",
+      type: String,
+      default: "",
     },
     isFrozen: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
 
     // location Cordinated of user
     lat: {
-        type: String,
-        default: "",
+      type: String,
+      default: "",
     },
     long: {
-        type: String,
-        default: "",
+      type: String,
+      default: "",
     },
 
-    // Google Tokens 
-    google_access_token : {
-        type : String,
-        default : ""
+    // Google Tokens
+    google_access_token: {
+      type: String,
+      default: "",
     },
 
-    google_refresh_token : {
-        type : String,
-        default : ""
+    google_refresh_token: {
+      type: String,
+      default: "",
     },
 
-    spotify_access_token : {
-        type : String,
-        default : ""
+    spotify_access_token: {
+      type: String,
+      default: "",
     },
 
-    spotify_refresh_token : {
-        type : String,
-        default : ""
+    spotify_refresh_token: {
+      type: String,
+      default: "",
     },
-
-
 
     // Fields to keep track of Broadcas variables //
 
-
-    
-    spotifyDeviceId : {
-        type : String,
-        default : ""
+    spotifyDeviceId: {
+      type: String,
+      default: "",
     },
-    broadCastChannelName : {
-        type : String,
-        default : ""
+    broadCastChannelName: {
+      type: String,
+      default: "",
     },
-    broadCastName : {
-        type : String,
-        default : ""
+    broadCastName: {
+      type: String,
+      default: "",
     },
-    broadCastShareId : {
-        type : String,
-        default : ""
+    broadCastShareId: {
+      type: String,
+      default: "",
     },
-    broadCastStatus : {
-        type : Boolean,
-        default : false
+    broadCastStatus: {
+      type: Boolean,
+      default: false,
     },
-    broadCastCurrentTrack : {
-        type : String,
-        default : ""
+    broadCastCurrentTrack: {
+      type: String,
+      default: "",
     },
 
     broadcastListeners: {
-        type: Number,
-        default: 0,
+      type: Number,
+      default: 0,
     },
 
     // Fields to keep track of Broadcas variables //
 
-
-
-
-
-    access_roles : {
-        type: [String],
-        default: [ "user" ],        
+    access_roles: {
+      type: [String],
+      default: ["user"],
     },
 
-    isSuperAdmin : {
-        type : Boolean,
-        default : false
-    }
-
-}, {
+    isSuperAdmin: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
     timestamps: true,
-});
+  }
+);
 
 const User = mongoose.model("User", userSchema);
 

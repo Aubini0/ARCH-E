@@ -40,5 +40,5 @@ jobs:
           cat ~/.aws/credentials
 
       - run: |
-          eb use ARCH-E-env-Test --region us-east-1
+          eb use ARCH-E-env --region us-east-1
           eb deploy

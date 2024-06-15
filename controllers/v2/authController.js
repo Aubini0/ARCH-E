@@ -14,14 +14,13 @@ import { prepareRedirectUrl } from "../../utils/helpers/commonFuncs.js";
 
 const signupUserV2 = async (req, res) => {
   try {
-    const { full_name, email, password, age, profilePic, phone, lat, long } =
+    const { full_name, email, password, profilePic, phone, lat, long } =
       req.body;
 
     const ip = req.ip;
 
     const JoiSchema = authValidation.signUp;
     await JoiSchema.validateAsync({
-      age,
       lat,
       long,
       full_name,
@@ -37,7 +36,6 @@ const signupUserV2 = async (req, res) => {
           full_name,
           email,
           password,
-          age,
           phone,
           profilePic,
           lat,
@@ -121,14 +119,13 @@ const googleCallBackV2 = async (req, res) => {
 
 const signupSuperAdminV2 = async (req, res) => {
   try {
-    const { full_name, email, password, age, profilePic, phone, lat, long } =
+    const { full_name, email, password, profilePic, phone, lat, long } =
       req.body;
 
     const ip = req.ip;
 
     const JoiSchema = authValidation.signUp;
     await JoiSchema.validateAsync({
-      age,
       lat,
       long,
       full_name,
@@ -146,7 +143,6 @@ const signupSuperAdminV2 = async (req, res) => {
           full_name,
           email,
           password,
-          age,
           phone,
           profilePic,
           lat,
