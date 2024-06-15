@@ -36,7 +36,7 @@ jobs:
 
       - run: |
           mkdir -p ~/.aws
-          printf "[default]\naws_access_key_id=%s\naws_secret_access_key=%s\nregion=%s\n" "${{ secrets.AWSACCESSKEYID }}" "${{ secrets.AWSSECRETACCESSKEY }}" "${{ secrets.AWSREGION }}" > ~/.aws/credentials
+          printf "[default]\naws_access_key_id=%s\naws_secret_access_key=%s\nregion=%s\n" "${{ secrets.AWSACCESSKEYID }}" "${{ secrets.AWSSECRETACCESSKEY }}" "us-east-1" > ~/.aws/credentials
           cat ~/.aws/credentials
 
       - run: |
