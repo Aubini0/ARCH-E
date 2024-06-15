@@ -1,8 +1,8 @@
 branch-defaults:
   main:
-    environment: ARCH-E-env
+    environment: ARCH-E-env-Test
 environment-defaults:
-  ARCH-E-env:
+  ARCH-E-env-Test:
     branch: null
     repository: null
 global:
