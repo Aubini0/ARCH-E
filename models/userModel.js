@@ -75,51 +75,6 @@ const userSchema = mongoose.Schema(
       type: String,
       default: "",
     },
-
-    spotify_access_token: {
-      type: String,
-      default: "",
-    },
-
-    spotify_refresh_token: {
-      type: String,
-      default: "",
-    },
-
-    // Fields to keep track of Broadcas variables //
-
-    spotifyDeviceId: {
-      type: String,
-      default: "",
-    },
-    broadCastChannelName: {
-      type: String,
-      default: "",
-    },
-    broadCastName: {
-      type: String,
-      default: "",
-    },
-    broadCastShareId: {
-      type: String,
-      default: "",
-    },
-    broadCastStatus: {
-      type: Boolean,
-      default: false,
-    },
-    broadCastCurrentTrack: {
-      type: String,
-      default: "",
-    },
-
-    broadcastListeners: {
-      type: Number,
-      default: 0,
-    },
-
-    // Fields to keep track of Broadcas variables //
-
     access_roles: {
       type: [String],
       default: ["user"],

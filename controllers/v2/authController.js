@@ -5,9 +5,6 @@ import {
   verifyAccessServiceV2,
   gogogleAuthServiceV2,
   googleCallBackServiceV2,
-  spotifyAuthServiceV2,
-  spotifyCallBackServiceV2,
-  spotifyConnectToInternalServiceV2,
 } from "../../services/v2/auth.service.js";
 
 import { prepareRedirectUrl } from "../../utils/helpers/commonFuncs.js";
@@ -162,59 +159,6 @@ const signupSuperAdminV2 = async (req, res) => {
   }
 };
 
-const spotifyAuthV2 = async (req, res) => {
-  try {
-    res.status(200).json(await spotifyAuthServiceV2());
-  } catch (err) {
-    const { status } = err;
-    const s = status ? status : 500;
-    res.status(s).send({
-      success: err.success,
-      error: err.message,
-    });
-  }
-};
-
-const spotifyCallBackV2 = async (req, res) => {
-  let redirectUrl;
-  const { code, state } = req.query;
-  const ip = req.ip;
-
-  try {
-    redirectUrl = await spotifyCallBackServiceV2(code, state, ip);
-    console.log({ redirectUrl });
-  } catch (err) {
-    console.error("Error:", err);
-    redirectUrl = prepareRedirectUrl(400, "", process.env.BORADCAST_POPUP);
-  }
-
-  res.redirect(redirectUrl);
-};
-
-const spotifyConnectToInternalV2 = async (req, res) => {
-  try {
-    const { spotifyToken } = req.body;
-    const currentUser = req.user;
-
-    const JoiSchema = authValidation.connectSpotifyInternal;
-
-    await JoiSchema.validateAsync({
-      spotifyToken,
-    });
-
-    res
-      .status(200)
-      .json(await spotifyConnectToInternalServiceV2(spotifyToken, currentUser));
-  } catch (err) {
-    const { status } = err;
-    const s = status ? status : 500;
-    res.status(s).send({
-      success: err.success,
-      error: err.message,
-    });
-  }
-};
-
 export {
   loginUserV2,
   signupUserV2,
@@ -222,7 +166,4 @@ export {
   signupSuperAdminV2,
   googleAuthV2,
   googleCallBackV2,
-  spotifyAuthV2,
-  spotifyCallBackV2,
-  spotifyConnectToInternalV2,
 };

@@ -96,19 +96,6 @@ const authValidation = {
         };
       }),
   }),
-
-  connectSpotifyInternal: Joi.object().keys({
-    spotifyToken: Joi.string()
-      .required()
-      .error(() => {
-        throw {
-          status: 400,
-          statusCode: 400,
-          success: false,
-          message: "Spotify Token is required",
-        };
-      }),
-  }),
 };
 
 export default authValidation;

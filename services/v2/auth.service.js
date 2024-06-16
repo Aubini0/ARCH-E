@@ -34,7 +34,6 @@ import qs from "qs";
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URL = `${process.env.REDIRECT_BASE_URL}/api/v2/auth/google/callback`;
-const SPOTIFY_REDIRECT_URL = `${process.env.REDIRECT_BASE_URL}/api/v2/auth/spotify/callback`;
 
 const oauth2Client = new google.auth.OAuth2(
   CLIENT_ID,
@@ -47,30 +46,6 @@ const scopes = [
   "https://www.googleapis.com/auth/userinfo.email",
   "https://www.googleapis.com/auth/user.birthday.read",
 ];
-
-// Enter scopes in human readable format
-const spotify_scopes_list = [
-  // for setting up remote deviceID and modifying playback.
-  // It has intersection permissions with "user-modify-playback-state"
-  "streaming",
-  // for reading user email on spotify
-  "user-read-email",
-  // for reading user saved songs in library
-  "user-library-read",
-  // for reading user saved playlists that are private to him
-  "playlist-read-private",
-
-  // "user-modify-playback-state" // for modifying playback state in user other spotify device
-  // "playlist-read-collaborative",
-  // "playlist-modify-private",
-  // "playlist-modify-public",
-  // "user-library-modify",
-  // "app-remote-control",
-  // "user-read-private",
-];
-
-// Convert into spotify readable format
-const spotify_scopes = spotify_scopes_list.join(" ");
 
 const signUpServiceV2 = async (
   full_name,
@@ -316,100 +291,10 @@ const googleCallBackServiceV2 = async (code, ip) => {
   }
 };
 
-const spotifyAuthServiceV2 = async () => {
-  var state = generateRandomString(16);
-  var scope = spotify_scopes;
-  var client_id = process.env.SPOTIFY_CLIENT_ID;
-  var redirect_uri = SPOTIFY_REDIRECT_URL;
-
-  const url =
-    "https://accounts.spotify.com/authorize?" +
-    querystring.stringify({
-      response_type: "code",
-      client_id: client_id,
-      scope: scope,
-      redirect_uri: redirect_uri,
-      state: state,
-    });
-
-  return {
-    success: true,
-    message: "SpotifyAuth Url Generated",
-    data: { url },
-  };
-};
-
-const spotifyCallBackServiceV2 = async (code, state, ip) => {
-  let url;
-  let baseUrl;
-  let auth_type = 2;
-  let client_id = process.env.SPOTIFY_CLIENT_ID;
-  let client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-  let redirect_uri = SPOTIFY_REDIRECT_URL;
-
-  if (state === null) {
-    baseUrl =
-      process.env.BORADCAST_POPUP +
-      querystring.stringify({ error: "state_mismatch" });
-    url = prepareRedirectUrl(403, "", auth_type, baseUrl);
-    return url;
-  }
-
-  let encoded = Buffer.from(`${client_id}:${client_secret}`).toString("base64");
-  let getTokenUrl = "https://accounts.spotify.com/api/token";
-  let data = {
-    code: code,
-    redirect_uri: redirect_uri,
-    grant_type: "authorization_code",
-  };
-  let headers = {
-    "content-type": "application/x-www-form-urlencoded",
-    Authorization: `Basic ${encoded}`,
-  };
-
-  let resp = await postRequest(getTokenUrl, qs.stringify(data), headers);
-  let { access_token, refresh_token } = resp;
-
-  console.log({ access_token, refresh_token });
-
-  if (access_token && refresh_token) {
-    let encoded_token = tokenizePayload({ access_token, refresh_token });
-    baseUrl = process.env.BORADCAST_POPUP;
-    url = prepareRedirectUrl(200, encoded_token, auth_type, baseUrl);
-    // console.log({url})
-    return url;
-  } else {
-    baseUrl = process.env.BORADCAST_POPUP;
-    url = prepareRedirectUrl(403, "", auth_type, baseUrl);
-    return url;
-  }
-};
-
-const spotifyConnectToInternalServiceV2 = async (spotifyToken, userInfo) => {
-  const { access_token, refresh_token } = deTokenizePayload(spotifyToken);
-
-  let update_body = {
-    spotify_access_token: access_token,
-    spotify_refresh_token: refresh_token,
-  };
-
-  // update user with its spotify access / refresh tokens
-  await updateRecord(User, userInfo._id, update_body);
-
-  return {
-    success: true,
-    data: {},
-    message: "Spotify Connected Successfully",
-  };
-};
-
 export {
   signUpServiceV2,
   signInServiceV2,
   verifyAccessServiceV2,
   gogogleAuthServiceV2,
   googleCallBackServiceV2,
-  spotifyAuthServiceV2,
-  spotifyCallBackServiceV2,
-  spotifyConnectToInternalServiceV2,
 };
