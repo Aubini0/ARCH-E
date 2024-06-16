@@ -61,7 +61,6 @@ jobs:
             git pull origin main
             export NVM_DIR=~/.nvm
             source ~/.nvm/nvm.sh
-            npm --help
             rm .env
             touch .env
             echo "AWSS3BUCKETNAME=${{ secrets.AWSS3BUCKETNAME }}" >> .env
