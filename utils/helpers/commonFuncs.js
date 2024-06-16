@@ -178,7 +178,6 @@ export {
   parsingBufferAudio,
   prepareRedirectUrl,
   validateBase64Image,
-  updateListenerCount,
   generateRandomString,
   validateAudioMimeType,
 };
