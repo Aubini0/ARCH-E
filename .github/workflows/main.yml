@@ -74,5 +74,7 @@ jobs:
             echo "S3BUCKET_PROFILEIMAGES=${{ secrets.S3BUCKET_PROFILEIMAGES }}" >> .env
             echo "PORT=${{ secrets.PORT }}" >> .env
             echo "HASHING_SALT=${{ secrets.HASHING_SALT }}" >> .env
+            echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+            echo "SERAP_API_KEY=${{ secrets.SERAP_API_KEY }}" >> .env
             npm install
             pm2 restart arch-e || pm2 start dist/server.js -i 1 --name arch-e
