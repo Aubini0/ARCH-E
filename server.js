@@ -8,6 +8,7 @@ import userRoutes from "./routes/userRoutes.js";
 // -------------- V2 Routes -------------- //
 import userRoutesV2 from "./routes/v2/userRoutesV2.js";
 import authRoutesV2 from "./routes/v2/authRoutesV2.js";
+import botRoutesV2 from "./routes/v2/botRoutesV2.js";
 // -------------- V2 Routes -------------- //
 
 // -------------- Socket Server -------------- //
@@ -54,6 +55,7 @@ app.use("/api/users", userRoutes);
 // V2 API Routes
 app.use("/api/v2/auth", authRoutesV2);
 app.use("/api/v2/users", userRoutesV2);
+app.use("/api/v2/bots", botRoutesV2);
 
 (async () => {
   // wait for the db to connect and then proceed
