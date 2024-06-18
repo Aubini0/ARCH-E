@@ -7,6 +7,6 @@ import {
 const router = express.Router();
 
 
-router.get("/search", searchBotInvoke);
+router.post("/search", searchBotInvoke);
 
 export default router;

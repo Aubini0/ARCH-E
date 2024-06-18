@@ -8,13 +8,14 @@ const prompt = await hub.pull("hwchase17/openai-functions-agent");
 
 const searchBotInvoke = async (req, res) => {
     try {
-        const message = req.query.message;
+        //const message = req.query.message;
         //console.log(message)
+        const { query } = req.body;
         
-        if (typeof message === "string" && message) {
+        if (typeof query === "string" && query) {
             
             const llm = new ChatOpenAI({
-                model: "gpt-3.5-turbo",
+                model: "gpt-4",
                 temperature: 0,
                 streaming: true,
             });
@@ -35,7 +36,7 @@ const searchBotInvoke = async (req, res) => {
             });
             
             const eventStream = await agentExecutor.streamEvents(
-                { input: message },
+                { input: query },
                 { version: "v1" }
             );
             for await (const event of eventStream) {
@@ -93,6 +94,8 @@ const searchBotInvoke = async (req, res) => {
                     console.log("\n-----");
                     res.write(JSON.stringify({"event_type": eventType, "name": event.name}))
                 }
+                
+                //await new Promise(resolve => setTimeout(resolve, 1000));
             }
             
             res.end();
