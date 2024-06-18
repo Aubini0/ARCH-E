@@ -16,7 +16,7 @@ const searchBotInvoke = async (req, res) => {
         if (typeof query === "string" && query) {
             
             const llm = new ChatOpenAI({
-                model: "gpt-4",
+                model: "gpt-4o",
                 temperature: 0,
                 streaming: true,
             });
