@@ -10,8 +10,8 @@ const searchBotInvoke = async (req, res) => {
     try {
         //const message = req.query.message;
         //console.log(message)
-        //const { query } = req.body;
-        const query = req.query.message;
+        const { query } = req.body;
+        //const query = req.query.message;
         
         if (typeof query === "string" && query) {
             
