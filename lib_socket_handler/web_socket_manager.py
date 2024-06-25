@@ -42,7 +42,7 @@ class WebsocketManager(Disposable):
         # send json data object to twillio websocket 
         # await self.ws.send_bytes(message)
         if isinstance(message , dict) : 
-            print("Before sending : >" , message)
+            print("Before sending :> " , message['final_msg'])
             await self.ws.send_json(message)
 
 
@@ -80,13 +80,6 @@ class WebsocketManager(Disposable):
                     self.guid,
                     Message(MessageHeader(MessageType.CALL_ENDED), "Closed"),
                 )
-
-                audio_folder = os.path.join("public", "audio")
-                file_name = f'{self.guid}_{self.output_file_path}'
-                file_path = os.path.join(audio_folder, file_name)
-                if os.path.exists(file_path) : 
-                    os.remove(file_path)
-
                 break  # Exit the loop if the WebSocket is disconnected
             await asyncio.sleep(1)
 
