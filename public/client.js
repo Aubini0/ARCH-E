@@ -1,7 +1,6 @@
-let audio;
-const domain = window.location.origin;
-const captions = window.document.getElementById("user-msg");
-const llm_captions = window.document.getElementById("llm-msg");
+let audioQueue = [];
+let isPlaying = false;
+let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 
 async function getMicrophone() {
@@ -60,8 +59,15 @@ async function start(socket) {
   });
 }
 
+function playNextAudio() {
+  if (audioQueue.length > 0 && !isPlaying) {
+    isPlaying = true;
+    const data = audioQueue.shift();
+    playAudio(data);
+  }
+}
+
 function playAudio(data) {
-  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
   const sampleRate = 16000;  // Your specified sample rate
   const numChannels = 1;  // Assuming mono audio
 
@@ -79,7 +85,7 @@ function playAudio(data) {
   const audioBuffer = audioContext.createBuffer(numChannels, uint8Array.length / 2, sampleRate);
 
   console.log("client: converting PCM to float values");
-  // // Convert PCM to float values
+  // Convert PCM to float values
   for (let channel = 0; channel < numChannels; channel++) {
     const nowBuffering = audioBuffer.getChannelData(channel);
     for (let i = 0; i < nowBuffering.length; i++) {
@@ -93,33 +99,13 @@ function playAudio(data) {
   const source = audioContext.createBufferSource();
   source.buffer = audioBuffer;
   source.connect(audioContext.destination);
+  source.onended = () => {
+    isPlaying = false;
+    playNextAudio();
+  };
   source.start(0);
 }
-// Function to play audio
-function playAudioFile(audioUrl) {
-  if (audio) {
-    stopAudio();
-  }
-  // domain = "http://localhost:3000"
-  currentAudioUrl = domain + audioUrl + "?t=" + new Date().getTime(); // Add cache-busting query parameter
-  audio = new Audio(currentAudioUrl);
 
-  audio.play();
-
-  audio.addEventListener("ended", () => {
-    console.log("Audio finished playing");
-    stopAudio();
-  });
-}
-// Function to stop audio
-function stopAudio() {
-  if (audio) {
-    audio.pause();
-    audio.currentTime = 0;
-  }
-
-}
-// Function to get websocket url
 function getWebSocketURL(path = "") {
   var protocolPrefix =
   window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -128,30 +114,26 @@ function getWebSocketURL(path = "") {
   return protocolPrefix + "//" + host + path;
 }
 
-
 window.addEventListener("load", () => {
   const websocketUrl = getWebSocketURL("/ws");
-  console.log({websocketUrl})
+  console.log({ websocketUrl });
   socket = new WebSocket(websocketUrl);
   // Handle WebSocket events
-  socket.onopen = async() => {
-      console.log('WebSocket connection opened');      
-      setTimeout(()=>{} , 1000)
-      await start(socket);
-
+  socket.onopen = async () => {
+    console.log('WebSocket connection opened');
+    setTimeout(() => { }, 1000)
+    await start(socket);
   };
 
   socket.onmessage = (event) => {
-      let event_parsed = JSON.parse(event.data);
-      let audio_data =  event_parsed.audio
-      console.log(`Data-Rcvd : ${socket}`)
-      playAudio( audio_data )
+    let event_parsed = JSON.parse(event.data);
+    let audio_data = event_parsed.audio;
+    console.log(`Data-Rcvd : ${socket}`);
+    audioQueue.push(audio_data);
+    playNextAudio();
   };
-
 
   socket.onclose = () => {
-      console.log('WebSocket connection closed');
+    console.log('WebSocket connection closed');
   };
-
-    
 });
