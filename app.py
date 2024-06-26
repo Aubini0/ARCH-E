@@ -12,6 +12,7 @@ from lib_llm.helpers.prompt_generator import PromptGenerator
 from lib_llm.large_language_model import LargeLanguageModel
 from lib_tts.text_to_speech_deepgram import TextToSpeechDeepgram
 from lib_infrastructure.dispatcher import ( Dispatcher , Message , MessageHeader , MessageType )
+from lib_infrastructure.helpers.global_event_logger import GlobalLoggerAsync
 
 # loading .env configs
 load_dotenv()
@@ -58,6 +59,22 @@ async def websocket_endpoint(websocket: WebSocket):
     prompt_generator = PromptGenerator()
     modelInstance = LLM(prompt_generator, OPENAI_API_KEY)
 
+    global_logger = GlobalLoggerAsync(
+        guid,
+        dispatcher,
+        pubsub_events={
+            MessageType.CALL_WEBSOCKET_PUT: True,
+            MessageType.LLM_GENERATED_TEXT: True,
+            MessageType.TRANSCRIPTION_CREATED: True,
+            MessageType.FINAL_TRANSCRIPTION_CREATED : True,
+        },
+        # events whose output needs to be ignored, we just need to capture the time they are fired
+        ignore_msg_events = {  
+            MessageType.CALL_WEBSOCKET_PUT: True,
+        }
+    )
+
+
     websocket_manager = WebsocketManager( guid, OUTPUT_MP3_FILES , dispatcher, websocket )
     speech_to_text = SpeechToTextDeepgram( guid , dispatcher ,  websocket , DEEPGRAM_API_KEY )
     large_language_model = LargeLanguageModel( guid , modelInstance , dispatcher )
@@ -66,6 +83,7 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
 
         tasks = [
+            asyncio.create_task(global_logger.run_async()),
             asyncio.create_task(speech_to_text.run_async()),
             asyncio.create_task(large_language_model.run_async()),
             asyncio.create_task(text_to_speeech.run_async()),            

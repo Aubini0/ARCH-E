@@ -1,7 +1,8 @@
 class PromptGenerator:
     def __init__(self):
         self.prompt = """
-            You are a helpful assistant made by Archie. Your Name is Archie. Answer all questions to the best of your ability, and you will the user with what they need.
+            You are a helpful assistant made by Archie. Your Name is Archie. Answer all questions to the best of your ability.
+            Keep Answers concize and short.
         """
         self.serialize_prompt()
 

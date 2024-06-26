@@ -43,7 +43,7 @@ class SpeechToTextDeepgram :
                 return
             
             if result.speech_final or result.is_final : 
-                print(f"User : {sentence}")
+                # print(f"User : {sentence}")
 
                 asyncio.run(
                     object_instance.dispatcher.broadcast(
@@ -58,11 +58,11 @@ class SpeechToTextDeepgram :
         # Callback for onError deepgram event
         def on_error_deepgram(self, error , **kwargs):
             object_instance = kwargs.get("object_instance")
-            print(f"In deepgram_on_error() > {object_instance}")
+            # print(f"In deepgram_on_error() > {object_instance}")
 
             if error is None:
                 return True
-            print(f"Error In deepgram : {error}" )
+            # print(f"Error In deepgram : {error}" )
             raise error
         
         # Event listner for Transcript

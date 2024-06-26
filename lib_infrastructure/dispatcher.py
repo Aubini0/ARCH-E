@@ -41,19 +41,26 @@ class Message:
 
 class Dispatcher:
     ALL_GUIDS = {}
-    LOGGED_CHANNELS = [ "TRANSCRIPTION_CREATED" , "CALLER_INFO_RECIEVED" ]
+    LOGGED_CHANNELS = [ "FINAL_TRANSCRIPTION_CREATED" , "LLM_GENERATED_TEXT" , "CALL_WEBSOCKET_PUT" ]
 
     def __init__(self):
         self._broadcast = Broadcast("memory://")
 
     async def subscribe(self, guid, message_type: MessageType):
         channel_name = message_type.name + "_" + guid
-        # print( "Subscribe :> " , channel_name )
+
+        # if(message_type.name in Dispatcher.LOGGED_CHANNELS ) : 
+        #     print( "SUBSCRIBED > " , channel_name )
+
+
         return self._broadcast.subscribe(channel=channel_name)
 
     async def broadcast(self, guid, message: Message) -> None:
         channel_name = message.message_header.message_type.name + "_" + guid        
-        # print( "Boradcast :> " , channel_name )
+
+        # if(message.message_header.message_type.name in Dispatcher.LOGGED_CHANNELS ) : 
+        #     print( "BROADCASTED > " , channel_name )        
+
         await self._broadcast.publish(channel=channel_name, message=message)
 
 

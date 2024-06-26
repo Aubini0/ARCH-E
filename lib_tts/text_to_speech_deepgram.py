@@ -17,16 +17,17 @@ class TextToSpeechDeepgram :
         self.dispatcher = dispatcher
         self.api_key = api_key
         self.deepgram_tts = DeepgramClient( api_key= self.api_key )
+        self.options_tts = SpeakOptions( model="aura-perseus-en"  , encoding="linear16" , sample_rate=16000  )
 
 
 
     async def convert_via_deepgram(self, words):
         SPEAK_OPTIONS = { "text": words }
-        print( SPEAK_OPTIONS )
-        self.options_tts = SpeakOptions( model="aura-asteria-en"  , encoding="linear16" , sample_rate=16000  )
+        # print( SPEAK_OPTIONS )
         response = self.deepgram_tts.speak.v("1").stream( SPEAK_OPTIONS , self.options_tts)    
         response = response.stream.read()
 
+        # print( "responce recieved" )
         
         base64_audio = base64.b64encode(response).decode("utf-8")
         data_object = { "final_msg" : False , "audio" : base64_audio }
@@ -46,4 +47,5 @@ class TextToSpeechDeepgram :
         ) as llm_generated_text :             
             async for event in llm_generated_text:              
                 asyncio.create_task(self.convert_via_deepgram(event.message.data))  
-
+                # print(event.message.data)
+                # await self.convert_via_deepgram(event.message.data)

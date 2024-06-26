@@ -36,13 +36,12 @@ class WebsocketManager(Disposable):
 
     async def send(self, message):
         if self.is_closed():
-            print("GR: TwilioWebSocket Cannot send message on closed websocket" , flush=True)
+            # print("GR: TwilioWebSocket Cannot send message on closed websocket" , flush=True)
             return
         
         # send json data object to twillio websocket 
         # await self.ws.send_bytes(message)
         if isinstance(message , dict) : 
-            print("Before sending :> " , message['final_msg'])
             await self.ws.send_json(message)
 
 
@@ -84,7 +83,7 @@ class WebsocketManager(Disposable):
             await asyncio.sleep(1)
 
     async def websocket_get(self):
-        print("TwilioWebSocket websocket_get" , flush=True)
+        # print("TwilioWebSocket websocket_get" , flush=True)
         try : 
             async for message in self.ws.iter_bytes():
                 await self.dispatcher.broadcast(
@@ -104,7 +103,7 @@ class WebsocketManager(Disposable):
         ) as subscriber:
             async for event in subscriber:
                 stream_data = event.message.data
-                # print(f".... DATA_STREAMED .... { stream_data }")
+                # print(f".... DATA_STREAMED_RCVD ....")
                 await self.send( stream_data )
 
     async def run_async(self):

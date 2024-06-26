@@ -67,7 +67,7 @@ class LLM:
             stream=True,
             # functions=self.custom_functions,
             # function_call="auto",
-            temperature=0
+            temperature=0.2
         )
 
         function_name = None
