@@ -163,7 +163,7 @@ window.addEventListener("load", () => {
     let event_parsed = JSON.parse(event.data);
     console.log(`Data-Rcvd : ${socket}`);
     if (event_parsed.is_text == true){
-      console.log("---> Text")
+      console.log("---> Text" , {event_parsed})
       let msg = event_parsed.msg
       if(event_parsed.is_transcription == true){ addUserMessage(msg) }
       else{ addLlmMessage(msg.response , msg.recommendations) }
