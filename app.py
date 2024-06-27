@@ -50,6 +50,15 @@ async def get(request: Request):
     return templates.TemplateResponse("index.html" ,  {"request": request})
 
 
+@app.post("/invoke_llm")
+async def get_llm_responce(request : Request) : 
+    guid = str(uuid.uuid4())
+    prompt_generator = PromptGenerator()
+    modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
+    
+    pass
+
+
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     guid = str(uuid.uuid4())
