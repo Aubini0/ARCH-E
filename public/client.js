@@ -1,5 +1,6 @@
 let audioQueue = [];
 let isPlaying = false;
+const chatContainer = document.getElementById('chat_container');
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 
@@ -114,6 +115,21 @@ function getWebSocketURL(path = "") {
   return protocolPrefix + "//" + host + path;
 }
 
+function addUserMessage(message) {
+  const userMsgDiv = document.createElement('div');
+  userMsgDiv.className = 'chat right';
+  userMsgDiv.innerHTML = message;
+  chatContainer.appendChild(userMsgDiv);
+}
+
+function addLlmMessage(message) {
+  const llmMsgDiv = document.createElement('div');
+  llmMsgDiv.className = 'chat left';
+  llmMsgDiv.innerHTML = message;
+  chatContainer.appendChild(llmMsgDiv);
+}
+
+
 window.addEventListener("load", () => {
   const websocketUrl = getWebSocketURL("/ws");
   console.log({ websocketUrl });
@@ -127,10 +143,19 @@ window.addEventListener("load", () => {
 
   socket.onmessage = (event) => {
     let event_parsed = JSON.parse(event.data);
-    let audio_data = event_parsed.audio;
     console.log(`Data-Rcvd : ${socket}`);
-    audioQueue.push(audio_data);
-    playNextAudio();
+    if (event_parsed.is_text == true){
+      console.log("---> Text")
+      let msg = event_parsed.msg
+      if(event_parsed.is_transcription == true){ addUserMessage(msg) }
+      else{ addLlmMessage(msg) }
+    }
+    else{
+      console.log("---> Audio")
+      let audio_data = event_parsed.audio;
+      audioQueue.push(audio_data);
+      playNextAudio();  
+    }
   };
 
   socket.onclose = () => {

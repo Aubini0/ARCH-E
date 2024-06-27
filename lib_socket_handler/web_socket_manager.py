@@ -103,8 +103,29 @@ class WebsocketManager(Disposable):
         ) as subscriber:
             async for event in subscriber:
                 stream_data = event.message.data
-                # print(f".... DATA_STREAMED_RCVD ....")
                 await self.send( stream_data )
+
+
+    async def websocket_put_user_transcription(self):
+        async with await self.dispatcher.subscribe(
+            self.guid, MessageType.FINAL_TRANSCRIPTION_CREATED
+        ) as subscriber:
+            async for event in subscriber:
+                stream_data = event.message.data
+                user_msg = stream_data.content
+                user_msg_data = { "is_text" : True , "is_transcription" : True  , "msg" : user_msg }
+                await self.send( user_msg_data )
+
+    async def websocket_put_llm_responce(self):
+        async with await self.dispatcher.subscribe(
+            self.guid, MessageType.LLM_GENERATED_TEXT
+        ) as subscriber:
+            async for event in subscriber:
+                llm_msg = event.message.data
+                llm_msg_data = { "is_text" : True , "is_transcription" : False  , "msg" : llm_msg }
+                await self.send( llm_msg_data )
+
+
 
     async def run_async(self):
         await self.open()
@@ -114,6 +135,14 @@ class WebsocketManager(Disposable):
             asyncio.create_task(self.websocket_get()),
             # check for sending events
             asyncio.create_task(self.websocket_put()),
+
+
+            # check for sending events
+            asyncio.create_task(self.websocket_put_user_transcription()),
+            # check for sending events
+            asyncio.create_task(self.websocket_put_llm_responce()),
+
+
             # check for close connection events
             asyncio.create_task(self.close_connection()),
             # check for socket connection state

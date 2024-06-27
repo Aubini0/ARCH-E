@@ -44,8 +44,6 @@ async def shutdown():
     print("Disconnected from memory://")
 
 
-
-
 # UI to onboard new customers and view logs + customers info
 @app.get("/")
 async def get(request: Request):

@@ -30,7 +30,7 @@ class TextToSpeechDeepgram :
         # print( "responce recieved" )
         
         base64_audio = base64.b64encode(response).decode("utf-8")
-        data_object = { "final_msg" : False , "audio" : base64_audio }
+        data_object = { "is_text" : False , "audio" : base64_audio }
         await self.dispatcher.broadcast(
             self.guid,
             Message(
@@ -47,5 +47,3 @@ class TextToSpeechDeepgram :
         ) as llm_generated_text :             
             async for event in llm_generated_text:              
                 asyncio.create_task(self.convert_via_deepgram(event.message.data))  
-                # print(event.message.data)
-                # await self.convert_via_deepgram(event.message.data)

@@ -64,6 +64,7 @@ class Dispatcher:
         await self._broadcast.publish(channel=channel_name, message=message)
 
 
+
     async def get(self, subscriber) -> Message:
         async for event in subscriber:
             yield event
