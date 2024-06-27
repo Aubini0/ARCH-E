@@ -55,7 +55,7 @@ async def websocket_endpoint(websocket: WebSocket):
     guid = str(uuid.uuid4())
 
     prompt_generator = PromptGenerator()
-    modelInstance = LLM(prompt_generator, OPENAI_API_KEY)
+    modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
 
     global_logger = GlobalLoggerAsync(
         guid,

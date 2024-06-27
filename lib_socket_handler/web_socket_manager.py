@@ -118,7 +118,7 @@ class WebsocketManager(Disposable):
 
     async def websocket_put_llm_responce(self):
         async with await self.dispatcher.subscribe(
-            self.guid, MessageType.LLM_GENERATED_TEXT
+            self.guid, MessageType.LLM_GENERATED_FULL_TEXT
         ) as subscriber:
             async for event in subscriber:
                 llm_msg = event.message.data
@@ -135,14 +135,10 @@ class WebsocketManager(Disposable):
             asyncio.create_task(self.websocket_get()),
             # check for sending events
             asyncio.create_task(self.websocket_put()),
-
-
-            # check for sending events
+            # check for sending events for user messages being captured
             asyncio.create_task(self.websocket_put_user_transcription()),
-            # check for sending events
+            # check for sending events for LLM responces being captured
             asyncio.create_task(self.websocket_put_llm_responce()),
-
-
             # check for close connection events
             asyncio.create_task(self.close_connection()),
             # check for socket connection state

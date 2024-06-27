@@ -1,6 +1,13 @@
 from __future__ import annotations
 from enum import Enum
 from openai import AsyncOpenAI 
+from langchain_openai import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.runnables.history import RunnableWithMessageHistory
+
 
 
 
@@ -30,15 +37,24 @@ class LLM:
         def __str__(self) -> str:
             return f"{self.role.value}: {self.content}"
 
-    def __init__(self, prompt_generator, api_key , model="4o", custom_functions=None):
+    def __init__(self, guid , prompt_generator, api_key , model="4o", custom_functions=None):
         self.api_key = api_key
+        self.guid = guid
         self.client = AsyncOpenAI( api_key=self.api_key )
         self.prompt_generator = prompt_generator
         self.model = LLM.models[model]
         self.custom_functions = custom_functions or []
-        self.reset()
+
+
+        self.store = {}
+        self.config = {"configurable": {"session_id": self.guid}}
+        self.langchain_client = ChatOpenAI(model=self.model ,api_key=self.api_key)
+        self.embeddings = OpenAIEmbeddings(api_key=self.api_key)
+
+
+        # self.reset()
+        self.reset_lagchain()
         print(f"GPT_Model :> {self.model}")
-        # print(f"Prompt : > {self.prompt_generator}")
 
 
     def reset(self):
@@ -47,17 +63,17 @@ class LLM:
             message=LLM.LLMMessage(LLM.Role.SYSTEM, str(self.prompt_generator))
         )
 
+    def reset_lagchain(self) : 
+        self.with_message_history = RunnableWithMessageHistory(self.langchain_client, self.get_session_history)
+
     def add_message(self, message: LLMMessage) -> None:
         self.messages.append(
             {"role": message.role.value, "content": message.content}
         )
 
-    # Simple GPT
     async def interaction(self, message: LLM.LLMMessage) -> str:
         if message.content != "":
             self.add_message(message)
-
-
 
         words = []
 
@@ -97,3 +113,31 @@ class LLM:
             content="".join(words).strip().replace("\n", " "),
         )
         self.add_message(message)
+
+    def get_answer(self, config, user_input: str, session):
+        response = session.invoke(
+            [   SystemMessage(str(self.prompt_generator)),
+                HumanMessage(content=user_input),
+            ],
+            config=config,
+        )
+        recommendation = self.get_recommendations(session, config)
+        return {"response": response.content, "recommendations": recommendation}
+
+    def get_recommendations(self , session, config):
+        response = session.invoke(
+            [SystemMessage(str(self.prompt_generator)), HumanMessage(content="Generate 5 reference questions that the user can ask based on what we are talking about? Only give your answer in html format")],
+            config=config,
+        )
+        return response.content
+
+    def get_session_history(self , session_id: str) -> BaseChatMessageHistory:
+        if session_id not in self.store:
+            self.store[session_id] = ChatMessageHistory()
+        return self.store[session_id]
+
+
+    async def interaction_langchain(self , message: LLM.LLMMessage) : 
+        user_query = message.content
+        llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
+        yield llm_resp

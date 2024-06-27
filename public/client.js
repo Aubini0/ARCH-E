@@ -122,12 +122,30 @@ function addUserMessage(message) {
   chatContainer.appendChild(userMsgDiv);
 }
 
-function addLlmMessage(message) {
-  const llmMsgDiv = document.createElement('div');
-  llmMsgDiv.className = 'chat left';
-  llmMsgDiv.innerHTML = message;
-  chatContainer.appendChild(llmMsgDiv);
+// function addLlmMessage(message) {
+//   const llmMsgDiv = document.createElement('div');
+//   llmMsgDiv.className = 'chat left';
+//   llmMsgDiv.innerHTML = message;
+//   chatContainer.appendChild(llmMsgDiv);
+// }
+
+function addLlmMessage(response, recommendations) {
+  
+  // Create response div
+  const llmResponseDiv = document.createElement('div');
+  llmResponseDiv.className = 'chat left';
+  llmResponseDiv.innerHTML = response;
+  chatContainer.appendChild(llmResponseDiv);
+  // Create recommendations div
+  const cleanedRecommendations = recommendations.replace('html', '').replaceAll("```" , '');
+  const llmRecommendationsDiv = document.createElement('div');
+  llmRecommendationsDiv.className = 'chat left';
+  llmRecommendationsDiv.innerHTML = cleanedRecommendations;
+  chatContainer.appendChild(llmRecommendationsDiv);
 }
+
+
+
 
 
 window.addEventListener("load", () => {
@@ -148,7 +166,7 @@ window.addEventListener("load", () => {
       console.log("---> Text")
       let msg = event_parsed.msg
       if(event_parsed.is_transcription == true){ addUserMessage(msg) }
-      else{ addLlmMessage(msg) }
+      else{ addLlmMessage(msg.response , msg.recommendations) }
     }
     else{
       console.log("---> Audio")
