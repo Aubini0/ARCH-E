@@ -1,6 +1,7 @@
 # external imports
 import os , uuid , asyncio
 from dotenv import load_dotenv
+from api_request_schemas import (invoke_llm_schema)
 from fastapi import FastAPI, WebSocket , Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -51,12 +52,18 @@ async def get(request: Request):
 
 
 @app.post("/invoke_llm")
-async def get_llm_responce(request : Request) : 
-    guid = str(uuid.uuid4())
-    prompt_generator = PromptGenerator()
-    modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
-    
-    pass
+async def get_llm_responce(body : invoke_llm_schema) : 
+    try : 
+        user_msg = body.user_msg
+        guid = str(uuid.uuid4())
+        prompt_generator = PromptGenerator()
+        modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
+        user_msg=LLM.LLMMessage(role=LLM.Role.USER, content=user_msg)
+        resp = modelInstance.interaction_langchain_synchronous( user_msg )
+        return { "status" : True , "data" : {"response": resp['response'], "recommendations": resp['recommendations']}  , "message" : "API successfull" }
+    except Exception as e :
+        return { "success" : False , "data" : {  } , "message" : str(e) }
+
 
 
 @app.websocket("/ws")

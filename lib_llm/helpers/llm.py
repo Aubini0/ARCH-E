@@ -140,3 +140,9 @@ class LLM:
         user_query = message.content
         llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
         yield llm_resp
+
+
+    def interaction_langchain_synchronous(self , message: LLM.LLMMessage) : 
+        user_query = message.content
+        llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
+        return llm_resp
