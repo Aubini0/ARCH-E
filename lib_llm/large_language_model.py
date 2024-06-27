@@ -94,46 +94,6 @@ class LargeLanguageModel:
 
 
 
-
-
-            # llm_words.append(words)
-            
-            # try:
-            #     if re.match(
-            #         r"(\D?[\?\!;\.])", llm_words[-1][-2:]
-            #     ) and not re.match(r"\d", llm_words[-2][-1] ):
-            #         words = "".join(llm_words)
-            #         llm_words = []
-            #         # print("In TRY :> " , words)
-            #         await self.dispatcher.broadcast(
-            #             self.guid,
-            #             Message(
-            #                 MessageHeader(
-            #                     MessageType.LLM_GENERATED_TEXT
-            #                 ),
-            #                 data=words,
-            #             ),
-            #         )
-            # except Exception as error : 
-            #     if re.match(
-            #         r"(\D?[\?\!;\.])", llm_words[-1][-2:]
-            #     ) and not re.match(r"\d", llm_words[-1][-2]):
-            #         words = "".join(llm_words)
-            #         llm_words = []
-            #         # print("In EXCEPT :> " , words)
-            #         await self.dispatcher.broadcast(
-            #             self.guid,
-            #             Message(
-            #                 MessageHeader(
-            #                     MessageType.LLM_GENERATED_TEXT
-            #                 ),
-            #                 data=words,
-            #             ),
-            #         )                                
-
-
-
-
     async def run_async(self):
         async with await self.dispatcher.subscribe(
             self.guid, MessageType.CALL_ENDED

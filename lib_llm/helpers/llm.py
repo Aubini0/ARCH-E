@@ -136,7 +136,6 @@ class LLM:
             self.store[session_id] = ChatMessageHistory()
         return self.store[session_id]
 
-
     async def interaction_langchain(self , message: LLM.LLMMessage) : 
         user_query = message.content
         llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
