@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -30,14 +29,19 @@
             <span> START </span>
           </div>
         </label>
+
+        <!-- Input field with send button -->
+        <div class="input-container">
+          <input id="user-text-msg" type="text" class="rounded-input" placeholder="Enter your message..." />
+          <button id="send-btn" class="send-button" , onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+
       </div>
     </div>
 
-
-    <div id="chat_container" class="chat-container">
-    </div>
-
-
+    <div id="chat_container" class="chat-container"></div>
 
     <script src="../public/client.js"></script>
   </body>

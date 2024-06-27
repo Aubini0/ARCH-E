@@ -3,6 +3,7 @@ import os , uuid , asyncio
 from dotenv import load_dotenv
 from api_request_schemas import (invoke_llm_schema)
 from fastapi import FastAPI, WebSocket , Request
+from fastapi.websockets import WebSocketDisconnect
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 # internal imports
@@ -51,31 +52,27 @@ async def get(request: Request):
     return templates.TemplateResponse("index.html" ,  {"request": request})
 
 
-# API to get guid for invoking llm calls with same sessions
-@app.get("/get_guid")
-async def get_guid(request : Request) : 
-    try : 
-        guid = str(uuid.uuid4())
-        return { "status" : True , "data" : { "guid" : guid }  , "message" : "API successfull" }
-    except Exception as e :
-        return { "success" : False , "data" : {  } , "message" : str(e) }
+
+@app.websocket("/invoke_llm")
+async def chat_invoke(websocket: WebSocket):
+    guid = str(uuid.uuid4())
+    prompt_generator = PromptGenerator()
+    modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
+
+    await websocket.accept()
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if data : 
+                user_msg=LLM.LLMMessage(role=LLM.Role.USER, content=data['user_msg'])
+                llm_resp = modelInstance.interaction_langchain_synchronous( user_msg )
+                print(llm_resp)
+                await websocket.send_json(llm_resp)
 
 
-# API to invoke llm with user_msg and guid
-@app.post("/invoke_llm")
-async def get_llm_responce(body : invoke_llm_schema) : 
-    try : 
-        guid = body.guid
-        user_msg = body.user_msg
-        prompt_generator = PromptGenerator()
-        modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
-        user_msg=LLM.LLMMessage(role=LLM.Role.USER, content=user_msg)
-        resp = modelInstance.interaction_langchain_synchronous( user_msg )
-        return { "status" : True , "data" : {"response": resp['response'], "recommendations": resp['recommendations']}  , "message" : "API successfull" }
-    except Exception as e :
-        return { "success" : False , "data" : {  } , "message" : str(e) }
 
-
+    except Exception as e:
+        print(f"Client disconnected >>> {e}")
 
 
 

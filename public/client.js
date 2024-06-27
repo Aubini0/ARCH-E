@@ -1,6 +1,9 @@
+let chat_socket;
 let audioQueue = [];
 let isPlaying = false;
 const chatContainer = document.getElementById('chat_container');
+const inputField = document.getElementById("user-text-msg");
+const sendBtn = document.getElementById("user-text-msg");
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
 
@@ -122,12 +125,6 @@ function addUserMessage(message) {
   chatContainer.appendChild(userMsgDiv);
 }
 
-// function addLlmMessage(message) {
-//   const llmMsgDiv = document.createElement('div');
-//   llmMsgDiv.className = 'chat left';
-//   llmMsgDiv.innerHTML = message;
-//   chatContainer.appendChild(llmMsgDiv);
-// }
 
 function addLlmMessage(response, recommendations) {
   
@@ -145,12 +142,48 @@ function addLlmMessage(response, recommendations) {
 }
 
 
+function sendMessage(){
+  let user_msg = inputField.value;
+  if(user_msg){
+    let data_sent = JSON.stringify({ "user_msg" : user_msg })
+    chat_socket.send( data_sent )
+    inputField.value = "";
+    addUserMessage(user_msg);
+  
+  }
+}
+
+
+inputField.addEventListener('keydown', function(event) {
+  if (event.key === 'Enter') {
+    sendMessage();
+  }
+});
 
 
 
 window.addEventListener("load", () => {
   const websocketUrl = getWebSocketURL("/ws");
-  console.log({ websocketUrl });
+  const chat_websocketUrl = getWebSocketURL("/invoke_llm");
+  console.log({ websocketUrl , chat_websocketUrl });
+
+  chat_socket = new WebSocket(chat_websocketUrl);
+  chat_socket.onopen = async () => {
+    console.log('Chat WebSocket connection opened');
+  };
+
+  chat_socket.onmessage = (event) => {
+    let event_parsed = JSON.parse(event.data);
+    console.log(`ChatSocket : Data-Rcvd : ${socket} `);
+    addLlmMessage( event_parsed.response , event_parsed.recommendations )
+  };
+
+  chat_socket.onclose = () => {
+    console.log('WebSocket connection closed');
+  };
+
+
+
   socket = new WebSocket(websocketUrl);
   // Handle WebSocket events
   socket.onopen = async () => {
