@@ -68,6 +68,7 @@ class LargeLanguageModel:
         llm_words = []
         async for words in self.llm.interaction_langchain(message=message):
             tts_responce = words['response'].lower()
+            print("TTS_RESPONCE :> " , tts_responce)
             # send it to tts
             await self.dispatcher.broadcast(
                 self.guid,
