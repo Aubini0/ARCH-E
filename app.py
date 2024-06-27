@@ -65,11 +65,13 @@ async def websocket_endpoint(websocket: WebSocket):
             MessageType.LLM_GENERATED_TEXT: True,
             MessageType.TRANSCRIPTION_CREATED: True,
             MessageType.FINAL_TRANSCRIPTION_CREATED : True,
+            MessageType.LLM_GENERATED_FULL_TEXT : True,
         },
         # events whose output needs to be ignored, we just need to capture the time they are fired
         ignore_msg_events = {  
             MessageType.CALL_WEBSOCKET_PUT: True,
         }
+
     )
 
 
