@@ -1,5 +1,6 @@
 from __future__ import annotations
 from enum import Enum
+from bs4 import BeautifulSoup
 from openai import AsyncOpenAI 
 from langchain_openai import ChatOpenAI
 from langchain_openai import OpenAIEmbeddings
@@ -122,7 +123,15 @@ class LLM:
             config=config,
         )
         recommendation = self.get_recommendations(session, config)
+        recommendation = self.parse_recomendations(recommendation)
         return {"response": response.content, "recommendations": recommendation}
+
+
+    def parse_recomendations(self , html_string) : 
+        soup = BeautifulSoup(html_string, 'html.parser')
+        li_elements = soup.find_all('li')
+        questions_list = [li.get_text() for li in li_elements]
+        return questions_list
 
     def get_recommendations(self , session, config):
         response = session.invoke(
@@ -146,3 +155,4 @@ class LLM:
         user_query = message.content
         llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
         return llm_resp
+    

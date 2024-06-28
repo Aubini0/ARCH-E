@@ -134,11 +134,16 @@ function addLlmMessage(response, recommendations) {
   llmResponseDiv.innerHTML = response;
   chatContainer.appendChild(llmResponseDiv);
   // Create recommendations div
-  const cleanedRecommendations = recommendations.replace('html', '').replaceAll("```" , '');
-  const llmRecommendationsDiv = document.createElement('div');
-  llmRecommendationsDiv.className = 'chat left';
-  llmRecommendationsDiv.innerHTML = cleanedRecommendations;
-  chatContainer.appendChild(llmRecommendationsDiv);
+  // const cleanedRecommendations = recommendations.replace('html', '').replaceAll("```" , '');
+  if (recommendations.length > 0 ){
+    recommendations = recommendations.map((item)=>{ return `<li>${item}</li>` })
+    const llmRecommendationsDiv = document.createElement('div');
+    llmRecommendationsDiv.className = 'chat left';
+    llmRecommendationsDiv.innerHTML = recommendations;
+    chatContainer.appendChild(llmRecommendationsDiv);          
+
+  }
+
 }
 
 
@@ -163,6 +168,7 @@ inputField.addEventListener('keydown', function(event) {
 
 
 window.addEventListener("load", () => {
+  // speech comminication
   const websocketUrl = getWebSocketURL("/ws");
   const chat_websocketUrl = getWebSocketURL("/invoke_llm");
   console.log({ websocketUrl , chat_websocketUrl });
@@ -175,6 +181,7 @@ window.addEventListener("load", () => {
   chat_socket.onmessage = (event) => {
     let event_parsed = JSON.parse(event.data);
     console.log(`ChatSocket : Data-Rcvd : ${socket} `);
+    console.log( ">>>>" ,{event_parsed})
     addLlmMessage( event_parsed.response , event_parsed.recommendations )
   };
 

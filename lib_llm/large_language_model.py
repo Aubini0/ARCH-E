@@ -105,7 +105,6 @@ class LargeLanguageModel:
                 # await self.process(message=event.message.data)
                 await self.process_langchain(message=event.message.data)
 
-
                 call_ended_message = await self.dispatcher.get_nowait(
                     call_ended_subscriber
                 )

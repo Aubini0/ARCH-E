@@ -73,6 +73,7 @@ async def chat_invoke(websocket: WebSocket):
 
     except Exception as e:
         print(f"Client disconnected >>> {e}")
+        
 
 
 
