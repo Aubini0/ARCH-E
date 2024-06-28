@@ -134,7 +134,6 @@ function addLlmMessage(response, recommendations) {
   llmResponseDiv.innerHTML = response;
   chatContainer.appendChild(llmResponseDiv);
   // Create recommendations div
-  // const cleanedRecommendations = recommendations.replace('html', '').replaceAll("```" , '');
   if (recommendations.length > 0 ){
     recommendations = recommendations.map((item)=>{ return `<li>${item}</li>` })
     const llmRecommendationsDiv = document.createElement('div');
