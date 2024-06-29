@@ -47,10 +47,10 @@ class LLM:
         self.custom_functions = custom_functions or []
 
 
-        self.store = {}
-        self.config = {"configurable": {"session_id": self.guid}}
-        self.langchain_client = ChatOpenAI(model=self.model ,api_key=self.api_key)
-        self.embeddings = OpenAIEmbeddings(api_key=self.api_key)
+        #self.store = {}
+        self.history = {"session_id": self.guid, "bot": [], "user": []}
+        #self.langchain_client = ChatOpenAI(model=self.model ,api_key=self.api_key)
+        #self.embeddings = OpenAIEmbeddings(api_key=self.api_key)
 
 
         # self.reset()
@@ -115,17 +115,26 @@ class LLM:
         )
         self.add_message(message)
 
-    def get_answer(self, config, user_input: str, session):
-        response = session.invoke(
-            [   SystemMessage(str(self.prompt_generator)),
-                HumanMessage(content=user_input),
+    async def ask_model(self, content: str):
+        chat_completion = await self.client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": content,
+                }
             ],
-            config=config,
+            model=self.models['4o'],
         )
-        recommendation = self.get_recommendations(session, config)
-        recommendation = self.parse_recomendations(recommendation)
-        return {"response": response.content, "recommendations": recommendation}
+        return chat_completion
 
+    async def get_answer(self, query):
+        content = self.content_generator(query)
+        chat_completion = await self.ask_model(content)
+        answer = chat_completion.choices[0].message.content
+        self.history['user'].append(query)
+        self.history['bot'].append(answer)
+        recommendations = await self.ask_model(self.recommendation_content())
+        return {"response": answer, "recommendations": recommendations.choices[0].message.content}
 
     def parse_recomendations(self , html_string) : 
         soup = BeautifulSoup(html_string, 'html.parser')
@@ -133,26 +142,36 @@ class LLM:
         questions_list = [li.get_text() for li in li_elements]
         return questions_list
 
-    def get_recommendations(self , session, config):
-        response = session.invoke(
-            [SystemMessage(str(self.prompt_generator)), HumanMessage(content="Generate 5 reference questions that the user can ask based on what we are talking about? Only give your answer in html format")],
-            config=config,
-        )
-        return response.content
+    def recommendation_content(self) -> str:
+        return f"""
+        Generate 5 reference questions that the user can ask based on the recent message is the Chat history below,
+        And only give your answer in html format.
+        
+        Chat History: {self.history}
+        """
 
-    def get_session_history(self , session_id: str) -> BaseChatMessageHistory:
-        if session_id not in self.store:
-            self.store[session_id] = ChatMessageHistory()
-        return self.store[session_id]
+    def content_generator(self, new_query) -> str:
+        content = f"""
+        You are a helpful assistant made by Arche. 
+        Answer all questions to the best of your ability, and you will the user with what they need. 
+        If the user need is not clear you will ask a follow-up questions.
+        You can as well provide suggesitons of what they can ask to clarify what they need for you to help me solve their problem. 
+        Below is the message history and the user new query.
+        Always use the message history but don't make is obvious,  try to be conversational and natural with the user. Best of luck!.
+
+        Message History: {self.history}
+        User new query: {new_query}
+        """
+        return content
 
     async def interaction_langchain(self , message: LLM.LLMMessage) : 
         user_query = message.content
-        llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
+        llm_resp = self.get_answer(user_query)
         yield llm_resp
 
 
     def interaction_langchain_synchronous(self , message: LLM.LLMMessage) : 
         user_query = message.content
-        llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
+        llm_resp = self.get_answer(user_query)
         return llm_resp
     
