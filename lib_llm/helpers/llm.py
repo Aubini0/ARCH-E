@@ -54,7 +54,7 @@ class LLM:
 
 
         # self.reset()
-        self.reset_lagchain()
+        self.reset_chat_history()
         print(f"GPT_Model :> {self.model}")
 
 
@@ -64,8 +64,8 @@ class LLM:
             message=LLM.LLMMessage(LLM.Role.SYSTEM, str(self.prompt_generator))
         )
 
-    def reset_lagchain(self) : 
-        self.with_message_history = RunnableWithMessageHistory(self.langchain_client, self.get_session_history)
+    def reset_chat_history(self) : 
+        self.history = {"session_id": self.guid, "bot": [], "user": []}
 
     def add_message(self, message: LLMMessage) -> None:
         self.messages.append(
