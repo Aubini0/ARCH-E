@@ -88,7 +88,10 @@ class LLM:
 
     def vector_search(self, query ): 
         as_output = None
-        docs = self.vectorStore.similarity_search(query, K=1)
+        docs = self.vectorStore.similarity_search(
+            query, K=1,
+            pre_filter={"user_id" : self.guid}
+            )
         if len(docs) > 0 :
             as_output = docs[0].page_content
         return as_output
@@ -135,7 +138,12 @@ class LLM:
 
     def add_embeddings(self) : 
         data = self.create_embedding_strings(3)
-        self.vectorStore = self.vectorStore.from_texts( data , self.embeddings, collection=embeddings_collection )
+        metadatas = [{"user_id": self.guid}]
+        self.vectorStore = self.vectorStore.from_texts( 
+            data , self.embeddings, 
+            metadatas=metadatas ,  collection=embeddings_collection 
+        )
+        
         print("VECTOR_STORE :> " , self.vectorStore)
         
     def reset(self):
@@ -151,7 +159,7 @@ class LLM:
         )
 
     def pop_additional_info(self) -> None : 
-        self.messages[-1]['content'] = self.messages[-1]['content'].split("Here is additional info")[0]
+        self.messages[-1]['content'] = self.messages[-1]['content'].split("Question:")[0]
 
     def parse_recomendations(self , html_string) : 
         soup = BeautifulSoup(html_string, 'html.parser')
@@ -162,7 +170,12 @@ class LLM:
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
         if similarity_resp : 
-            message.content = f'{message.content}\nHere is additional info from previous user chat that might be helpful : {similarity_resp}'
+            # message.content = f'{message.content}\nHere is additional info from previous user chat that might be helpful : {similarity_resp}'
+            message.content = f"""Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+            {similarity_resp}
+            Question: {message.content}
+            """
+
 
 
         if message.content != "":
@@ -232,6 +245,27 @@ class LLM:
         responce = responce.choices[0].message.content
         responce = self.parse_recomendations(responce)
         return responce
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
