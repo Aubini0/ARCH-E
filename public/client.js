@@ -6,7 +6,7 @@ const inputField = document.getElementById("user-text-msg");
 const sendBtn = document.getElementById("user-text-msg");
 var llmResponseDiv = null;
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
+const currentDomain = window.location.origin;
 
 async function getMicrophone() {
   const userMedia = await navigator.mediaDevices.getUserMedia({
@@ -182,61 +182,101 @@ inputField.addEventListener('keydown', function(event) {
 
 
 
+function main(user_id){
+    const websocketUrl = getWebSocketURL("/ws");
+    const chat_websocketUrl = getWebSocketURL(`/invoke_llm/${user_id}`);
+    console.log({ websocketUrl , chat_websocketUrl });
+
+    chat_socket = new WebSocket(chat_websocketUrl);
+    chat_socket.onopen = async () => {
+      console.log('Chat WebSocket connection opened');
+    };
+
+    chat_socket.onmessage = (event) => {
+      let event_parsed = JSON.parse(event.data);
+      console.log(`ChatSocket : Data-Rcvd : ${socket} `);
+      console.log( ">>>>" ,{event_parsed})
+      if (event_parsed.clear){
+        llmResponseDiv = null;
+      }
+      else{
+        addLlmMessage( event_parsed.response , event_parsed.recommendations )
+      }
+    };
+
+    chat_socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+
+
+
+
+
+
+    socket = new WebSocket(websocketUrl);
+    // Handle WebSocket events
+    socket.onopen = async () => {
+      console.log('WebSocket connection opened');
+      setTimeout(() => { }, 1000)
+      await start(socket);
+    };
+
+    socket.onmessage = (event) => {
+      let event_parsed = JSON.parse(event.data);
+      console.log(`Data-Rcvd : ${socket}`);
+      if (event_parsed.is_text == true){
+        console.log("---> Text" , {event_parsed})
+        let msg = event_parsed.msg
+        if(event_parsed.is_transcription == true){ addUserMessage(msg) }
+        else{ addLlmMessage(msg.response , msg.recommendations) }
+      }
+      else{
+        console.log("---> Audio")
+        let audio_data = event_parsed.audio;
+        audioQueue.push(audio_data);
+        playNextAudio();  
+      }
+    };
+
+    socket.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+}
+
+
 window.addEventListener("load", () => {
   // speech comminication
-  const websocketUrl = getWebSocketURL("/ws");
-  const chat_websocketUrl = getWebSocketURL("/invoke_llm");
-  console.log({ websocketUrl , chat_websocketUrl });
+  const user_id = localStorage.getItem("user_id")
+  if (!user_id) {
+    const apiUrl = `${currentDomain}/user/id`;
+    // Make a GET request to fetch user data
+    fetch(apiUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        // Handle the data received from the API
+        let user_id = data.data.user_id;
+        localStorage.setItem( "user_id" , user_id )
+        main(user_id);
+        // Further processing of the data
+      })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+        // Handle errors appropriately
+      });    
 
-  chat_socket = new WebSocket(chat_websocketUrl);
-  chat_socket.onopen = async () => {
-    console.log('Chat WebSocket connection opened');
-  };
-
-  chat_socket.onmessage = (event) => {
-    let event_parsed = JSON.parse(event.data);
-    console.log(`ChatSocket : Data-Rcvd : ${socket} `);
-    console.log( ">>>>" ,{event_parsed})
-    if (event_parsed.clear){
-      llmResponseDiv = null;
-    }
-    else{
-      addLlmMessage( event_parsed.response , event_parsed.recommendations )
-    }
-  };
-
-  chat_socket.onclose = () => {
-    console.log('WebSocket connection closed');
-  };
+  }
+  else{
+    main(user_id);
+  }
 
 
 
-  socket = new WebSocket(websocketUrl);
-  // Handle WebSocket events
-  socket.onopen = async () => {
-    console.log('WebSocket connection opened');
-    setTimeout(() => { }, 1000)
-    await start(socket);
-  };
 
-  socket.onmessage = (event) => {
-    let event_parsed = JSON.parse(event.data);
-    console.log(`Data-Rcvd : ${socket}`);
-    if (event_parsed.is_text == true){
-      console.log("---> Text" , {event_parsed})
-      let msg = event_parsed.msg
-      if(event_parsed.is_transcription == true){ addUserMessage(msg) }
-      else{ addLlmMessage(msg.response , msg.recommendations) }
-    }
-    else{
-      console.log("---> Audio")
-      let audio_data = event_parsed.audio;
-      audioQueue.push(audio_data);
-      playNextAudio();  
-    }
-  };
-
-  socket.onclose = () => {
-    console.log('WebSocket connection closed');
-  };
 });

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from enum import Enum
+import time
 from bs4 import BeautifulSoup
 from openai import AsyncOpenAI , OpenAI
 from lib_database.db_connect import embeddings_collection
@@ -60,7 +61,7 @@ class LLM:
 
 
         self.reset()
-        print(f"GPT_Model :> {self.model}")
+        print(f"GPT_Model :> {self.model} , GUID :> {self.guid}")
 
 
 
@@ -90,7 +91,7 @@ class LLM:
         as_output = None
         docs = self.vectorStore.similarity_search(
             query, K=1,
-            pre_filter={"user_id" : self.guid}
+            pre_filter={ "user_id": { "$eq": self.guid } }
             )
         if len(docs) > 0 :
             as_output = docs[0].page_content
@@ -138,12 +139,17 @@ class LLM:
 
     def add_embeddings(self) : 
         data = self.create_embedding_strings(3)
-        metadatas = [{"user_id": self.guid}]
+        metadatas = [ ]
+        for _ in range(0 , len(data)) : 
+            metadatas.append({"user_id": self.guid})
+
+        print(data , len(data) , len(metadatas))
         self.vectorStore = self.vectorStore.from_texts( 
-            data , self.embeddings, 
-            metadatas=metadatas ,  collection=embeddings_collection 
+            data , self.embeddings , metadatas=metadatas ,  collection=embeddings_collection 
         )
-        
+
+
+
         print("VECTOR_STORE :> " , self.vectorStore)
         
     def reset(self):
@@ -159,7 +165,7 @@ class LLM:
         )
 
     def pop_additional_info(self) -> None : 
-        self.messages[-1]['content'] = self.messages[-1]['content'].split("Question:")[0]
+        self.messages[-1]['content'] = self.messages[-1]['content'].split("Question:")[-1]
 
     def parse_recomendations(self , html_string) : 
         soup = BeautifulSoup(html_string, 'html.parser')
@@ -170,8 +176,7 @@ class LLM:
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
         if similarity_resp : 
-            # message.content = f'{message.content}\nHere is additional info from previous user chat that might be helpful : {similarity_resp}'
-            message.content = f"""Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that you don't know, don't try to make up an answer.
+            message.content = f"""Use the following pieces of context to answer the question at the end.
             {similarity_resp}
             Question: {message.content}
             """

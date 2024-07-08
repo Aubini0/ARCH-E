@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
+# from lib_database.db_configurations import create_vector_index
 
 load_dotenv()
 
@@ -25,5 +26,8 @@ client = MongoClient(MONGO_URI_PROD)
 dbName = os.getenv("DB_NAME")
 collectionName = os.getenv("EMBEDDINGS_COLLECTION")
 embeddings_collection = client[dbName][collectionName]
+
+# db configurations functions
+# create_vector_index( embeddings_collection )
 
 

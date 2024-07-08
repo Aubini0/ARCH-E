@@ -52,10 +52,21 @@ async def get(request: Request):
     return templates.TemplateResponse("index.html" ,  {"request": request})
 
 
-
-@app.websocket("/invoke_llm")
-async def chat_invoke(websocket: WebSocket):
+# API to get user_id for websocket
+@app.get("/user/id")
+async def get_userid( ):
+    # replace this logic with user_id from db in case there is signedup user or generate a sessions id using
+    # uuid in case its a guest user
     guid = str(uuid.uuid4())
+    return { "status" : True , "data" : { "user_id" : guid } , "message" : "user_id returned" }
+
+
+
+
+
+@app.websocket("/invoke_llm/{user_id}")
+async def chat_invoke(websocket: WebSocket , user_id : str):
+    guid = user_id
     prompt_generator = PromptGenerator()
     modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
     clear_messsge = { "clear" : True }
@@ -81,7 +92,6 @@ async def chat_invoke(websocket: WebSocket):
     except Exception as e:
         print(f"Client disconnected >>> {e}")
         modelInstance.add_embeddings()
-        print(modelInstance.messages)
         
 
 
