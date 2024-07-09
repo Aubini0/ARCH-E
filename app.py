@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from api_request_schemas import (invoke_llm_schema)
 from fastapi import FastAPI, WebSocket , Request
 from fastapi.websockets import WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 # internal imports
@@ -26,6 +27,17 @@ OUTPUT_MP3_FILES = "output.mp3"
 
 # app initalization & setup
 app = FastAPI()
+
+# Cors confugurations
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 app.mount("/public", StaticFiles(directory="public"), name="static")
 templates = Jinja2Templates(directory="templates")
 dispatcher = Dispatcher()
