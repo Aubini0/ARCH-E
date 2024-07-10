@@ -176,7 +176,7 @@ class LLM:
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
         if similarity_resp : 
-            message.content = f"""Use the following pieces of context to answer the question at the end.
+            message.content = f"""Here is some context from user previous chat to answer the question.
             {similarity_resp}
             Question: {message.content}
             """
@@ -187,7 +187,6 @@ class LLM:
             self.add_message(message)
         
         print("Message:> " , message)
-
         words = []
 
         
@@ -195,7 +194,7 @@ class LLM:
             model=self.model,
             messages=self.messages,
             stream=True,
-            temperature=0.2
+            temperature=0.1
             # functions=self.custom_functions,
             # function_call="auto",
         )
