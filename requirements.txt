@@ -11,3 +11,4 @@ langchain-core==0.2.10
 langchain-community==0.2.6
 beautifulsoup4==4.12.3
 pymongo==4.3.3
+google-api-python-client==2.137.0

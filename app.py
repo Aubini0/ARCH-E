@@ -16,6 +16,7 @@ from lib_llm.large_language_model import LargeLanguageModel
 from lib_tts.text_to_speech_deepgram import TextToSpeechDeepgram
 from lib_infrastructure.dispatcher import ( Dispatcher , Message , MessageHeader , MessageType )
 from lib_infrastructure.helpers.global_event_logger import GlobalLoggerAsync
+from lib_youtube.youtube_search import YoutubeSearch
 
 # loading .env configs
 load_dotenv()
@@ -27,6 +28,7 @@ OUTPUT_MP3_FILES = "output.mp3"
 
 # app initalization & setup
 app = FastAPI()
+youtube_instance = YoutubeSearch()
 
 # Cors confugurations
 app.add_middleware(
@@ -71,6 +73,20 @@ async def get_userid( ):
     # uuid in case its a guest user
     guid = str(uuid.uuid4())
     return { "status" : True , "data" : { "user_id" : guid } , "message" : "user_id returned" }
+
+
+
+
+# API to get user_id for websocket
+@app.post("/youtube/search")
+async def youtube_search( request : Request ):
+    try : 
+        body = await request.json()
+        user_query = body['user_query']
+        resp = youtube_instance.search(user_query)
+        return { "status" : True , "data" : {  "results" : resp  } , "message" : "youtube results returned" }
+    except Exception as error : 
+        return { "status" : False , "data" : {  } , "error" : str(error) }
 
 
 
