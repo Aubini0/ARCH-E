@@ -96,7 +96,7 @@ class LargeLanguageModel:
 
     async def run_async(self):
         async with await self.dispatcher.subscribe(
-            self.guid, MessageType.CALL_ENDED
+            self.guid, MessageType.CALL_ENDED 
         ) as call_ended_subscriber, await self.dispatcher.subscribe(
             self.guid, MessageType.FINAL_TRANSCRIPTION_CREATED
         ) as transcription_created_subscriber :

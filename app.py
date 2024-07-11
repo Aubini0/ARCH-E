@@ -83,6 +83,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
     modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
     clear_messsge = { "clear" : True }
 
+
     await websocket.accept()
     try:
         while True:
