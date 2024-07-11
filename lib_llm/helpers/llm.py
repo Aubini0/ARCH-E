@@ -9,6 +9,7 @@ from langchain.vectorstores import MongoDBAtlasVectorSearch
 from langchain.document_loaders import DirectoryLoader
 from langchain.chains import RetrievalQA
 from langchain.llms import OpenAI as langchainOpenAI
+from lib_websearch.rag_template import RAGTemplate
 
 # from langchain_openai import ChatOpenAI 
 # from langchain_core.chat_history import BaseChatMessageHistory
@@ -47,7 +48,7 @@ class LLM:
         def __str__(self) -> str:
             return f"{self.role.value}: {self.content}"
 
-    def __init__(self, guid , prompt_generator, api_key , model="4o", custom_functions=None):
+    def __init__(self, guid , prompt_generator , web_search_instance , api_key , model="4o", custom_functions=None):
         self.api_key = api_key
         self.guid = guid
         self.model = LLM.models[model]
@@ -57,11 +58,12 @@ class LLM:
         self.embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
         self.vectorStore = MongoDBAtlasVectorSearch( embeddings_collection, self.embeddings )
         self.prompt_generator = prompt_generator
+        self.web_search_instance = web_search_instance
         self.custom_functions = custom_functions or []
 
 
         self.reset()
-        print(f"GPT_Model :> {self.model} , GUID :> {self.guid}")
+        print(f"GPT_Model :> {self.model}")
 
 
 
@@ -175,12 +177,35 @@ class LLM:
         
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
-        if similarity_resp : 
-            message.content = f"""Here is some context from user previous chat to answer the question.
-            {similarity_resp}
-            Question: {message.content}
-            """
+        # getting web search
+        web_results = self.web_search_instance.run( message.content )
+        web_results = ". ".join(web_results)
 
+        # print("WebSearch :> " , web_results)
+
+        if similarity_resp : 
+            # message.content = f"""Here is some context from user previous chat to answer the question.
+            # {similarity_resp}.
+            # And Here is some referecnes for WebSearch against user query that might help : 
+            # {web_results}
+            # Question: {message.content}
+            # """
+            rag_template = RAGTemplate(
+                question=message.content,
+                passages=web_results,
+                previous_chat=similarity_resp
+            )
+
+            # Generate the template
+            message.content = rag_template.create_template()
+        else : 
+            rag_template = RAGTemplate(
+                question=message.content,
+                passages=web_results
+            )
+
+            # Generate the template
+            message.content = rag_template.create_template()            
 
 
         if message.content != "":

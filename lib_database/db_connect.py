@@ -19,8 +19,8 @@ MONGO_URI = f'mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}/?retr
 MONGO_URI_PROD = f'mongodb+srv://{MONGO_USERNAME_PROD}:{MONGO_PASSWORD_PROD}@{MONGO_HOST_PROD}/?retryWrites=true&w=majority'
 
 
-print("Mongo_URI :> " , MONGO_URI)
-print("Mongo_URI :> " , MONGO_URI_PROD)
+# print("Mongo_URI :> " , MONGO_URI)
+# print("Mongo_URI :> " , MONGO_URI_PROD)
 
 client = MongoClient(MONGO_URI_PROD)
 dbName = os.getenv("DB_NAME")

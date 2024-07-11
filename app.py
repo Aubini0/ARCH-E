@@ -17,12 +17,17 @@ from lib_tts.text_to_speech_deepgram import TextToSpeechDeepgram
 from lib_infrastructure.dispatcher import ( Dispatcher , Message , MessageHeader , MessageType )
 from lib_infrastructure.helpers.global_event_logger import GlobalLoggerAsync
 from lib_youtube.youtube_search import YoutubeSearch
+from lib_websearch.search_runner import SearchRunner
+
 
 # loading .env configs
 load_dotenv()
 PORT = int(os.getenv("PORT"))
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
+JINA_API_KEY = os.getenv("JINA_API_KEY")
 OUTPUT_MP3_FILES = "output.mp3"
 
 
@@ -95,8 +100,9 @@ async def youtube_search( request : Request ):
 @app.websocket("/invoke_llm/{user_id}")
 async def chat_invoke(websocket: WebSocket , user_id : str):
     guid = user_id
+    web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
     prompt_generator = PromptGenerator()
-    modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
+    modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
     clear_messsge = { "clear" : True }
 
 
@@ -115,7 +121,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
 
                 llm_recomendations_resp = modelInstance.recomendations(user_msg)
                 llm_recomendations_resp = { "response" : "" , "recommendations" : llm_recomendations_resp , "clear" : False }
-                print( "LLM_RECOMENDATIONS :> " , llm_recomendations_resp)
+                # print( "LLM_RECOMENDATIONS :> " , llm_recomendations_resp)
                 await websocket.send_json(llm_recomendations_resp)
 
     except Exception as e:
@@ -130,7 +136,12 @@ async def websocket_endpoint(websocket: WebSocket):
     guid = str(uuid.uuid4())
 
     prompt_generator = PromptGenerator()
-    modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
+
+
+    web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
+    modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
+
+    # modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
 
     global_logger = GlobalLoggerAsync(
         guid,
