@@ -29,13 +29,11 @@ Your input Question: {question}
     def create_template(self) -> str:
         if self.previous_chat:
             formatted_prompt = self.prompt_template_with_chat.format(question=self.question, passages=self.passages, previous_chat=self.previous_chat)
-            return PromptTemplate(template=formatted_prompt, input_variables=["question", "passages" , "previous_chat"], verbose=True)
 
         else:
             formatted_prompt = self.prompt_template_without_chat.format(question=self.question, passages=self.passages)
-            return PromptTemplate(template=formatted_prompt, input_variables=["question", "passages" ], verbose=True)
 
-
+        return formatted_prompt
 # class RAGTemplate(BasePromptTemplate):
 #     question: str
 #     passages: str
