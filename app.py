@@ -113,15 +113,32 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
             if data : 
                 user_msg=LLM.LLMMessage(role=LLM.Role.USER, content=data['user_msg'])
                 async for llm_resp in modelInstance.interaction(user_msg):
-                    llm_resp = { "response" : llm_resp , "recommendations" : "" , "clear" : False }
-                    # print( "LLM_RESPONCE :> " , llm_resp)
+                    llm_resp = { 
+                        "response" : llm_resp , 
+                        "web_links" : "" , "recommendations" : "" , 
+                        "clear" : False 
+                        }
+                    # send llm generated answer word by word
                     await websocket.send_json(llm_resp)
 
+                links_message = { 
+                    "web_links" : modelInstance.web_links  , 
+                    "response" : "" , "recommendations" : "" , 
+                    "clear" : False 
+                    }
+                # send web links                 
+                await websocket.send_json(links_message)
+                # send clear message 
                 await websocket.send_json(clear_messsge)
 
                 llm_recomendations_resp = modelInstance.recomendations(user_msg)
-                llm_recomendations_resp = { "response" : "" , "recommendations" : llm_recomendations_resp , "clear" : False }
-                # print( "LLM_RECOMENDATIONS :> " , llm_recomendations_resp)
+                llm_recomendations_resp = { 
+                    "response" : "" , 
+                    "web_links" : "" , "recommendations" : llm_recomendations_resp , 
+                    "clear" : False 
+                    }
+
+                 # send llm recomendations               
                 await websocket.send_json(llm_recomendations_resp)
 
     except Exception as e:

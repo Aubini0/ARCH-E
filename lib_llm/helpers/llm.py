@@ -60,7 +60,7 @@ class LLM:
         self.prompt_generator = prompt_generator
         self.web_search_instance = web_search_instance
         self.custom_functions = custom_functions or []
-
+        self.web_links = ""
 
         self.reset()
         print(f"GPT_Model :> {self.model}")
@@ -178,7 +178,7 @@ class LLM:
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
         # getting web search
-        web_results = self.web_search_instance.run( message.content )
+        web_results , self.web_links = self.web_search_instance.run( message.content )
         web_results = ". ".join(web_results)
 
         # print("WebSearch :> " , web_results)

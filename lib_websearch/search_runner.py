@@ -33,4 +33,4 @@ class SearchRunner:
             documents += page_content
         reranker = JinaReranker(documents, self.jina_api_key)
         results = reranker.get_top_k(query, k_results)
-        return results
+        return results , links

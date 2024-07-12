@@ -127,7 +127,7 @@ function addUserMessage(message) {
 }
 
 
-function addLlmMessage(response, recommendations) {
+function addLlmMessage(response, recommendations , web_links) {
   if (response){
       let append_child_flag = false;
       console.log({llmResponseDiv})
@@ -145,10 +145,6 @@ function addLlmMessage(response, recommendations) {
       }
   
   }
-
-  
-
-
   // Create recommendations div
   if (recommendations.length > 0 ){
     recommendations = recommendations.map((item)=>{ return `<li>${item}</li>` })
@@ -157,6 +153,14 @@ function addLlmMessage(response, recommendations) {
     llmRecommendationsDiv.innerHTML = recommendations;
     chatContainer.appendChild(llmRecommendationsDiv);          
 
+  }
+  // create web links div
+  if (web_links.length > 0){
+    web_links = web_links.map((item)=>{ return `<li>${item}</li>` })
+    const webLinksDiv = document.createElement('div');
+    webLinksDiv.className = 'chat left';
+    webLinksDiv.innerHTML = web_links;
+    chatContainer.appendChild(webLinksDiv);  
   }
 
 }
@@ -200,7 +204,7 @@ function main(user_id){
         llmResponseDiv = null;
       }
       else{
-        addLlmMessage( event_parsed.response , event_parsed.recommendations )
+        addLlmMessage( event_parsed.response , event_parsed.recommendations, event_parsed.web_links )
       }
     };
 
