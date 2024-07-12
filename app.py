@@ -120,14 +120,17 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                         }
                     # send llm generated answer word by word
                     await websocket.send_json(llm_resp)
-
+                
                 links_message = { 
                     "web_links" : modelInstance.web_links  , 
                     "response" : "" , "recommendations" : "" , 
                     "clear" : False 
                     }
+                
+                
                 # send web links                 
                 await websocket.send_json(links_message)
+                print("links_message :> " , links_message)
                 # send clear message 
                 await websocket.send_json(clear_messsge)
 
@@ -138,6 +141,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                     "clear" : False 
                     }
 
+                print("llm_recomendations_resp :> " , llm_recomendations_resp)
                  # send llm recomendations               
                 await websocket.send_json(llm_recomendations_resp)
 
