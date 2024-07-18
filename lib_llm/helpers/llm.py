@@ -181,7 +181,7 @@ class LLM:
         web_results , self.web_links = self.web_search_instance.run( message.content )
         web_results = ". ".join(web_results)
 
-        # print("WebSearch :> " , web_results)
+        print("WebSearch :> " , web_results , "Web Links :> " , self.web_links)
 
         if similarity_resp : 
             # message.content = f"""Here is some context from user previous chat to answer the question.
