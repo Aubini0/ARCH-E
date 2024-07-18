@@ -2,7 +2,7 @@ from langchain_community.embeddings import JinaEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.retrievers import ContextualCompressionRetriever
-from langchain_community.document_compressors import JinaRerank
+from langchain_community.document_compressors import JinaRerank 
 from typing import List
 
 
