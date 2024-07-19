@@ -102,16 +102,18 @@ class LLM:
     def create_embedding_strings(self , qa_pairs):
         embedding_strings = []
         messages_array = self.messages
-        # Extract the system message
-        system_message = ""
-        for msg in messages_array:
-            if msg['role'] == 'system':
-                system_message = msg['content'].strip()
-                break
 
-        # Add the system message as the first embedding string
-        if system_message:
-            embedding_strings.append(system_message)
+        
+        # Extract the system message
+        # system_message = ""
+        # for msg in messages_array:
+        #     if msg['role'] == 'system':
+        #         system_message = msg['content'].strip()
+        #         break
+
+        # # Add the system message as the first embedding string
+        # if system_message:
+        #     embedding_strings.append(system_message)
 
         # Collect the user-assistant conversation pairs
         conversation_pairs = []
