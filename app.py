@@ -18,6 +18,7 @@ from lib_infrastructure.dispatcher import ( Dispatcher , Message , MessageHeader
 from lib_infrastructure.helpers.global_event_logger import GlobalLoggerAsync
 from lib_youtube.youtube_search import YoutubeSearch
 from lib_websearch.search_runner import SearchRunner
+from lib_websearch.cohere_connector_search import CohereWebSearch
 
 
 # loading .env configs
@@ -28,6 +29,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
 JINA_API_KEY = os.getenv("JINA_API_KEY")
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 OUTPUT_MP3_FILES = "output.mp3"
 
 
@@ -100,7 +102,8 @@ async def youtube_search( request : Request ):
 @app.websocket("/invoke_llm/{user_id}")
 async def chat_invoke(websocket: WebSocket , user_id : str):
     guid = user_id
-    web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
+    # web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
+    web_search = CohereWebSearch( COHERE_API_KEY )
     prompt_generator = PromptGenerator()
     modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
     clear_messsge = { "clear" : True }
@@ -130,7 +133,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                 
                 # send web links                 
                 await websocket.send_json(links_message)
-                print("links_message :> " , links_message)
+                print("Web_links_message :> " , links_message)
                 # send clear message 
                 await websocket.send_json(clear_messsge)
 

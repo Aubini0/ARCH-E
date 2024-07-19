@@ -177,58 +177,42 @@ class LLM:
         
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
-        # getting web search
+        # getting web search and web links
         web_results , self.web_links = self.web_search_instance.run( message.content )
         web_results = ". ".join(web_results)
 
-        print("WebSearch :> " , web_results , "Web Links :> " , self.web_links)
+        print( "... Web_Search_Retrieved ..." )
 
         if similarity_resp : 
-            # message.content = f"""Here is some context from user previous chat to answer the question.
-            # {similarity_resp}.
-            # And Here is some referecnes for WebSearch against user query that might help : 
-            # {web_results}
-            # Question: {message.content}
-            # """
             rag_template = RAGTemplate(
                 question=message.content,
                 passages=web_results,
                 previous_chat=similarity_resp
             )
-
-            # Generate the template
             message.content = rag_template.create_template()
         else : 
             rag_template = RAGTemplate(
                 question=message.content,
                 passages=web_results
             )
-
-            # Generate the template
             message.content = rag_template.create_template()            
 
 
-        if message.content != "":
-            self.add_message(message)
+        # append message to current chat list
+        if message.content != "": self.add_message(message)
         
         print("Message:> " , message)
         words = []
 
-        
         stream = await self.client.chat.completions.create(
             model=self.model,
             messages=self.messages,
             stream=True,
             temperature=0.1
-            # functions=self.custom_functions,
-            # function_call="auto",
         )
 
         function_name = None
         function_args = ""
-
-        
-
 
         async for part in stream:
             if part.choices[0].delta.content:
@@ -249,6 +233,8 @@ class LLM:
                 "args": function_args,
             }
 
+
+        # strip out extra info from message prompt to store original message and its embeddings
         self.pop_additional_info()
 
         message = LLM.LLMMessage(
