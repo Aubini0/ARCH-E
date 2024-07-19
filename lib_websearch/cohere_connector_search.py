@@ -14,19 +14,24 @@ class CohereWebSearch :
 
 
     def run( self , query ): 
-        response = self.co.chat(
-            model=CohereWebSearch.Cohere_Models[ self.model ],
-            message=query,  
-            connectors=[{"id": "web-search"}]  ,
-        )
-
-        citations , documents = response.citations , response.documents
         docs , citation_urls = [] , set()
 
-        for citation in citations:
-            docs.append(citation.text)
-            for document in documents :
-                if document['id'] in citation.document_ids :  
-                    citation_urls.add( document['url'] )
+        try : 
+            response = self.co.chat(
+                model=CohereWebSearch.Cohere_Models[ self.model ],
+                message=query,  
+                connectors=[{"id": "web-search"}]  ,
+            )
 
-        return docs , list(citation_urls)
+            citations , documents = response.citations , response.documents
+
+            for citation in citations:
+                docs.append(citation.text)
+                for document in documents :
+                    if document['id'] in citation.document_ids :  
+                        citation_urls.add( document['url'] )
+
+            return docs , list(citation_urls)
+        except Exception as cohere_error : 
+            print(f"Cohere Error :> {cohere_error}")
+            return docs , list(citation_urls)

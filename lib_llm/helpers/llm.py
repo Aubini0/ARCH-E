@@ -103,7 +103,7 @@ class LLM:
         embedding_strings = []
         messages_array = self.messages
 
-        
+
         # Extract the system message
         # system_message = ""
         # for msg in messages_array:
