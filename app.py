@@ -12,8 +12,9 @@ from fastapi import (
     Request,
     status
 )
-from lib_users.hash_utils import (
-    hash_password
+from lib_users.password_utils import (
+    hash_password,
+    validate_password
 )
 import json
 from lib_users.repo import UsersRepo
@@ -96,6 +97,25 @@ async def get_userid( ):
     # uuid in case its a guest user
     guid = str(uuid.uuid4())
     return { "status" : True , "data" : { "user_id" : guid } , "message" : "user_id returned" }
+
+
+@app.post("/auth/login", status_code=200)
+async def login(login_payload: login_schema):
+    email = login_payload.email
+    user = UsersRepo.get_user(email)
+    password = login_payload.password
+    if user is None:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Email not found"})
+    if user.google_access_token is None:
+        if validate_password(user, password):
+            token = generate_token_and_set_cookie(user.dict())
+            return JSONResponse(status_code=status.HTTP_200_OK, content={
+                "success": True,
+                "data": user.json(),
+                "access_token": token,
+                "message": "successfully signed in"
+            })
+    return { "status" : False , "message" : "Wrong email or password" }
 
 
 @app.post("/auth/signup", status_code=200)
