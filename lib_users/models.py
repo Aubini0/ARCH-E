@@ -8,7 +8,7 @@ from pydantic import (
 from datetime import datetime
 from typing import Optional, List
 import re
-from lib_users.hash_utils import hash_password
+from lib_users.password_utils import hash_password
 from bson import ObjectId
 
 
