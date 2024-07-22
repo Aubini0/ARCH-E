@@ -1,5 +1,6 @@
 import aiohttp
 from bs4 import BeautifulSoup
+from aiohttp import ClientTimeout
 
 
 class Web_Reader : 
@@ -14,7 +15,7 @@ class Web_Reader :
 
     async def read_text(self, url):
         try:
-            async with aiohttp.ClientSession(headers=self.headers) as session:
+            async with aiohttp.ClientSession(headers=self.headers , timeout= ClientTimeout(5) ) as session:
                 async with session.get(url) as response:
                     content = await response.text()
                     soup = BeautifulSoup(content, "html.parser")
