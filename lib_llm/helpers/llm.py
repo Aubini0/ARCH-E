@@ -169,7 +169,13 @@ class LLM:
         similarity_resp = self.vector_search( message.content )
         # getting web search and web links
         # web_results , self.web_links = self.web_search_instance.run( message.content )
-        web_results , self.web_links = await self.web_search_instance.run( message.content )
+        # status , web_results , self.web_links = await self.web_search_instance.run( message.content )
+        web_results = ""
+        resp = await self.web_search_instance.run( message.content )
+        if resp['status'] : 
+            web_results , self.web_links = resp['compressed_docs'] , resp['links']
+
+
         web_results = ". ".join(web_results)
 
         print( "... Web_Search_Retrieved ..." )

@@ -147,7 +147,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                     }
 
                 print("llm_recomendations_resp :> " , llm_recomendations_resp)
-                 # send llm recomendations               
+                    # send llm recomendations               
                 await websocket.send_json(llm_recomendations_resp)
 
     except Exception as e:

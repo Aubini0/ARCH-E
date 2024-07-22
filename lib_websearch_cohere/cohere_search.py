@@ -10,21 +10,26 @@ class Cohere_Websearch :
         self.reranker = Cohere_Reranker( cohere_api_key )
     
     async def run(self , query , num_top_results = 4) : 
-        tasks = []
-        links = self.search.get_links( query )
+        try : 
+            tasks = []
+            links = self.search.get_links( query )
 
-        for link in links[:num_top_results]:
-            tasks.append(self.reader.read_text(link))
-
-
-        responses = await asyncio.gather(*tasks)
-        documents = ""
-        
-        for resp in responses:
-            if resp['status']: documents += resp['page_content'] + "\n"
-            else: print(f"Failed to extract content from {link}: {resp['error']}")
+            for link in links[:num_top_results]:
+                tasks.append(self.reader.read_text(link))
 
 
-        self.reranker.initalize_compressor(documents)
-        compressed_docs = self.reranker.get_top_k( query , k_results=3 )
-        return compressed_docs , links[ : num_top_results]
+            responses = await asyncio.gather(*tasks)
+            documents = ""
+            
+            for resp in responses:
+                if resp['status']: documents += resp['page_content'] + "\n"
+                else: print(f"Failed to extract content from {link}: {resp['error']}")
+
+
+            self.reranker.initalize_compressor(documents)
+            compressed_docs = self.reranker.get_top_k( query , k_results=3 )
+            # return compressed_docs , links[ : num_top_results]
+            return { "status" : True , "compressed_docs" : compressed_docs , "links" : links }
+        except Exception as e :
+            print(e) 
+            return { "status" : False  }
