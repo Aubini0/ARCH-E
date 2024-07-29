@@ -36,7 +36,7 @@ from lib_websearch.search_runner import SearchRunner
 from lib_websearch.cohere_connector_search import CohereWebSearch
 from lib_database.db_connect import users_collection
 from fastapi.responses import JSONResponse
-from lib_users.token_utils import generate_token_and_set_cookie
+from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 
 
@@ -108,7 +108,7 @@ async def login(login_payload: login_schema):
     # print("USER :> " , user)
     password = login_payload.password
     if user is None:
-        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Email not found"})
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"success": False, "message": "Email not found"})
     if user.google_access_token is None:
         # print("here")
         if validate_password(user, password):
@@ -121,7 +121,7 @@ async def login(login_payload: login_schema):
                 "message": "successfully signed in"
             })
         
-    return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"message": "Wrong email or password"})
+    return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"success": False, "message": "Wrong email or password"})
 
 
 @app.post("/auth/signup", status_code=200)
@@ -129,7 +129,7 @@ async def signup(signup_payload: signup_schema):
     email = signup_payload.email
     user = UsersRepo.get_user(email)
     if user:
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": "Email already registered"})
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False, "message": "Email already registered"})
     new_user = UsersRepo.insert_user(signup_payload)
     # print(new_user.dict())
     token = generate_token_and_set_cookie(new_user.dict())
@@ -141,7 +141,31 @@ async def signup(signup_payload: signup_schema):
             "message": "successfully signed up"
         
         })
-    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": "An error occurred"})
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False,"message": "An error occurred"})
+
+
+
+@app.get("/auth/verify_access", status_code=200)
+async def signup( request : Request ):
+    headers = request.headers
+    token = headers['authorization']
+    if token : 
+        token = token.split("Bearer ")[1]
+    user_data = decode_token(token)
+
+    email = user_data["email"]
+    user_ = UsersRepo.get_user(email)
+    # print(f"UserData : {user_}" , flush=True)
+    if user_ : 
+        return JSONResponse(status_code=status.HTTP_200_OK, content={
+            "success": True,
+            "data": user_.json(),
+            "message": "working"})
+    
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
+
+
+
 
 
 

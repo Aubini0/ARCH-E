@@ -18,8 +18,8 @@ class User(BaseModel):
         # self.password = hash_password(self.password)
         # index and unique property of username
         self.username = self.email
-        self.id = str(ObjectId())
-    id: str = Field(default_factory=ObjectId, alias="_id")
+        # self.id = str(ObjectId())
+    # id: str = Field(default_factory=ObjectId, alias="_id")
     name: Optional[str]
     full_name: str = Field(...)
     username: Optional[str]
