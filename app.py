@@ -1,8 +1,23 @@
 # external imports
 import os , uuid , asyncio
 from dotenv import load_dotenv
-from api_request_schemas import (invoke_llm_schema)
-from fastapi import FastAPI, WebSocket , Request
+from api_request_schemas import (
+    invoke_llm_schema,
+    login_schema,
+    signup_schema
+)
+from fastapi import (
+    FastAPI,
+    WebSocket,
+    Request,
+    status
+)
+from lib_users.password_utils import (
+    hash_password,
+    validate_password
+)
+import json
+from lib_users.repo import UsersRepo
 from fastapi.websockets import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -19,6 +34,9 @@ from lib_infrastructure.helpers.global_event_logger import GlobalLoggerAsync
 from lib_youtube.youtube_search import YoutubeSearch
 from lib_websearch.search_runner import SearchRunner
 from lib_websearch.cohere_connector_search import CohereWebSearch
+from lib_database.db_connect import users_collection
+from fastapi.responses import JSONResponse
+from lib_users.token_utils import generate_token_and_set_cookie
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 
 
@@ -83,18 +101,47 @@ async def get_userid( ):
     return { "status" : True , "data" : { "user_id" : guid } , "message" : "user_id returned" }
 
 
+@app.post("/auth/login", status_code=200)
+async def login(login_payload: login_schema):
+    email = login_payload.email
+    user = UsersRepo.get_user(email)
+    # print("USER :> " , user)
+    password = login_payload.password
+    if user is None:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Email not found"})
+    if user.google_access_token is None:
+        # print("here")
+        if validate_password(user, password):
+            # print("here (2)")
+            token = generate_token_and_set_cookie(user.dict())
+            return JSONResponse(status_code=status.HTTP_200_OK, content={
+                "success": True,
+                "data": user.json(),
+                "access_token": token,
+                "message": "successfully signed in"
+            })
+    return { "status" : False , "message" : "Wrong email or password" }
 
 
-# API to get user_id for websocket
-@app.post("/youtube/search")
-async def youtube_search( request : Request ):
-    try : 
-        body = await request.json()
-        user_query = body['user_query']
-        resp = youtube_instance.search(user_query)
-        return { "status" : True , "data" : {  "results" : resp  } , "message" : "youtube results returned" }
-    except Exception as error : 
-        return { "status" : False , "data" : {  } , "error" : str(error) }
+@app.post("/auth/signup", status_code=200)
+async def signup(signup_payload: signup_schema):
+    email = signup_payload.email
+    user = UsersRepo.get_user(email)
+    if user:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": "Email already registered"})
+    new_user = UsersRepo.insert_user(signup_payload)
+    print(new_user.dict())
+    token = generate_token_and_set_cookie(new_user.dict())
+    if new_user:
+        return JSONResponse(status_code=status.HTTP_200_OK, content={
+            "success": True,
+            "data": new_user.json(),
+            "access_token": token,
+            "message": "successfully signed up"
+        
+        })
+    return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": "An error occurred"})
+
 
 
 
