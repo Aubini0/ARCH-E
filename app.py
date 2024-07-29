@@ -130,7 +130,7 @@ async def signup(signup_payload: signup_schema):
     if user:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"message": "Email already registered"})
     new_user = UsersRepo.insert_user(signup_payload)
-    print(new_user.dict())
+    # print(new_user.dict())
     token = generate_token_and_set_cookie(new_user.dict())
     if new_user:
         return JSONResponse(status_code=status.HTTP_200_OK, content={

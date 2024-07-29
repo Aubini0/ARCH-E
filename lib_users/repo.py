@@ -12,7 +12,7 @@ class UsersRepo:
                 "email": { "$eq":email }
             })
             user['_id'] = str(user['_id'])
-            print(user)
+            # print(user)
             user_model = User(**user)
             return user_model
         except Exception:
