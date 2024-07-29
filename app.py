@@ -168,25 +168,6 @@ async def signup( request : Request ):
 
 
 
-
-@app.post("/check_websearch", status_code=200)
-async def check_websearch( request : Request ):
-    body = await request.json()
-    user_query = body['query']
-
-    guid = str(uuid.uuid4())
-    prompt_generator = PromptGenerator()
-    web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
-    modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
-
-
-    resp = modelInstance.check_web_required(user_query)
-    # print(resp)
-
-    return {"status" : True}
-
-
-
 @app.websocket("/invoke_llm/{user_id}")
 async def chat_invoke(websocket: WebSocket , user_id : str):
     guid = user_id

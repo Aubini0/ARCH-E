@@ -164,35 +164,56 @@ class LLM:
         li_elements = soup.find_all('li')
         questions_list = [li.get_text() for li in li_elements]
         return questions_list
+
+
+    def check_web_required(self , query) -> bool : 
+        # print(query)        
+        messages_array = [ 
+            {
+                "role": LLM.Role.SYSTEM.value, 
+                "content": """Given following message, analyze if it requires some web search to get updated data or not. ALWAYS RETURN BOOLEAN"""
+             },
+            { "role" : LLM.Role.USER.value , "content" : query }
+            ]
         
+        responce = self.client_sync.chat.completions.create(
+            model=self.model,
+            messages=messages_array,
+            stream=False,
+            temperature=0.2
+        )
+
+        responce = responce.choices[0].message.content
+        if responce.lower() in [ "true" , "yes" ]:
+            return True
+        elif responce.lower() in [ "false" , "no"]:
+            return False
+        else:
+            return False
+
+
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
         # getting web search and web links
         # web_results , self.web_links = self.web_search_instance.run( message.content )
         # status , web_results , self.web_links = await self.web_search_instance.run( message.content )
-        web_results = ""
-        resp = await self.web_search_instance.run( message.content )
-        if resp['status'] : 
-            web_results , self.web_links = resp['compressed_docs'] , resp['links']
+        web_results = None
+        check_web = self.check_web_required( message.content )
+        print(f"Check_Web :> {check_web}")
+        if check_web : 
+            resp = await self.web_search_instance.run( message.content )
+            if resp['status'] : 
+                web_results , self.web_links = resp['compressed_docs'] , resp['links']
+            web_results = ". ".join(web_results)
+            print( "... Web_Search_Retrieved ..." )
 
+        rag_template = RAGTemplate(
+            question=message.content,
+            passages=web_results,
+            previous_chat=similarity_resp
+        )
+        message.content = rag_template.create_template()
 
-        web_results = ". ".join(web_results)
-
-        print( "... Web_Search_Retrieved ..." )
-
-        if similarity_resp : 
-            rag_template = RAGTemplate(
-                question=message.content,
-                passages=web_results,
-                previous_chat=similarity_resp
-            )
-            message.content = rag_template.create_template()
-        else : 
-            rag_template = RAGTemplate(
-                question=message.content,
-                passages=web_results
-            )
-            message.content = rag_template.create_template()            
 
 
         # append message to current chat list
@@ -241,25 +262,6 @@ class LLM:
         self.add_message(message)
 
 
-
-    def check_web_required(self , query) -> bool : 
-        print(query)        
-        # messages_array = [ 
-        #     {"role": LLM.Role.SYSTEM, "content": "Given following message, analyze if it requires some web search to get updated data or not. Return a boolean"},
-        #     { "role" : LLM.Role.USER , "content" : query }
-        #     ]
-        
-        # responce = self.client_sync.chat.completions.create(
-        #     model=self.model,
-        #     messages=messages_array,
-        #     stream=False,
-        #     temperature=0.2
-        # )
-
-        # responce = responce.choices[0].message.content
-        # print("-->" , responce)
-        # return True
-    
 
 
     def recomendations(self, message: LLM.LLMMessage) -> str:
