@@ -12,6 +12,7 @@ class UsersRepo:
                 "email": { "$eq":email }
             })
             user['_id'] = str(user['_id'])
+            print(user)
             user_model = User(**user)
             return user_model
         except Exception:
@@ -19,8 +20,9 @@ class UsersRepo:
 
     @staticmethod
     def insert_user(data):
-        data['password'] = hash_password(data['password'])
+        data.password = hash_password(data.password)
         model = User(**data.dict())
+        # print("Password :> " , data.password)
         try :
             users_collection.insert_one(
                 model.dict()

@@ -13,9 +13,9 @@ from bson import ObjectId
 
 
 class User(BaseModel):
-    def __init__(self, **data) -> None:
+    def __init__(self,  **data) -> None:
         super().__init__(**data)
-        self.password = hash_password(self.password)
+        # self.password = hash_password(self.password)
         # index and unique property of username
         self.username = self.email
         self.id = str(ObjectId())

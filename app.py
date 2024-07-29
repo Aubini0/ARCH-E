@@ -105,11 +105,14 @@ async def get_userid( ):
 async def login(login_payload: login_schema):
     email = login_payload.email
     user = UsersRepo.get_user(email)
+    # print("USER :> " , user)
     password = login_payload.password
     if user is None:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"message": "Email not found"})
     if user.google_access_token is None:
+        # print("here")
         if validate_password(user, password):
+            # print("here (2)")
             token = generate_token_and_set_cookie(user.dict())
             return JSONResponse(status_code=status.HTTP_200_OK, content={
                 "success": True,

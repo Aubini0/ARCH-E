@@ -17,6 +17,6 @@ def hash_password(password):
 def validate_password(user_model, password):
     user_password = user_model.password
     hashed_password = hash_password(password)
-    print (user_password)
+    print (user_model.email , user_model.full_name , user_model.password)
     print (hashed_password)
     return user_password == hashed_password
