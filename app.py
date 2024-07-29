@@ -120,7 +120,8 @@ async def login(login_payload: login_schema):
                 "access_token": token,
                 "message": "successfully signed in"
             })
-    return { "status" : False , "message" : "Wrong email or password" }
+        
+    return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"message": "Wrong email or password"})
 
 
 @app.post("/auth/signup", status_code=200)
@@ -144,6 +145,21 @@ async def signup(signup_payload: signup_schema):
 
 
 
+@app.post("/check_websearch", status_code=200)
+async def check_websearch( request : Request ):
+    body = await request.json()
+    user_query = body['query']
+
+    guid = str(uuid.uuid4())
+    prompt_generator = PromptGenerator()
+    web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
+    modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
+
+
+    resp = modelInstance.check_web_required(user_query)
+    # print(resp)
+
+    return {"status" : True}
 
 
 

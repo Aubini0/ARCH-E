@@ -240,6 +240,28 @@ class LLM:
         )
         self.add_message(message)
 
+
+
+    def check_web_required(self , query) -> bool : 
+        print(query)        
+        # messages_array = [ 
+        #     {"role": LLM.Role.SYSTEM, "content": "Given following message, analyze if it requires some web search to get updated data or not. Return a boolean"},
+        #     { "role" : LLM.Role.USER , "content" : query }
+        #     ]
+        
+        # responce = self.client_sync.chat.completions.create(
+        #     model=self.model,
+        #     messages=messages_array,
+        #     stream=False,
+        #     temperature=0.2
+        # )
+
+        # responce = responce.choices[0].message.content
+        # print("-->" , responce)
+        # return True
+    
+
+
     def recomendations(self, message: LLM.LLMMessage) -> str:
 
         messages_array = [ 
