@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum
-import time
+import time,  asyncio
 from bs4 import BeautifulSoup
 from openai import AsyncOpenAI , OpenAI
 from lib_database.db_connect import embeddings_collection
@@ -103,18 +103,6 @@ class LLM:
         embedding_strings = []
         messages_array = self.messages
 
-
-        # Extract the system message
-        # system_message = ""
-        # for msg in messages_array:
-        #     if msg['role'] == 'system':
-        #         system_message = msg['content'].strip()
-        #         break
-
-        # # Add the system message as the first embedding string
-        # if system_message:
-        #     embedding_strings.append(system_message)
-
         # Collect the user-assistant conversation pairs
         conversation_pairs = []
         temp_pair = []
@@ -180,7 +168,14 @@ class LLM:
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
         # getting web search and web links
-        web_results , self.web_links = self.web_search_instance.run( message.content )
+        # web_results , self.web_links = self.web_search_instance.run( message.content )
+        # status , web_results , self.web_links = await self.web_search_instance.run( message.content )
+        web_results = ""
+        resp = await self.web_search_instance.run( message.content )
+        if resp['status'] : 
+            web_results , self.web_links = resp['compressed_docs'] , resp['links']
+
+
         web_results = ". ".join(web_results)
 
         print( "... Web_Search_Retrieved ..." )
@@ -203,7 +198,7 @@ class LLM:
         # append message to current chat list
         if message.content != "": self.add_message(message)
         
-        print("Message:> " , message)
+        # print("Message:> " , message)
         words = []
 
         stream = await self.client.chat.completions.create(

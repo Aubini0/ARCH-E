@@ -37,6 +37,8 @@ from lib_websearch.cohere_connector_search import CohereWebSearch
 from lib_database.db_connect import users_collection
 from fastapi.responses import JSONResponse
 from lib_users.token_utils import generate_token_and_set_cookie
+from lib_websearch_cohere.cohere_search import Cohere_Websearch
+
 
 # loading .env configs
 load_dotenv()
@@ -146,7 +148,8 @@ async def signup(signup_payload: signup_schema):
 async def chat_invoke(websocket: WebSocket , user_id : str):
     guid = user_id
     # web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
-    web_search = CohereWebSearch( COHERE_API_KEY )
+    # web_search = CohereWebSearch( COHERE_API_KEY )
+    web_search = Cohere_Websearch( GOOGLE_API_KEY, SEARCH_ENGINE_ID ,  COHERE_API_KEY )
     prompt_generator = PromptGenerator()
     modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
     clear_messsge = { "clear" : True }
@@ -188,7 +191,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                     }
 
                 print("llm_recomendations_resp :> " , llm_recomendations_resp)
-                 # send llm recomendations               
+                    # send llm recomendations               
                 await websocket.send_json(llm_recomendations_resp)
 
     except Exception as e:
