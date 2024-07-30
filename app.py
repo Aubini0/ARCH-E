@@ -149,7 +149,7 @@ async def signup(signup_payload: signup_schema):
 @app.get("/auth/verify_access", status_code=200)
 async def verify_access( request : Request ):
     headers = request.headers
-    token = headers['authorization']
+    token = headers.get('authorization' , None)
     if token : 
         token = token.split("Bearer ")[1]
 
@@ -172,7 +172,6 @@ async def verify_access( request : Request ):
             "message": "working"})
     
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
-
 
 
 # API to get user_id for websocket
@@ -203,38 +202,54 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
             data = await websocket.receive_json()
             if data : 
                 user_msg=LLM.LLMMessage(role=LLM.Role.USER, content=data['user_msg'])
+
+
                 async for llm_resp in modelInstance.interaction(user_msg):
                     llm_resp = { 
-                        "response" : llm_resp , 
-                        "web_links" : "" , "recommendations" : "" , 
+                        "response" : llm_resp , "web_links" : "" , 
+                        "recommendations" : "" , "youtube_results" : "",
                         "clear" : False 
                         }
                     # send llm generated answer word by word
                     await websocket.send_json(llm_resp)
                 
                 links_message = { 
-                    "web_links" : modelInstance.web_links  , 
-                    "response" : "" , "recommendations" : "" , 
+                    "response" : "" , "web_links" : modelInstance.web_links  , 
+                    "recommendations" : "" ,  "youtube_results" : "" ,
                     "clear" : False 
                     }
-                
-                
+            
                 # send web links                 
                 await websocket.send_json(links_message)
                 print("Web_links_message :> " , links_message)
-                # send clear message 
-                await websocket.send_json(clear_messsge)
 
                 llm_recomendations_resp = modelInstance.recomendations(user_msg)
                 llm_recomendations_resp = { 
-                    "response" : "" , 
-                    "web_links" : "" , "recommendations" : llm_recomendations_resp , 
+                    "response" : "" , "web_links" : "" , 
+                    "recommendations" : llm_recomendations_resp , "youtube_results" : "",
                     "clear" : False 
                     }
 
                 print("llm_recomendations_resp :> " , llm_recomendations_resp)
                     # send llm recomendations               
                 await websocket.send_json(llm_recomendations_resp)
+
+                if modelInstance.check_web : 
+                    resp = youtube_instance.search(user_msg.content)
+                    youtube_results_resp = { 
+                        "response" : "" , "web_links" : "" , 
+                        "recommendations" : "" , "youtube_results" : resp,
+                        "clear" : False 
+                        }
+                    await websocket.send_json(youtube_results_resp)
+                    print("youtube_results_resp :> " , youtube_results_resp)
+
+
+
+
+                # send clear message 
+                await websocket.send_json(clear_messsge)
+
 
     except Exception as e:
         print(f"Client disconnected >>> {e}")

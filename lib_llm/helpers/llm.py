@@ -194,16 +194,13 @@ class LLM:
 
     async def interaction(self, message: LLM.LLMMessage) -> str:
         similarity_resp = self.vector_search( message.content )
-        # getting web search and web links
-        # web_results , self.web_links = self.web_search_instance.run( message.content )
-        # status , web_results , self.web_links = await self.web_search_instance.run( message.content )
 
 
-        web_results = None
-        check_web = self.check_web_required( message.content )
-        print(f"Check_Web :> {check_web}")
+        self.check_web , web_results = False ,  None
+        self.check_web = self.check_web_required( message.content )
+        print(f"Check_Web :> {self.check_web}")
         
-        if check_web : 
+        if self.check_web : 
             resp = await self.web_search_instance.run( message.content )
             if resp['status'] : 
                 web_results , self.web_links = resp['compressed_docs'] , resp['links']
