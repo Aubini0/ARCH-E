@@ -166,7 +166,16 @@ async def verify_access( request : Request ):
 
 
 
-
+# API to get user_id for websocket
+@app.post("/youtube/search")
+async def youtube_search( request : Request ):
+    try : 
+        body = await request.json()
+        user_query = body['user_query']
+        resp = youtube_instance.search(user_query)
+        return { "status" : True , "data" : {  "results" : resp  } , "message" : "youtube results returned" }
+    except Exception as error : 
+        return { "status" : False , "data" : {  } , "error" : str(error) }
 
 @app.websocket("/invoke_llm/{user_id}")
 async def chat_invoke(websocket: WebSocket , user_id : str):

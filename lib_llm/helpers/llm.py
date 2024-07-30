@@ -202,12 +202,15 @@ class LLM:
         web_results = None
         check_web = self.check_web_required( message.content )
         print(f"Check_Web :> {check_web}")
+        
         if check_web : 
             resp = await self.web_search_instance.run( message.content )
             if resp['status'] : 
                 web_results , self.web_links = resp['compressed_docs'] , resp['links']
             web_results = ". ".join(web_results)
             print( "... Web_Search_Retrieved ..." )
+        else : self.web_links = ""
+
 
         rag_template = RAGTemplate(
             question=message.content,
