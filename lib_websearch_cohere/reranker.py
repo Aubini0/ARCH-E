@@ -29,6 +29,7 @@ class Cohere_Reranker :
             base_compressor=self.cohere_rerank, 
             base_retriever=self.db.as_retriever()
         )
+        print("done compressor")
 
 
     def get_top_k(self, query: str, k_results: int) -> List[str]:
@@ -42,6 +43,7 @@ class Cohere_Reranker :
         Returns:
             List[str]: A list of the top k relevant passages.
         """
+        print("staet query")
         compressed_docs = self.compression_retriever.invoke(query)
-        
+        print("done query")
         return [doc.page_content for doc in compressed_docs[:k_results]]

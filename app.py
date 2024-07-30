@@ -146,7 +146,7 @@ async def signup(signup_payload: signup_schema):
 
 
 @app.get("/auth/verify_access", status_code=200)
-async def signup( request : Request ):
+async def verify_access( request : Request ):
     headers = request.headers
     token = headers['authorization']
     if token : 
