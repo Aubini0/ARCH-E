@@ -38,6 +38,7 @@ from lib_database.db_connect import users_collection
 from fastapi.responses import JSONResponse
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
+from jwt import ExpiredSignatureError, InvalidTokenError
 
 
 # loading .env configs
@@ -151,7 +152,15 @@ async def verify_access( request : Request ):
     token = headers['authorization']
     if token : 
         token = token.split("Bearer ")[1]
-    user_data = decode_token(token)
+
+    try : 
+        user_data = decode_token(token)
+    except ExpiredSignatureError:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED , content = { "success" : False, "message" : "Token Expired"})
+
+    except InvalidTokenError:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED , content = { "success" : False, "message" : "Invalid token"})
+
 
     email = user_data["email"]
     user_ = UsersRepo.get_user(email , without_model=True)
@@ -231,8 +240,6 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
         print(f"Client disconnected >>> {e}")
         modelInstance.add_embeddings()
         
-
-
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
