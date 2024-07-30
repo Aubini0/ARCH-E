@@ -154,12 +154,12 @@ async def verify_access( request : Request ):
     user_data = decode_token(token)
 
     email = user_data["email"]
-    user_ = UsersRepo.get_user(email)
+    user_ = UsersRepo.get_user(email , without_model=True)
     # print(f"UserData : {user_}" , flush=True)
     if user_ : 
         return JSONResponse(status_code=status.HTTP_200_OK, content={
             "success": True,
-            "data": user_.json(),
+            "data": user_,
             "message": "working"})
     
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
