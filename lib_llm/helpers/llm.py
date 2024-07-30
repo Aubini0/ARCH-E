@@ -197,6 +197,8 @@ class LLM:
         # getting web search and web links
         # web_results , self.web_links = self.web_search_instance.run( message.content )
         # status , web_results , self.web_links = await self.web_search_instance.run( message.content )
+
+
         web_results = None
         check_web = self.check_web_required( message.content )
         print(f"Check_Web :> {check_web}")
@@ -218,8 +220,8 @@ class LLM:
 
         # append message to current chat list
         if message.content != "": self.add_message(message)
-        
-        # print("Message:> " , message)
+        print("Message:> " , message)
+
         words = []
 
         stream = await self.client.chat.completions.create(

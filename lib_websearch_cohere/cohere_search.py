@@ -11,11 +11,12 @@ class Cohere_Websearch :
     
     async def run(self , query , num_top_results = 4) : 
         try : 
-            tasks = []
+            tasks , shortListedLinks = [] , []
             links = self.search.get_links( query )
 
             for link in links[:num_top_results]:
                 tasks.append(self.reader.read_text(link))
+                shortListedLinks.append(link)
 
 
             responses = await asyncio.gather(*tasks)
@@ -28,8 +29,7 @@ class Cohere_Websearch :
 
             self.reranker.initalize_compressor(documents)
             compressed_docs = self.reranker.get_top_k( query , k_results=3 )
-            # return compressed_docs , links[ : num_top_results]
-            return { "status" : True , "compressed_docs" : compressed_docs , "links" : links }
+            return { "status" : True , "compressed_docs" : compressed_docs , "links" : shortListedLinks }
         except Exception as e :
             print(e) 
             return { "status" : False  }

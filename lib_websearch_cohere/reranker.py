@@ -24,6 +24,7 @@ class Cohere_Reranker :
 
     def initalize_compressor(self , raw_documents) : 
         self.documents = self.get_text_chunks_langchain( raw_documents )
+        print("Chunked_Docs :> " , self.documents)
         self.db = Chroma.from_documents(self.documents, self.cohere_embeddings)
         self.compression_retriever = ContextualCompressionRetriever(
             base_compressor=self.cohere_rerank, 

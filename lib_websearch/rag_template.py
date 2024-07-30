@@ -38,7 +38,9 @@ Please provide your response based making use of previous chat context.
 Your input Question: {question}
 """
 
-
+    prompt_template_with_question: str = """Given the following question: "{question}", please provide a consize & conversational response that addresses the question.
+Your input Question: {question}
+"""
 
     def create_template(self) -> str:
         if self.previous_chat and self.passages:
@@ -47,8 +49,15 @@ Your input Question: {question}
             formatted_prompt = self.prompt_template_without_chat.format(question=self.question, passages=self.passages)
         elif self.previous_chat:
             formatted_prompt = self.prompt_template_without_passages.format(question=self.question, previous_chat=self.previous_chat)
+        else : 
+            formatted_prompt = self.prompt_template_with_question.format(question=self.question, previous_chat=self.previous_chat)
 
         return formatted_prompt
+    
+
+
+
+    
 # class RAGTemplate(BasePromptTemplate):
 #     question: str
 #     passages: str
