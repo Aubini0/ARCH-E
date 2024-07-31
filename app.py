@@ -212,7 +212,10 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                         }
                     # send llm generated answer word by word
                     await websocket.send_json(llm_resp)
-                
+
+
+
+
                 links_message = { 
                     "response" : "" , "web_links" : modelInstance.web_links  , 
                     "recommendations" : "" ,  "youtube_results" : "" ,
@@ -222,7 +225,10 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                 # send web links                 
                 await websocket.send_json(links_message)
                 print("Web_links_message :> " , links_message)
+                # send clear message 
+                await websocket.send_json(clear_messsge)
 
+                
                 llm_recomendations_resp = modelInstance.recomendations(user_msg)
                 llm_recomendations_resp = { 
                     "response" : "" , "web_links" : "" , 
@@ -248,8 +254,6 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
 
 
 
-                # send clear message 
-                await websocket.send_json(clear_messsge)
 
 
     except Exception as e:
