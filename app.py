@@ -202,6 +202,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
             data = await websocket.receive_json()
             if data : 
                 user_msg=LLM.LLMMessage(role=LLM.Role.USER, content=data['user_msg'])
+                user_inital_message = data['user_msg']
 
 
                 async for llm_resp in modelInstance.interaction(user_msg):
@@ -228,7 +229,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                 # send clear message 
                 await websocket.send_json(clear_messsge)
 
-                
+
                 llm_recomendations_resp = modelInstance.recomendations(user_msg)
                 llm_recomendations_resp = { 
                     "response" : "" , "web_links" : "" , 
@@ -241,8 +242,8 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                 await websocket.send_json(llm_recomendations_resp)
 
                 if modelInstance.check_web : 
-                    print("UserMsg --->" , user_msg.content)
-                    resp = youtube_instance.search(user_msg.content)
+                    print("UserMsg --->" , user_inital_message)
+                    resp = youtube_instance.search(user_inital_message)
                     youtube_results_resp = { 
                         "response" : "" , "web_links" : "" , 
                         "recommendations" : "" , "youtube_results" : resp,
