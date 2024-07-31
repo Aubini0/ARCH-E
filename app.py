@@ -225,7 +225,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
             
                 # send web links                 
                 await websocket.send_json(links_message)
-                print("Web_links_message :> " , links_message)
+                print("\n\n web_links_resp :> " , links_message)
                 # send clear message 
                 await websocket.send_json(clear_messsge)
 
@@ -237,12 +237,12 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                     "clear" : False 
                     }
 
-                print("llm_recomendations_resp :> " , llm_recomendations_resp)
+                print("\n\n llm_recomendations_resp :> " , llm_recomendations_resp)
                     # send llm recomendations               
                 await websocket.send_json(llm_recomendations_resp)
 
                 if modelInstance.check_web : 
-                    print("UserMsg --->" , user_inital_message)
+                    # print("UserMsg --->" , user_inital_message)
                     resp = youtube_instance.search(user_inital_message)
                     youtube_results_resp = { 
                         "response" : "" , "web_links" : "" , 
@@ -250,7 +250,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                         "clear" : False 
                         }
                     await websocket.send_json(youtube_results_resp)
-                    print("youtube_results_resp :> " , youtube_results_resp)
+                    print("\n\n youtube_results_resp :> " , youtube_results_resp)
 
 
 
