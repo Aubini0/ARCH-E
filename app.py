@@ -235,6 +235,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                 await websocket.send_json(llm_recomendations_resp)
 
                 if modelInstance.check_web : 
+                    print("UserMsg --->" , user_msg.content)
                     resp = youtube_instance.search(user_msg.content)
                     youtube_results_resp = { 
                         "response" : "" , "web_links" : "" , 
