@@ -14,13 +14,11 @@ class WebsocketManager(Disposable):
     def __init__(
         self,
         guid,
-        output_file_path,
         dispatcher: Dispatcher,
         ws: WebSocket,
         logger=None,
     ):
         self.guid = guid
-        self.output_file_path = output_file_path
         self.dispatcher = dispatcher
         self.ws = ws
         self.logger = logger

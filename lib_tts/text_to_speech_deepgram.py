@@ -11,9 +11,8 @@ from deepgram import (
 
 
 class TextToSpeechDeepgram : 
-    def __init__(self, guid , output_file_name ,  dispatcher: Dispatcher , api_key) -> None:
+    def __init__(self, guid  ,  dispatcher: Dispatcher , api_key) -> None:
         self.guid = guid 
-        self.output_file_name = output_file_name
         self.dispatcher = dispatcher
         self.api_key = api_key
         self.deepgram_tts = DeepgramClient( api_key= self.api_key )

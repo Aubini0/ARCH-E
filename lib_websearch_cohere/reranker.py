@@ -12,7 +12,7 @@ from langchain.retrievers.document_compressors import CohereRerank
 class Cohere_Reranker : 
     def __init__(self , api_key) -> None:
         self.api_key = api_key
-        self.cohere_rerank = CohereRerank(cohere_api_key=self.api_key)
+        self.cohere_rerank = CohereRerank(cohere_api_key=self.api_key , top_n=2)
         self.cohere_embeddings = CohereEmbeddings(cohere_api_key=self.api_key)
 
 
@@ -24,13 +24,12 @@ class Cohere_Reranker :
 
     def initalize_compressor(self , raw_documents) : 
         self.documents = self.get_text_chunks_langchain( raw_documents )
-        print("Chunked_Docs :> " , self.documents)
+        print("Total_Docs :> " , len(self.documents))
         self.db = Chroma.from_documents(self.documents, self.cohere_embeddings)
         self.compression_retriever = ContextualCompressionRetriever(
             base_compressor=self.cohere_rerank, 
-            base_retriever=self.db.as_retriever()
+            base_retriever=self.db.as_retriever( search_kwargs = {'k': 6} )
         )
-        print("done compressor")
 
 
     def get_top_k(self, query: str, k_results: int) -> List[str]:
@@ -44,7 +43,10 @@ class Cohere_Reranker :
         Returns:
             List[str]: A list of the top k relevant passages.
         """
-        print("staet query")
+        print("start query")
         compressed_docs = self.compression_retriever.invoke(query)
-        print("done query")
-        return [doc.page_content for doc in compressed_docs[:k_results]]
+        print("CompressedDocs : " , len(compressed_docs))
+        final_docs = [doc.page_content for doc in compressed_docs[:k_results]]
+        print("FinalDocs : " , len(final_docs))
+        return final_docs
+    

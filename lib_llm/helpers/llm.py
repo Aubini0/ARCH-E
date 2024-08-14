@@ -1,22 +1,12 @@
 from __future__ import annotations
 from enum import Enum
-import time,  asyncio
 from bs4 import BeautifulSoup
 from openai import AsyncOpenAI , OpenAI
 from lib_database.db_connect import embeddings_collection
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import MongoDBAtlasVectorSearch
-from langchain.document_loaders import DirectoryLoader
-from langchain.chains import RetrievalQA
 from langchain.llms import OpenAI as langchainOpenAI
 from lib_websearch.rag_template import RAGTemplate
-
-# from langchain_openai import ChatOpenAI 
-# from langchain_core.chat_history import BaseChatMessageHistory
-# from langchain_community.chat_message_histories import ChatMessageHistory
-# from langchain_core.messages import HumanMessage, SystemMessage
-# from langchain_core.runnables.history import RunnableWithMessageHistory
-
 
 
 
@@ -48,9 +38,15 @@ class LLM:
         def __str__(self) -> str:
             return f"{self.role.value}: {self.content}"
 
-    def __init__(self, guid , prompt_generator , web_search_instance , api_key , model="4o", custom_functions=None):
+    def __init__( 
+            self, guid , session_id , qa_pairs : int , prompt_generator , 
+            web_search_instance , api_key , model="4o", custom_functions=None
+            ):
+        
         self.api_key = api_key
         self.guid = guid
+        self.session_id = session_id
+        self.qa_pairs = qa_pairs
         self.model = LLM.models[model]
         self.client = AsyncOpenAI( api_key=self.api_key )
         self.client_sync = OpenAI( api_key=self.api_key )
@@ -66,47 +62,25 @@ class LLM:
         print(f"GPT_Model :> {self.model}")
 
 
-
-        # Lnagchain_Configurations
-        # self.store = {}
-        # self.config = {"configurable": {"session_id": self.guid}}
-        # self.langchain_client = ChatOpenAI(model=self.model ,api_key=self.api_key)
-        # self.embeddings = OpenAIEmbeddings(api_key=self.api_key)
-        # self.reset_lagchain()
-
-    def vector_query(self, query ):
-        as_output = None
-        retriever = self.vectorStore.as_retriever()
-        docs = self.vectorStore.similarity_search(query, K=1)
-        if len(docs) > 0 :
-            as_output = docs[0].page_content
-
-
-        qa = RetrievalQA.from_chain_type(self.langchain_llm, chain_type="stuff", retriever=retriever)
-        # Execute the chain
-        retriever_output = qa.run(query)
-
-        print( ">>>" , as_output, ">>>" , retriever_output )
-        return retriever_output
-
-    def vector_search(self, query ): 
+    def vector_search(self, query , no_of_results=5 ): 
         as_output = None
         docs = self.vectorStore.similarity_search(
-            query, K=1,
+            query, K=no_of_results,
             pre_filter={ "user_id": { "$eq": self.guid } }
             )
         if len(docs) > 0 :
-            as_output = docs[0].page_content
+            as_output = ""
+            for doc in docs : 
+                as_output += doc.page_content
         return as_output
 
-    def create_embedding_strings(self , qa_pairs):
-        embedding_strings = []
-        messages_array = self.messages
-
+    def create_embedding_strings(self):
         # Collect the user-assistant conversation pairs
-        conversation_pairs = []
-        temp_pair = []
+        conversation_pairs  , temp_pair  , embedding_strings = [] , [] , []
+        # Combine pairs into strings of 2-3 pairs each
+        combined_pairs , temp_combined = [] , []
 
+        messages_array = self.messages
         for msg in messages_array:
             if msg['role'] != 'system':
                 temp_pair.append(f"{msg['role']}: {msg['content'].strip()}")
@@ -114,35 +88,25 @@ class LLM:
                     conversation_pairs.append(" ".join(temp_pair))
                     temp_pair = []
 
-        # Combine pairs into strings of 2-3 pairs each
-        combined_pairs = []
-        temp_combined = []
-
         for i, pair in enumerate(conversation_pairs):
             temp_combined.append(pair)
-            if len(temp_combined) == qa_pairs or i == len(conversation_pairs) - 1:  # Max 3 pairs or end of list
+            if len(temp_combined) == self.qa_pairs or i == len(conversation_pairs) - 1:  # Max 3 pairs or end of list
                 combined_pairs.append(" ".join(temp_combined))
                 temp_combined = []
 
-        # Add combined pairs to embedding strings
         embedding_strings.extend(combined_pairs)
-
         return embedding_strings
 
     def add_embeddings(self) : 
-        data = self.create_embedding_strings(3)
+        data = self.create_embedding_strings(  )
         metadatas = [ ]
         for _ in range(0 , len(data)) : 
-            metadatas.append({"user_id": self.guid})
-
-        print(data , len(data) , len(metadatas))
+            metadatas.append({"user_id": self.guid , "session_id" : self.session_id})
         self.vectorStore = self.vectorStore.from_texts( 
-            data , self.embeddings , metadatas=metadatas ,  collection=embeddings_collection 
+            data , self.embeddings , 
+            metadatas=metadatas ,  collection=embeddings_collection 
         )
-
-
-
-        print("VECTOR_STORE :> " , self.vectorStore)
+        print(" ... Embddings Added ... ")
         
     def reset(self):
         self.messages = []
@@ -165,15 +129,15 @@ class LLM:
         questions_list = [li.get_text() for li in li_elements]
         return questions_list
 
-
     def check_web_required(self , query) -> bool : 
-        # print(query)        
         messages_array = [ 
             {
                 "role": LLM.Role.SYSTEM.value, 
                 "content": """Given following message, analyze if it requires some web search to get updated data or not. ALWAYS RETURN BOOLEAN"""
              },
-            { "role" : LLM.Role.USER.value , "content" : query }
+            { 
+                "role" : LLM.Role.USER.value , "content" : query 
+            }
             ]
         
         responce = self.client_sync.chat.completions.create(
@@ -191,15 +155,13 @@ class LLM:
         else:
             return False
 
-
     async def interaction(self, message: LLM.LLMMessage) -> str:
-        similarity_resp = self.vector_search( message.content )
+        similarity_resp = self.vector_search( message.content  )
 
 
         self.check_web , web_results = False ,  None
         self.check_web = self.check_web_required( message.content )
         print(f"Check_Web :> {self.check_web}")
-        
         if self.check_web : 
             resp = await self.web_search_instance.run( message.content )
             if resp['status'] : 
@@ -210,8 +172,7 @@ class LLM:
 
 
         rag_template = RAGTemplate(
-            question=message.content,
-            passages=web_results,
+            question=message.content, passages=web_results,
             previous_chat=similarity_resp
         )
         message.content = rag_template.create_template()
@@ -225,10 +186,8 @@ class LLM:
         words = []
 
         stream = await self.client.chat.completions.create(
-            model=self.model,
-            messages=self.messages,
-            stream=True,
-            temperature=0.1
+            model=self.model, messages=self.messages,
+            stream=True, temperature=0.1
         )
 
         function_name = None
@@ -247,37 +206,26 @@ class LLM:
                     ].delta.function_call.arguments
 
         if function_name:
-            yield {
-                "type": "function_call",
-                "name": function_name,
-                "args": function_args,
-            }
+            yield { "type": "function_call", "name": function_name, "args": function_args }
 
 
         # strip out extra info from message prompt to store original message and its embeddings
         self.pop_additional_info()
-
         message = LLM.LLMMessage(
             role=LLM.Role.ASSISTANT,
             content="".join(words).strip().replace("\n", " "),
         )
         self.add_message(message)
 
-
-
-
     def recomendations(self, message: LLM.LLMMessage) -> str:
-
         messages_array = [ 
             self.recomendation_messages[0] , 
             {"role": message.role.value, "content": message.content},
             { "role" : message.role.value , "content" : "Generate 5 reference questions that the user can ask based on what we are talking about? Only give your answer in html format" }
-            ]
+        ]
         responce = self.client_sync.chat.completions.create(
-            model=self.model,
-            messages=messages_array,
-            stream=False,
-            temperature=0.2
+            model=self.model, messages=messages_array,
+            stream=False, temperature=0.2
         )
 
         responce = responce.choices[0].message.content
@@ -286,61 +234,17 @@ class LLM:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # def reset_lagchain(self) : 
-    #     self.with_message_history = RunnableWithMessageHistory(self.langchain_client, self.get_session_history)
-
-    # def get_answer(self, config, user_input: str, session):
-    #     response = session.invoke(
-    #         [   SystemMessage(str(self.prompt_generator)),
-    #             HumanMessage(content=user_input),
-    #         ],
-    #         config=config,
-    #     )
-    #     recommendation = self.get_recommendations(session, config)
-    #     recommendation = self.parse_recomendations(recommendation)
-    #     return {"response": response.content, "recommendations": recommendation}
-
-
-    # def get_recommendations(self , session, config):
-    #     response = session.invoke(
-    #         [SystemMessage(str(self.prompt_generator)), HumanMessage(content="Generate 5 reference questions that the user can ask based on what we are talking about? Only give your answer in html format")],
-    #         config=config,
-    #     )
-    #     return response.content
-
-    # def get_session_history(self , session_id: str) -> BaseChatMessageHistory:
-    #     if session_id not in self.store:
-    #         self.store[session_id] = ChatMessageHistory()
-    #     return self.store[session_id]
-
-    # async def interaction_langchain(self , message: LLM.LLMMessage) : 
-    #     user_query = message.content
-    #     llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
-    #     yield llm_resp
-
-    # def interaction_langchain_synchronous(self , message: LLM.LLMMessage) : 
-    #     user_query = message.content
-    #     llm_resp = self.get_answer(self.config, user_query, self.with_message_history)
-    #     return llm_resp
-    
+    # import time,  asyncio
+    # from langchain.document_loaders import DirectoryLoader
+    # from langchain.chains import RetrievalQA
+    # def vector_query(self, query ):
+    #     as_output = None
+    #     retriever = self.vectorStore.as_retriever()
+    #     docs = self.vectorStore.similarity_search(query, K=1)
+    #     if len(docs) > 0 :
+    #         as_output = docs[0].page_content
+    #     qa = RetrievalQA.from_chain_type(self.langchain_llm, chain_type="stuff", retriever=retriever)
+    #     # Execute the chain
+    #     retriever_output = qa.run(query)
+    #     print( ">>>" , as_output, ">>>" , retriever_output )
+    #     return retriever_output

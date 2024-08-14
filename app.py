@@ -2,7 +2,6 @@
 import os , uuid , asyncio
 from dotenv import load_dotenv
 from api_request_schemas import (
-    invoke_llm_schema,
     login_schema,
     signup_schema
 )
@@ -12,13 +11,8 @@ from fastapi import (
     Request,
     status
 )
-from lib_users.password_utils import (
-    hash_password,
-    validate_password
-)
-import json
+from lib_users.password_utils import ( validate_password )
 from lib_users.repo import UsersRepo
-from fastapi.websockets import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -33,24 +27,25 @@ from lib_infrastructure.dispatcher import ( Dispatcher , Message , MessageHeader
 from lib_infrastructure.helpers.global_event_logger import GlobalLoggerAsync
 from lib_youtube.youtube_search import YoutubeSearch
 from lib_websearch.search_runner import SearchRunner
-from lib_websearch.cohere_connector_search import CohereWebSearch
-from lib_database.db_connect import users_collection
 from fastapi.responses import JSONResponse
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from jwt import ExpiredSignatureError, InvalidTokenError
+from lib_api_services.search_service import search_query_service , chat_session_service
 
 
 # loading .env configs
 load_dotenv()
 PORT = int(os.getenv("PORT"))
-DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+JINA_API_KEY = os.getenv("JINA_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
-JINA_API_KEY = os.getenv("JINA_API_KEY")
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
-OUTPUT_MP3_FILES = "output.mp3"
+SESSION_PREFIX = os.getenv("SESSION_PREFUX")
+DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
+EMBEDDINGS_QA_PAIRS = os.getenv("EMBEDDINGS_QA_PAIRS")
+
 
 
 # app initalization & setup
@@ -145,7 +140,6 @@ async def signup(signup_payload: signup_schema):
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False,"message": "An error occurred"})
 
 
-
 @app.get("/auth/verify_access", status_code=200)
 async def verify_access( request : Request ):
     headers = request.headers
@@ -164,7 +158,6 @@ async def verify_access( request : Request ):
 
     email = user_data["email"]
     user_ = UsersRepo.get_user(email , without_model=True)
-    # print(f"UserData : {user_}" , flush=True)
     if user_ : 
         return JSONResponse(status_code=status.HTTP_200_OK, content={
             "success": True,
@@ -185,14 +178,42 @@ async def youtube_search( request : Request ):
     except Exception as error : 
         return { "status" : False , "data" : {  } , "error" : str(error) }
 
+
+# API to retrieve answers
+@app.get("/search/{user_id}/")
+async def search(user_id : str , query: str):
+    if user_id : 
+        responce = search_query_service( query , user_id , OPENAI_API_KEY )
+        return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
+
+
+
+# API to retrieve answers
+@app.get("/chat_history/{session_id}/")
+async def search(session_id : str ):
+    if session_id : 
+        responce = chat_session_service( session_id )
+        return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
+
+
+
+
 @app.websocket("/invoke_llm/{user_id}")
 async def chat_invoke(websocket: WebSocket , user_id : str):
     guid = user_id
+    session_id = f"{SESSION_PREFIX}{str(uuid.uuid4())}" 
+    qa_pairs = int(EMBEDDINGS_QA_PAIRS)
+
     # web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
     # web_search = CohereWebSearch( COHERE_API_KEY )
     web_search = Cohere_Websearch( GOOGLE_API_KEY, SEARCH_ENGINE_ID ,  COHERE_API_KEY )
+
     prompt_generator = PromptGenerator()
-    modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
+    modelInstance = LLM(guid, session_id , qa_pairs , prompt_generator, web_search , OPENAI_API_KEY)
     clear_messsge = { "clear" : True }
 
 
@@ -242,7 +263,6 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                 await websocket.send_json(llm_recomendations_resp)
 
                 if modelInstance.check_web : 
-                    # print("UserMsg --->" , user_inital_message)
                     resp = youtube_instance.search(user_inital_message)
                     youtube_results_resp = { 
                         "response" : "" , "web_links" : "" , 
@@ -253,70 +273,71 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
                     print("\n\n youtube_results_resp :> " , youtube_results_resp)
 
 
-
-
-
-
     except Exception as e:
         print(f"Client disconnected >>> {e}")
         modelInstance.add_embeddings()
         
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    guid = str(uuid.uuid4())
 
-    prompt_generator = PromptGenerator()
+# audio handler
+# @app.websocket("/ws")
+# async def websocket_endpoint(websocket: WebSocket):
+#     guid = str(uuid.uuid4())
+#     qa_pairs = int(EMBEDDINGS_QA_PAIRS)
+#     session_id = f"{SESSION_PREFIX}{str(uuid.uuid4())}" 
 
-
-    web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
-    modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
-
-    # modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
-
-    global_logger = GlobalLoggerAsync(
-        guid,
-        dispatcher,
-        pubsub_events={
-            MessageType.CALL_WEBSOCKET_PUT: True,
-            MessageType.LLM_GENERATED_TEXT: True,
-            MessageType.TRANSCRIPTION_CREATED: True,
-            MessageType.FINAL_TRANSCRIPTION_CREATED : True,
-            MessageType.LLM_GENERATED_FULL_TEXT : True,
-        },
-        # events whose output needs to be ignored, we just need to capture the time they are fired
-        ignore_msg_events = {  
-            MessageType.CALL_WEBSOCKET_PUT: True,
-        }
-
-    )
+#     prompt_generator = PromptGenerator()
 
 
-    websocket_manager = WebsocketManager( guid, OUTPUT_MP3_FILES , dispatcher, websocket )
-    speech_to_text = SpeechToTextDeepgram( guid , dispatcher ,  websocket , DEEPGRAM_API_KEY )
-    large_language_model = LargeLanguageModel( guid , modelInstance , dispatcher )
-    text_to_speeech = TextToSpeechDeepgram( guid , OUTPUT_MP3_FILES , dispatcher , DEEPGRAM_API_KEY )
+#     web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
+#     # modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
+#     modelInstance = LLM(guid, session_id , qa_pairs , prompt_generator, web_search , OPENAI_API_KEY)
 
-    try:
+#     # modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
 
-        tasks = [
-            asyncio.create_task(global_logger.run_async()),
-            asyncio.create_task(speech_to_text.run_async()),
-            asyncio.create_task(large_language_model.run_async()),
-            asyncio.create_task(text_to_speeech.run_async()),            
-            asyncio.create_task(websocket_manager.run_async()),
-        ]
+#     global_logger = GlobalLoggerAsync(
+#         guid,
+#         dispatcher,
+#         pubsub_events={
+#             MessageType.CALL_WEBSOCKET_PUT: True,
+#             MessageType.LLM_GENERATED_TEXT: True,
+#             MessageType.TRANSCRIPTION_CREATED: True,
+#             MessageType.FINAL_TRANSCRIPTION_CREATED : True,
+#             MessageType.LLM_GENERATED_FULL_TEXT : True,
+#         },
+#         # events whose output needs to be ignored, we just need to capture the time they are fired
+#         ignore_msg_events = {  
+#             MessageType.CALL_WEBSOCKET_PUT: True,
+#         }
 
-        await asyncio.gather(*tasks)
-    except asyncio.CancelledError:
-        await websocket_manager.dispose()
-    except Exception as e:
-        await websocket_manager.dispose()
-        raise e
-    finally:
-        await dispatcher.broadcast(
-            guid , Message(MessageHeader(MessageType.CALL_ENDED), "Call ended") 
-            )
+#     )
+
+
+#     websocket_manager = WebsocketManager( guid , dispatcher, websocket )
+#     speech_to_text = SpeechToTextDeepgram( guid , dispatcher ,  websocket , DEEPGRAM_API_KEY )
+#     large_language_model = LargeLanguageModel( guid , modelInstance , dispatcher )
+#     text_to_speeech = TextToSpeechDeepgram( guid , dispatcher , DEEPGRAM_API_KEY )
+
+#     try:
+
+#         tasks = [
+#             asyncio.create_task(global_logger.run_async()),
+#             asyncio.create_task(speech_to_text.run_async()),
+#             asyncio.create_task(large_language_model.run_async()),
+#             asyncio.create_task(text_to_speeech.run_async()),            
+#             asyncio.create_task(websocket_manager.run_async()),
+#         ]
+
+#         await asyncio.gather(*tasks)
+#     except asyncio.CancelledError:
+#         await websocket_manager.dispose()
+#     except Exception as e:
+#         await websocket_manager.dispose()
+#         raise e
+#     finally:
+#         await dispatcher.broadcast(
+#             guid , Message(MessageHeader(MessageType.CALL_ENDED), "Call ended") 
+#             )
 
 
 

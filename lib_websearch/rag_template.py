@@ -7,10 +7,8 @@ class RAGTemplate(BasePromptTemplate):
     passages: Optional[str] = None
     previous_chat: Optional[str] = None
 
-    full_prompt_template: str = """Given the following question: "{question}", and considering the retrieved passages & 
-User previous chat history below,
+    full_prompt_template: str = """Given the following question: "{question}", and considering the retrieved passages & User previous chat history below,
 please provide a comprehensive response that addresses the question.
-
 Passages:
 {passages}
 User Previous chat:
@@ -19,19 +17,15 @@ Please provide your response based on the context and the retrieved passages.
 Your input Question: {question}
 """
 
-    prompt_template_without_chat: str = """Given the following question: "{question}", and considering the retrieved passages below,
-please provide a comprehensive response that addresses the question.
-
+    prompt_template_without_chat: str = """Given the following question: "{question}", and considering the retrieved passages below, please provide a comprehensive response that addresses the question.
 Passages:
 {passages}
 Please provide your response making use of retrieved passages.
 Your input Question: {question}
 """
 
-    prompt_template_without_passages: str = """Given the following question: "{question}", and considering the retrieved passages & 
-User previous chat history below,
+    prompt_template_without_passages: str = """Given the following question: "{question}", and considering the retrieved passages & User previous chat history below,
 please provide a comprehensive response that addresses the question.
-
 User Previous chat:
 {previous_chat}
 Please provide your response based making use of previous chat context.

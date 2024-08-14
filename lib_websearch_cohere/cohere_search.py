@@ -30,6 +30,7 @@ class Cohere_Websearch :
             self.reranker.initalize_compressor(documents)
             compressed_docs = self.reranker.get_top_k( query , k_results=3 )
             return { "status" : True , "compressed_docs" : compressed_docs , "links" : shortListedLinks }
+        
         except Exception as e :
             print(e) 
             return { "status" : False  }
