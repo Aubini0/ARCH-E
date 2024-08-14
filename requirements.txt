@@ -13,7 +13,7 @@ beautifulsoup4==4.12.3
 pymongo==4.3.3
 google-api-python-client==2.137.0
 cohere==5.6.1
-pydantic[email]
+pydantic==1.10.17
 pyjwt
 aiohttp==3.9.5
 chromadb==0.5.3

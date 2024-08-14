@@ -31,7 +31,11 @@ from fastapi.responses import JSONResponse
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from jwt import ExpiredSignatureError, InvalidTokenError
-from lib_api_services.search_service import search_query_service , chat_session_service
+from lib_api_services.search_service import ( 
+    chat_session_service,
+    search_query_service,
+    vector_search_query_service , 
+    )
 
 
 # loading .env configs
@@ -126,6 +130,7 @@ async def signup(signup_payload: signup_schema):
     user = UsersRepo.get_user(email)
     if user:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False, "message": "Email already registered"})
+    print(signup_payload)
     new_user = UsersRepo.insert_user(signup_payload)
     # print(new_user.dict())
     token = generate_token_and_set_cookie(new_user.dict())
@@ -179,15 +184,17 @@ async def youtube_search( request : Request ):
         return { "status" : False , "data" : {  } , "error" : str(error) }
 
 
+
+
 # API to retrieve answers
 @app.get("/search/{user_id}/")
 async def search(user_id : str , query: str):
     if user_id : 
-        responce = search_query_service( query , user_id , OPENAI_API_KEY )
+        # responce = vector_search_query_service( query , user_id , OPENAI_API_KEY )
+        responce = search_query_service( user_id ,  query)
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
-
 
 
 # API to retrieve answers
@@ -198,6 +205,8 @@ async def search(session_id : str ):
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
+
+
 
 
 
