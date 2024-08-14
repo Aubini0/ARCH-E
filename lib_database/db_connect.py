@@ -18,9 +18,7 @@ MONGO_PASSWORD_PROD = os.getenv("PASSWORDMONGO_PROD")
 MONGO_URI = f'mongodb+srv://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOST}/?retryWrites=true&w=majority'
 MONGO_URI_PROD = f'mongodb+srv://{MONGO_USERNAME_PROD}:{MONGO_PASSWORD_PROD}@{MONGO_HOST_PROD}/?retryWrites=true&w=majority'
 
-client = MongoClient(MONGO_URI)
-
-
+client = MongoClient(MONGO_URI_PROD)
 dbName = os.getenv("DB_NAME")
 userdbName = os.getenv("USER_DB_NAME")
 collectionName = os.getenv("EMBEDDINGS_COLLECTION")
