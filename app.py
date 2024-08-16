@@ -176,7 +176,7 @@ async def search(user_id : str , query: str):
 
 # API to retrieve all Q/A in a session
 @app.get("/chat_history/{session_id}/")
-async def search(session_id : str ):
+async def chat_history(session_id : str ):
     if session_id : 
         responce = chat_session_service( session_id )
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
@@ -188,10 +188,9 @@ async def search(session_id : str ):
 
 # API to delete all Q/A in a session
 @app.delete("/chat_history/{session_id}/")
-async def search(session_id : str ):
+async def delete_chat_history(session_id : str ):
     if session_id : 
         responce , status_code = delete_chat_session_service( session_id )
-
         return JSONResponse(status_code=status_code , content = responce)
 
     else : 
