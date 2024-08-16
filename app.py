@@ -20,7 +20,9 @@ from api_request_schemas import ( login_schema, signup_schema )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
-from lib_api_services.search_service import ( chat_session_service, search_query_service , delete_chat_session_service )
+from lib_api_services.search_service import ( chat_session_service, search_query_service , 
+                                             delete_chat_session_service , delete_query_service 
+                                             )
 
 
 # loading .env configs
@@ -56,26 +58,26 @@ templates = Jinja2Templates(directory="templates")
 dispatcher = Dispatcher()
 
 
-# managing dispatcher connect event on app startup
+
+
+# Managing dispatcher connect event on app startup
 @app.on_event("startup")
 async def startup():
     print("Conneting to memory://")
     await dispatcher.connect()
     print("Connected to memory://")
 
-# managing dispatcher connect event on app shutdown
+# Managing dispatcher connect event on app shutdown
 @app.on_event("shutdown")
 async def shutdown():
     print("Disconnecting from memory://")
     await dispatcher.disconnect()
     print("Disconnected from memory://")
 
-
 # UI to onboard new customers and view logs + customers info
 @app.get("/")
 async def get(request: Request):
     return templates.TemplateResponse("index.html" ,  {"request": request})
-
 
 # API to get user_id for websocket
 @app.get("/user/id")
@@ -90,8 +92,6 @@ async def get_sessionId( ):
     # generate seesion_id for new chat
     session_id = f"{SESSION_PREFIX}{str(uuid.uuid4())}" 
     return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "session_id" : session_id } , "message" : "session_id returned" })
-
-
 
 @app.post("/auth/login", status_code=200)
 async def login(login_payload: login_schema):
@@ -115,7 +115,6 @@ async def login(login_payload: login_schema):
         
     return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"success": False, "message": "Wrong email or password"})
 
-
 @app.post("/auth/signup", status_code=200)
 async def signup(signup_payload: signup_schema):
     email = signup_payload.email
@@ -135,7 +134,6 @@ async def signup(signup_payload: signup_schema):
         
         })
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False,"message": "An error occurred"})
-
 
 @app.get("/auth/verify_access", status_code=200)
 async def verify_access( request : Request ):
@@ -163,7 +161,6 @@ async def verify_access( request : Request ):
     
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
 
-
 # API to retrieve queries by search
 @app.get("/search/{user_id}/")
 async def search(user_id : str , query: str):
@@ -172,7 +169,6 @@ async def search(user_id : str , query: str):
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
-
 
 # API to retrieve all Q/A in a session
 @app.get("/chat_history/{session_id}/")
@@ -183,21 +179,26 @@ async def chat_history(session_id : str ):
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
 
-
-
-
 # API to delete all Q/A in a session
 @app.delete("/chat_history/{session_id}/")
 async def delete_chat_history(session_id : str ):
     if session_id : 
         responce , status_code = delete_chat_session_service( session_id )
         return JSONResponse(status_code=status_code , content = responce)
-
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
 
+# API to delete a single query
+@app.delete("/query/{query_id}/")
+async def delete_query(query_id : str ):
+    if query_id : 
+        responce , status_code = delete_query_service( query_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "query_id not provided" })
 
 
+# WebSocket endpoint for Q/A between LLM
 @app.websocket("/invoke_llm/{user_id}/{session_id}")
 async def chat_invoke(websocket: WebSocket , user_id : str ,session_id : str):
     guid = user_id

@@ -17,3 +17,6 @@ pydantic==1.10.17
 pyjwt
 aiohttp==3.9.5
 chromadb==0.5.3
+
+
+
