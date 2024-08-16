@@ -127,6 +127,8 @@ class LLM:
         
     def reset(self):
         self.messages = []
+        self.all_messages = []
+
         self.add_message(
             message=LLM.LLMMessage(LLM.Role.SYSTEM, str(self.prompt_generator))
         )

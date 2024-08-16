@@ -21,7 +21,8 @@ from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
-                                             delete_chat_session_service , delete_query_service 
+                                             delete_chat_session_service , delete_query_service ,
+                                             delete_all_chats_service
                                              )
 
 
@@ -196,6 +197,19 @@ async def delete_query(query_id : str ):
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "query_id not provided" })
+
+
+# API to delete all Q/A in a database against a userID
+@app.delete("/all/chats/{user_id}")
+async def delete_all_chat( user_id : str ):
+
+    if user_id : 
+        responce , status_code = delete_all_chats_service( user_id )
+        return JSONResponse(status_code=status_code , content = responce)
+
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" })
+
 
 
 # WebSocket endpoint for Q/A between LLM

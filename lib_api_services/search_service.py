@@ -12,6 +12,42 @@ embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
 vectorStore = MongoDBAtlasVectorSearch( embeddings_collection, embeddings )
 
 
+def delete_all_chats_service( user_id ):
+    try:
+        # Delete chats
+        chat_delete_result = chats_collection.delete_many({ "user_id" : user_id })
+        # Delete embeddings
+        embedding_delete_result = embeddings_collection.delete_many({ "user_id" : user_id})
+        
+        if chat_delete_result.deleted_count == 0 and embedding_delete_result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No chats found against userId : {user_id}"
+            )
+
+        response = {
+            "status" : True,
+            "message": "Chats deleted successfully.",
+            "data" : {
+                "deleted_chats_count": chat_delete_result.deleted_count,
+                "deleted_embeddings_count": embedding_delete_result.deleted_count,
+            },
+        }
+        return response , status.HTTP_200_OK
+
+    except Exception as e:
+        if isinstance(e , HTTPException) : status_code = e.status_code
+        else : status_code = status.HTTP_400_BAD_REQUEST
+
+        response = {
+            "status" : False,
+            "message": "Failed to delete chats.",
+            "data" : {},
+            "error": str(e),
+        }
+
+        return response , status_code
+
 def vector_search_query_service(query , user_id  , no_of_results  = 5 ) : 
     as_output , all_resp = None , {}
     
@@ -85,9 +121,6 @@ def delete_query_service(query_id):
                 metadatas=metadatas ,  collection=embeddings_collection 
             )
 
-
-        
-
         # delete old chunk embeddings
         embedding_delete_result = embeddings_collection.delete_one({'_id': ObjectId(item_id)})
         embedding_delete_result = embedding_delete_result.deleted_count
@@ -118,7 +151,6 @@ def delete_query_service(query_id):
         }
 
         return response , status_code
-
 
 def delete_chat_session_service(session_id):
     try:
@@ -155,3 +187,6 @@ def delete_chat_session_service(session_id):
         }
 
         return response , status_code
+
+
+
