@@ -20,7 +20,7 @@ from api_request_schemas import ( login_schema, signup_schema )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
-from lib_api_services.search_service import ( chat_session_service, search_query_service )
+from lib_api_services.search_service import ( chat_session_service, search_query_service , delete_chat_session_service )
 
 
 # loading .env configs
@@ -164,18 +164,17 @@ async def verify_access( request : Request ):
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
 
 
-# API to retrieve answers
+# API to retrieve queries by search
 @app.get("/search/{user_id}/")
 async def search(user_id : str , query: str):
     if user_id : 
-        # responce = vector_search_query_service( query , user_id , OPENAI_API_KEY )
         responce = search_query_service( user_id ,  query)
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
 
 
-# API to retrieve answers
+# API to retrieve all Q/A in a session
 @app.get("/chat_history/{session_id}/")
 async def search(session_id : str ):
     if session_id : 
@@ -183,6 +182,21 @@ async def search(session_id : str ):
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
+
+
+
+
+# API to delete all Q/A in a session
+@app.delete("/chat_history/{session_id}/")
+async def search(session_id : str ):
+    if session_id : 
+        responce , status_code = delete_chat_session_service( session_id )
+
+        return JSONResponse(status_code=status_code , content = responce)
+
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
+
 
 
 @app.websocket("/invoke_llm/{user_id}/{session_id}")
