@@ -244,6 +244,7 @@ async def chat_invoke(websocket: WebSocket , user_id : str ,session_id : str):
 
     except Exception as e:
         print(f"<<< Client Disconnected >>> {e}")
+        print(modelInstance.all_messages)
         modelInstance.save_conversation()
         
 

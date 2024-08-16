@@ -12,6 +12,8 @@ async def process_llm_service(
     user_inital_message = data['user_msg']
 
     print(f"STOP_FLAG :> {stop_flag.is_set()}")
+    # initate empty object for each message
+    modelInstance.all_messages[user_inital_message.lower()] = {} 
 
     async for llm_resp in modelInstance.interaction(user_msg):
         if stop_flag.is_set():
@@ -33,17 +35,22 @@ async def process_llm_service(
         await websocket.send_json(clear_messsge)
         return 
     
-    
 
     links_message = { 
         "response" : "" , "web_links" : modelInstance.web_links  , 
         "recommendations" : "" ,  "youtube_results" : "" , "clear" : False 
         }
 
+    
+
+
     # send web links                 
     if not stop_flag.is_set() : 
         await websocket.send_json(links_message)
+        # web links
+        modelInstance.all_messages[user_inital_message.lower()]["web_links"] = modelInstance.web_links 
         print("\n\n web_links_resp :> " , links_message)
+
 
     # send clear message to start new message
     await websocket.send_json(clear_messsge)
@@ -59,6 +66,8 @@ async def process_llm_service(
     # send llm recomendations               
     if not stop_flag.is_set() : 
         await websocket.send_json(llm_recomendations_resp)
+        # recommendations
+        modelInstance.all_messages[user_inital_message.lower()]["recomendations"] = resp 
         print("\n\n llm_recomendations_resp :> " , llm_recomendations_resp)
 
     if modelInstance.check_web : 
@@ -71,5 +80,7 @@ async def process_llm_service(
         
         # send youtube results    
         if not stop_flag.is_set() : 
-            await websocket.send_json(youtube_results_resp)
+            await websocket.send_json(youtube_results_resp)            
+            # youtube results
+            modelInstance.all_messages[user_inital_message.lower()]["youtube_results"] = resp 
             print("\n\n youtube_results_resp :> " , youtube_results_resp)

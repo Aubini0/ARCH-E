@@ -81,23 +81,32 @@ class LLM:
         conversation_pairs  , temp_pair , chat_pairs  , embedding_strings = [] , [] , [] , []
         # Combine pairs into strings of 2-3 pairs each
         combined_pairs , temp_combined , total_chat = [] , [] , []
+        # current_user_msg
+        current_user_msg = ""
 
         messages_array = self.messages
         for msg in messages_array:
             if msg['role'] != 'system':
-
+                
                 temp_pair.append(f"{msg['role']}: {msg['content'].strip()}")
                 chat_pairs.append({  "role" : msg['role'] ,  "message" : msg['content'].strip() })
-               
+                if  msg['role']  == "user" : 
+                    current_user_msg = msg['content']
+                    current_user_msg = current_user_msg.strip().lower()
+
                 if len(temp_pair) == 2:  # One user and one assistant message makes a pair
                     conversation_pairs.append(" ".join(temp_pair))
                     temp_pair = []
                 if len(chat_pairs) == 2 : 
+
                     total_chat.append({ obj['role'] : obj['message'] for obj in chat_pairs })
                     total_chat[-1]['user_id'] = self.guid
+                    total_chat[-1]['metadata'] = self.all_messages.get( current_user_msg )
                     total_chat[-1]['session_id'] = self.session_id
                     total_chat[-1]['created_at'] = datetime.utcnow()
+
                     chat_pairs = []
+                    current_user_msg = ""
 
         for i, pair in enumerate(conversation_pairs):
             temp_combined.append(pair)
@@ -127,7 +136,7 @@ class LLM:
         
     def reset(self):
         self.messages = []
-        self.all_messages = []
+        self.all_messages = {}
 
         self.add_message(
             message=LLM.LLMMessage(LLM.Role.SYSTEM, str(self.prompt_generator))
@@ -235,6 +244,7 @@ class LLM:
         # strip out extra info from message prompt to store original message and its embeddings
         self.pop_additional_info()
         self.user_message_appened = False
+
 
         message = LLM.LLMMessage(
             role=LLM.Role.ASSISTANT,
