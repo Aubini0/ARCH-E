@@ -17,6 +17,7 @@ async def process_llm_service(
             # remove message from user array if only user part is added without proper pre-processing
             if modelInstance.user_message_appened : 
                 modelInstance.messages.pop()    
+            print(f"Here in BREAK : {stop_flag}")
             break
 
         llm_resp = { 
@@ -30,6 +31,7 @@ async def process_llm_service(
     if stop_flag.is_set() : 
         # send clear message 
         await websocket.send_json(clear_messsge)
+        print(f"Here in RETURN : {stop_flag}")
         return 
     
     

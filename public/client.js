@@ -193,8 +193,8 @@ inputField.addEventListener('keydown', function(event) {
 
 
 
-function main(user_id){
-    const chat_websocketUrl = getWebSocketURL(`/invoke_llm/${user_id}`);
+function main(user_id , session_id){
+    const chat_websocketUrl = getWebSocketURL(`/invoke_llm/${user_id}/${session_id}`);
     console.log({ chat_websocketUrl });
 
     chat_socket = new WebSocket(chat_websocketUrl);
@@ -217,6 +217,105 @@ function main(user_id){
     chat_socket.onclose = () => {
       console.log('WebSocket connection closed');
     };
+
+}
+
+
+
+
+
+window.addEventListener("load", () => {
+  let user_id = localStorage.getItem("user_id");
+  let session_id = localStorage.getItem("session_id");
+
+  // Function to call main() once both user_id and session_id are available
+  const checkAndCallMain = () => {
+    if (user_id && session_id) {
+      main(user_id, session_id);
+    }
+  };
+
+
+  // Fetch user_id if not present
+  if (!user_id) {
+    const userApiUrl = `${currentDomain}/user/id`;
+    fetch(userApiUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        user_id = data.data.user_id;
+        localStorage.setItem("user_id", user_id);
+        checkAndCallMain();  // Check if both values are available
+      })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
+  } else {
+    checkAndCallMain();  // Check if both values are available
+  }
+
+  // Fetch session_id if not present
+  if (!session_id) {
+    const sessionApiUrl = `${currentDomain}/session/id`;
+    fetch(sessionApiUrl)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        session_id = data.data.session_id;
+        localStorage.setItem("session_id", session_id);
+        checkAndCallMain();  // Check if both values are available
+      })
+      .catch(error => {
+        console.error('There was a problem with the fetch operation:', error);
+      });
+  } else {
+    checkAndCallMain();  // Check if both values are available
+  }
+});
+
+
+
+
+
+
+
+// window.addEventListener("load", () => {
+//   const user_id = localStorage.getItem("user_id")
+//   const session_id = localStorage.getItem("session_id")
+
+//   if (!user_id) {
+//     const apiUrl = `${currentDomain}/user/id`;
+//     // Make a GET request to fetch user data
+//     fetch(apiUrl)
+//       .then(response => {
+//         if (!response.ok) {
+//           throw new Error('Network response was not ok');
+//         }
+//         return response.json();
+//       })
+//       .then(data => {
+//         // Handle the data received from the API
+//         let user_id = data.data.user_id;
+//         localStorage.setItem( "user_id" , user_id )
+//         // Further processing of the data
+//       })
+//       .catch(error => {
+//         console.error('There was a problem with the fetch operation:', error);
+//         // Handle errors appropriately
+//       });    
+
+//   }
+//   else{ main(user_id , session_id) }
+// });
+
 
 
     // const websocketUrl = getWebSocketURL("/ws");
@@ -248,35 +347,3 @@ function main(user_id){
     // socket.onclose = () => {
     //   console.log('WebSocket connection closed');
     // };
-
-}
-
-
-window.addEventListener("load", () => {
-  // speech comminication
-  const user_id = localStorage.getItem("user_id")
-  if (!user_id) {
-    const apiUrl = `${currentDomain}/user/id`;
-    // Make a GET request to fetch user data
-    fetch(apiUrl)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        // Handle the data received from the API
-        let user_id = data.data.user_id;
-        localStorage.setItem( "user_id" , user_id )
-        main(user_id);
-        // Further processing of the data
-      })
-      .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
-        // Handle errors appropriately
-      });    
-
-  }
-  else{ main(user_id) }
-});
