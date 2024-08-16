@@ -169,13 +169,20 @@ function addLlmMessage(response, recommendations , web_links) {
 function sendMessage(){
   let user_msg = inputField.value;
   if(user_msg){
-    let data_sent = JSON.stringify({ "user_msg" : user_msg })
+    let data_sent = JSON.stringify({ "user_msg" : user_msg , "action" :  false })
     chat_socket.send( data_sent )
     inputField.value = "";
     addUserMessage(user_msg);
   
   }
 }
+
+
+function sendStopMessage(){
+  let data_sent = JSON.stringify({ "user_msg" : "" , "action" :  true })
+  chat_socket.send( data_sent )
+}
+
 
 
 inputField.addEventListener('keydown', function(event) {

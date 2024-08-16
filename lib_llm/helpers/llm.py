@@ -43,21 +43,22 @@ class LLM:
             self, guid , session_id , qa_pairs : int , prompt_generator , 
             web_search_instance , api_key , model="4o", custom_functions=None
             ):
-        
-        self.api_key = api_key
+
         self.guid = guid
-        self.session_id = session_id
+        self.web_links = ""
+        self.api_key = api_key
         self.qa_pairs = qa_pairs
+        self.session_id = session_id
         self.model = LLM.models[model]
+        self.user_message_appened = False
+        self.prompt_generator = prompt_generator
+        self.custom_functions = custom_functions or []
+        self.web_search_instance = web_search_instance
         self.client = AsyncOpenAI( api_key=self.api_key )
         self.client_sync = OpenAI( api_key=self.api_key )
         self.langchain_llm = langchainOpenAI(openai_api_key=self.api_key, temperature=0)
         self.embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
         self.vectorStore = MongoDBAtlasVectorSearch( embeddings_collection, self.embeddings )
-        self.prompt_generator = prompt_generator
-        self.web_search_instance = web_search_instance
-        self.custom_functions = custom_functions or []
-        self.web_links = ""
 
         self.reset()
         print(f"GPT_Model :> {self.model}")
@@ -107,18 +108,21 @@ class LLM:
         embedding_strings.extend(combined_pairs)
         return embedding_strings , total_chat
 
-    def add_embeddings(self) : 
+    def save_conversation(self) : 
         embeddingsData , totalChat = self.create_embedding_strings(  )
         metadatas = [ ]
         for _ in range(0 , len(embeddingsData)) : 
             metadatas.append({"user_id": self.guid , "session_id" : self.session_id})
-        self.vectorStore = self.vectorStore.from_texts( 
-            embeddingsData , self.embeddings , 
-            metadatas=metadatas ,  collection=embeddings_collection 
-        )
         
-        # inserting chats to chat collection
-        chats_collection.insert_many( totalChat )
+        if len(embeddingsData) > 0 : 
+            self.vectorStore = self.vectorStore.from_texts( 
+                embeddingsData , self.embeddings , 
+                metadatas=metadatas ,  collection=embeddings_collection 
+            )
+        if len(totalChat) > 0 :        
+            # inserting chats to chat collection
+            chats_collection.insert_many( totalChat )
+
         print(" ... Embddings + Chats Added ... ")
         
     def reset(self):
@@ -172,15 +176,18 @@ class LLM:
         similarity_resp = self.vector_search( message.content  )
 
 
-        self.check_web , web_results = False ,  None
+        self.check_web , web_results , self.user_message_appened = False ,  None , False
         self.check_web = self.check_web_required( message.content )
-        print(f"Check_Web :> {self.check_web}")
+
+        print(f"Check_Web :> {self.check_web} , WebResults : {web_results}")
+
         if self.check_web : 
             resp = await self.web_search_instance.run( message.content )
             if resp['status'] : 
                 web_results , self.web_links = resp['compressed_docs'] , resp['links']
             web_results = ". ".join(web_results)
             print( "... Web_Search_Retrieved ..." )
+
         else : self.web_links = ""
 
 
@@ -194,6 +201,7 @@ class LLM:
 
         # append message to current chat list
         if message.content != "": self.add_message(message)
+        self.user_message_appened = True
         print("Message:> " , message)
 
         words = []
@@ -224,6 +232,8 @@ class LLM:
 
         # strip out extra info from message prompt to store original message and its embeddings
         self.pop_additional_info()
+        self.user_message_appened = False
+
         message = LLM.LLMMessage(
             role=LLM.Role.ASSISTANT,
             content="".join(words).strip().replace("\n", " "),

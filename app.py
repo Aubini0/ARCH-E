@@ -1,41 +1,26 @@
-# external imports
+# external modules
 import os , uuid , asyncio
 from dotenv import load_dotenv
-from api_request_schemas import (
-    login_schema,
-    signup_schema
-)
-from fastapi import (
-    FastAPI,
-    WebSocket,
-    Request,
-    status
-)
-from lib_users.password_utils import ( validate_password )
 from lib_users.repo import UsersRepo
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-# internal imports
-from lib_socket_handler.web_socket_manager import WebsocketManager
-from lib_stt.speech_to_text_deepgram import SpeechToTextDeepgram
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import ( FastAPI, WebSocket, Request, status )
+
+
+# internal modules
 from lib_llm.helpers.llm import LLM
-from lib_llm.helpers.prompt_generator import PromptGenerator
-from lib_llm.large_language_model import LargeLanguageModel
-from lib_tts.text_to_speech_deepgram import TextToSpeechDeepgram
-from lib_infrastructure.dispatcher import ( Dispatcher , Message , MessageHeader , MessageType )
-from lib_infrastructure.helpers.global_event_logger import GlobalLoggerAsync
+from lib_infrastructure.dispatcher import Dispatcher 
 from lib_youtube.youtube_search import YoutubeSearch
-from lib_websearch.search_runner import SearchRunner
-from fastapi.responses import JSONResponse
-from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
-from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from jwt import ExpiredSignatureError, InvalidTokenError
-from lib_api_services.search_service import ( 
-    chat_session_service,
-    search_query_service,
-    vector_search_query_service , 
-    )
+from lib_users.password_utils import ( validate_password )
+from lib_llm.helpers.prompt_generator import PromptGenerator
+from api_request_schemas import ( login_schema, signup_schema )
+from lib_websearch_cohere.cohere_search import Cohere_Websearch
+from lib_websocket_services.chat_service import ( process_llm_service )
+from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
+from lib_api_services.search_service import ( chat_session_service, search_query_service )
 
 
 # loading .env configs
@@ -45,7 +30,7 @@ JINA_API_KEY = os.getenv("JINA_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 COHERE_API_KEY = os.getenv("COHERE_API_KEY")
-SESSION_PREFIX = os.getenv("SESSION_PREFUX")
+SESSION_PREFIX = os.getenv("SESSION_PREFIX")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
 EMBEDDINGS_QA_PAIRS = os.getenv("EMBEDDINGS_QA_PAIRS")
@@ -94,11 +79,18 @@ async def get(request: Request):
 
 # API to get user_id for websocket
 @app.get("/user/id")
-async def get_userid( ):
-    # replace this logic with user_id from db in case there is signedup user or generate a sessions id using
-    # uuid in case its a guest user
+async def get_guest_userId( ):
+    # generate user_id for guest user
     guid = str(uuid.uuid4())
-    return { "status" : True , "data" : { "user_id" : guid } , "message" : "user_id returned" }
+    return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "user_id" : guid } , "message" : "user_id returned" })
+
+# API to get user_id for websocket
+@app.get("/session/id")
+async def get_sessionId( ):
+    # generate seesion_id for new chat
+    session_id = f"{SESSION_PREFIX}{str(uuid.uuid4())}" 
+    return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "session_id" : session_id } , "message" : "session_id returned" })
+
 
 
 @app.post("/auth/login", status_code=200)
@@ -172,20 +164,6 @@ async def verify_access( request : Request ):
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
 
 
-# API to get user_id for websocket
-@app.post("/youtube/search")
-async def youtube_search( request : Request ):
-    try : 
-        body = await request.json()
-        user_query = body['user_query']
-        resp = youtube_instance.search(user_query)
-        return { "status" : True , "data" : {  "results" : resp  } , "message" : "youtube results returned" }
-    except Exception as error : 
-        return { "status" : False , "data" : {  } , "error" : str(error) }
-
-
-
-
 # API to retrieve answers
 @app.get("/search/{user_id}/")
 async def search(user_id : str , query: str):
@@ -207,23 +185,15 @@ async def search(session_id : str ):
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
 
 
-
-
-
-
-@app.websocket("/invoke_llm/{user_id}")
-async def chat_invoke(websocket: WebSocket , user_id : str):
+@app.websocket("/invoke_llm/{user_id}/{session_id}")
+async def chat_invoke(websocket: WebSocket , user_id : str ,session_id : str):
     guid = user_id
-    session_id = f"{SESSION_PREFIX}{str(uuid.uuid4())}" 
+    stop_flag = asyncio.Event() 
     qa_pairs = int(EMBEDDINGS_QA_PAIRS)
-
-    # web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
-    # web_search = CohereWebSearch( COHERE_API_KEY )
-    web_search = Cohere_Websearch( GOOGLE_API_KEY, SEARCH_ENGINE_ID ,  COHERE_API_KEY )
-
+    
     prompt_generator = PromptGenerator()
+    web_search = Cohere_Websearch( GOOGLE_API_KEY, SEARCH_ENGINE_ID ,  COHERE_API_KEY )
     modelInstance = LLM(guid, session_id , qa_pairs , prompt_generator, web_search , OPENAI_API_KEY)
-    clear_messsge = { "clear" : True }
 
 
     await websocket.accept()
@@ -231,123 +201,23 @@ async def chat_invoke(websocket: WebSocket , user_id : str):
         while True:
             data = await websocket.receive_json()
             if data : 
-                user_msg=LLM.LLMMessage(role=LLM.Role.USER, content=data['user_msg'])
-                user_inital_message = data['user_msg']
 
+                if data.get("action") == True:  # Check for stop action
+                    stop_flag.set()  # Signal to stop processing
+                    continue  # Skip the rest of the loop
 
-                async for llm_resp in modelInstance.interaction(user_msg):
-                    llm_resp = { 
-                        "response" : llm_resp , "web_links" : "" , 
-                        "recommendations" : "" , "youtube_results" : "",
-                        "clear" : False 
-                        }
-                    # send llm generated answer word by word
-                    await websocket.send_json(llm_resp)
-
-
-
-
-                links_message = { 
-                    "response" : "" , "web_links" : modelInstance.web_links  , 
-                    "recommendations" : "" ,  "youtube_results" : "" ,
-                    "clear" : False 
-                    }
-            
-                # send web links                 
-                await websocket.send_json(links_message)
-                print("\n\n web_links_resp :> " , links_message)
-                # send clear message 
-                await websocket.send_json(clear_messsge)
-
-
-                llm_recomendations_resp = modelInstance.recomendations(user_msg)
-                llm_recomendations_resp = { 
-                    "response" : "" , "web_links" : "" , 
-                    "recommendations" : llm_recomendations_resp , "youtube_results" : "",
-                    "clear" : False 
-                    }
-
-                print("\n\n llm_recomendations_resp :> " , llm_recomendations_resp)
-                    # send llm recomendations               
-                await websocket.send_json(llm_recomendations_resp)
-
-                if modelInstance.check_web : 
-                    resp = youtube_instance.search(user_inital_message)
-                    youtube_results_resp = { 
-                        "response" : "" , "web_links" : "" , 
-                        "recommendations" : "" , "youtube_results" : resp,
-                        "clear" : False 
-                        }
-                    await websocket.send_json(youtube_results_resp)
-                    print("\n\n youtube_results_resp :> " , youtube_results_resp)
+                stop_flag.clear()
+                # Start processing responses in a separate task
+                asyncio.create_task(process_llm_service( 
+                    data , modelInstance , stop_flag , 
+                    youtube_instance , websocket
+                    ))
 
 
     except Exception as e:
-        print(f"Client disconnected >>> {e}")
-        modelInstance.add_embeddings()
+        print(f"<<< Client Disconnected >>> {e}")
+        modelInstance.save_conversation()
         
-
-
-# audio handler
-# @app.websocket("/ws")
-# async def websocket_endpoint(websocket: WebSocket):
-#     guid = str(uuid.uuid4())
-#     qa_pairs = int(EMBEDDINGS_QA_PAIRS)
-#     session_id = f"{SESSION_PREFIX}{str(uuid.uuid4())}" 
-
-#     prompt_generator = PromptGenerator()
-
-
-#     web_search = SearchRunner(GOOGLE_API_KEY, SEARCH_ENGINE_ID, JINA_API_KEY)
-#     # modelInstance = LLM(guid , prompt_generator, web_search , OPENAI_API_KEY)
-#     modelInstance = LLM(guid, session_id , qa_pairs , prompt_generator, web_search , OPENAI_API_KEY)
-
-#     # modelInstance = LLM(guid , prompt_generator, OPENAI_API_KEY)
-
-#     global_logger = GlobalLoggerAsync(
-#         guid,
-#         dispatcher,
-#         pubsub_events={
-#             MessageType.CALL_WEBSOCKET_PUT: True,
-#             MessageType.LLM_GENERATED_TEXT: True,
-#             MessageType.TRANSCRIPTION_CREATED: True,
-#             MessageType.FINAL_TRANSCRIPTION_CREATED : True,
-#             MessageType.LLM_GENERATED_FULL_TEXT : True,
-#         },
-#         # events whose output needs to be ignored, we just need to capture the time they are fired
-#         ignore_msg_events = {  
-#             MessageType.CALL_WEBSOCKET_PUT: True,
-#         }
-
-#     )
-
-
-#     websocket_manager = WebsocketManager( guid , dispatcher, websocket )
-#     speech_to_text = SpeechToTextDeepgram( guid , dispatcher ,  websocket , DEEPGRAM_API_KEY )
-#     large_language_model = LargeLanguageModel( guid , modelInstance , dispatcher )
-#     text_to_speeech = TextToSpeechDeepgram( guid , dispatcher , DEEPGRAM_API_KEY )
-
-#     try:
-
-#         tasks = [
-#             asyncio.create_task(global_logger.run_async()),
-#             asyncio.create_task(speech_to_text.run_async()),
-#             asyncio.create_task(large_language_model.run_async()),
-#             asyncio.create_task(text_to_speeech.run_async()),            
-#             asyncio.create_task(websocket_manager.run_async()),
-#         ]
-
-#         await asyncio.gather(*tasks)
-#     except asyncio.CancelledError:
-#         await websocket_manager.dispose()
-#     except Exception as e:
-#         await websocket_manager.dispose()
-#         raise e
-#     finally:
-#         await dispatcher.broadcast(
-#             guid , Message(MessageHeader(MessageType.CALL_ENDED), "Call ended") 
-#             )
-
 
 
 if __name__ == "__main__":

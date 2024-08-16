@@ -14,6 +14,7 @@ Passages:
 User Previous chat:
 {previous_chat}
 Please provide your response based on the context and the retrieved passages.
+DONOT MENTION that you are checking previous_chat or passages
 Your input Question: {question}
 """
 
@@ -21,14 +22,16 @@ Your input Question: {question}
 Passages:
 {passages}
 Please provide your response making use of retrieved passages.
+DONOT MENTION that you are checking previous_chat or passages
 Your input Question: {question}
 """
 
-    prompt_template_without_passages: str = """Given the following question: "{question}", and considering the retrieved passages & User previous chat history below,
+    prompt_template_without_passages: str = """Given the following question: "{question}", and considering the User previous chat history below,
 please provide a comprehensive response that addresses the question.
 User Previous chat:
 {previous_chat}
 Please provide your response based making use of previous chat context.
+DONOT MENTION that you are checking previous_chat or passages
 Your input Question: {question}
 """
 
