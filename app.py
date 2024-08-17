@@ -168,7 +168,7 @@ async def verify_access( request : Request ):
 
 # API to retrieve queries by search
 @app.get("/search/query/{user_id}/")
-async def search(user_id : str , query: str):
+async def search_query(user_id : str , query: str):
     if user_id : 
         responce = search_query_service( user_id ,  query)
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
@@ -177,7 +177,7 @@ async def search(user_id : str , query: str):
 
 # API to retrieve sessions by search
 @app.get("/search/session/{user_id}/")
-async def search(user_id : str):
+async def search_session(user_id : str):
     if user_id : 
         responce = search_sessions_service( user_id )
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
