@@ -6,7 +6,18 @@ import copy
 # import spacy
 # from sklearn.feature_extraction.text import TfidfVectorizer
 
-# def extract_tfidf_keywords(texts):
+
+# def extract_relevant_keywords(text):
+#     # Step 1: Named Entity Recognition (NER)
+#     entities = extract_keywords(text)
+#     if entities:
+#         return entities
+    
+#     # Step 2: TF-IDF based extraction
+#     tfidf_keywords = extract_tfidf_keywords([text])
+#     return tfidf_keywords
+
+# def extract_keywords(texts : list):
 #     vectorizer = TfidfVectorizer(max_features=5)  # Limit to top 5 keywords
 #     X = vectorizer.fit_transform(texts)
 #     feature_names = vectorizer.get_feature_names_out()

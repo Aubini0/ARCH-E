@@ -92,21 +92,24 @@ def search_sessions_service( user_id  ) :
     pipeline = [
         { "$match": { "user_id": user_id  } },
         { "$sort": { "created_at": 1  } },
-        {
+        {   
+            # group by sessionIDs 
             "$group": {
-                "_id": "$session_id",
+                "_id": "$session_id", 
                 "first_message": { 
                     "$first": "$$ROOT"  # Get the first document in each group
                 },
-                # "all_messages": {
-                #     "$push": "$user"  # Collect all user messages in the session
-                # }
+                "all_messages": {
+                    "$push": "$user"  # Collect all user messages in the session
+                }
             }
         },
+        # 
         {
             "$project": {
                 "first_message": 1,
-                # "all_messages": 1
+                "all_messages": 1,
+                "created_at": 1  
             }
         }
     ]
@@ -117,14 +120,14 @@ def search_sessions_service( user_id  ) :
     all_resp = []
     for session in result:
         # all_messages = ' '.join(session['all_messages'])
-        # keywords = extract_keywords(all_messages)
-        # most_common_keyword = keywords[0] if keywords else "No Relevant Keyword"
+        # keywords = extract_keywords( [all_messages] )
+        # # most_common_keyword = keywords[0] if keywords else "No Relevant Keyword"
 
-        print(session)
         session_summary = {
-            "id"  : str(session["_id"]),
+            # "id"  : str(session["_id"]),
             "session_id": session['_id'],
             "session_name":  session['first_message']['user'],
+            "created_at" : session['first_message']['created_at'].isoformat()
         }
         all_resp.append(session_summary)
 

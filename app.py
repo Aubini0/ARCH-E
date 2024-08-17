@@ -193,8 +193,6 @@ async def chat_history(session_id : str ):
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
 
-
-
 # API to delete all Q/A in a session
 @app.delete("/chat_history/{session_id}/")
 async def delete_chat_history(session_id : str ):
