@@ -3,6 +3,48 @@ import copy
 
 
 
+# import spacy
+# from sklearn.feature_extraction.text import TfidfVectorizer
+
+# def extract_tfidf_keywords(texts):
+#     vectorizer = TfidfVectorizer(max_features=5)  # Limit to top 5 keywords
+#     X = vectorizer.fit_transform(texts)
+#     feature_names = vectorizer.get_feature_names_out()
+#     return feature_names
+
+# from spacy.lang.en.stop_words import STOP_WORDS
+
+# def extract_keywords(text):
+#     doc = nlp(text)
+#     keywords = [token.text for token in doc if token.text.lower() not in STOP_WORDS and len(token.text) > 3]
+#     return keywords
+
+# Load spaCy model
+# nlp = spacy.load("en_core_web_sm")
+
+
+# def extract_keywords(text):
+#     doc = nlp(text)
+#     keywords = [ent.text for ent in doc.ents if ent.label_ in ('PERSON', 'ORG', 'GPE', 'EVENT')]
+#     return keywords
+
+# def extract_keywords(text):
+#     doc = nlp(text.lower())
+#     keywords = [token.text for token in doc if token.is_alpha and not token.is_stop and token.pos_ in ["NOUN", "PROPN", "VERB"]]
+#     print(keywords)
+#     return keywords
+
+
+
+
+def extract_keywords(text):
+    # Basic keyword extraction (could be improved with NLP libraries like spaCy)
+    words = re.findall(r'\b\w+\b', text.lower())
+    keywords = [word for word in words if len(word) > 3]
+    return keywords
+
+
+
 
 def find_matching_query(user_query  : str , assitant_reply : str , response_data : dict) ->list :
     for _id, qa_pairs in response_data.items():

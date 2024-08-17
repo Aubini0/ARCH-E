@@ -22,7 +22,7 @@ from lib_websocket_services.chat_service import ( process_llm_service )
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
                                              delete_chat_session_service , delete_query_service ,
-                                             delete_all_chats_service
+                                             delete_all_chats_service , search_sessions_service
                                              )
 
 
@@ -162,11 +162,24 @@ async def verify_access( request : Request ):
     
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
 
+
+
+
+
 # API to retrieve queries by search
-@app.get("/search/{user_id}/")
+@app.get("/search/query/{user_id}/")
 async def search(user_id : str , query: str):
     if user_id : 
         responce = search_query_service( user_id ,  query)
+        return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
+
+# API to retrieve sessions by search
+@app.get("/search/session/{user_id}/")
+async def search(user_id : str):
+    if user_id : 
+        responce = search_sessions_service( user_id )
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
@@ -179,6 +192,8 @@ async def chat_history(session_id : str ):
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
+
+
 
 # API to delete all Q/A in a session
 @app.delete("/chat_history/{session_id}/")
@@ -198,7 +213,6 @@ async def delete_query(query_id : str ):
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "query_id not provided" })
 
-
 # API to delete all Q/A in a database against a userID
 @app.delete("/all/chats/{user_id}")
 async def delete_all_chat( user_id : str ):
@@ -209,6 +223,8 @@ async def delete_all_chat( user_id : str ):
 
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" })
+
+
 
 
 

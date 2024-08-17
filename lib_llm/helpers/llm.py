@@ -103,7 +103,7 @@ class LLM:
                     total_chat[-1]['user_id'] = self.guid
                     total_chat[-1]['metadata'] = self.all_messages.get( current_user_msg )
                     total_chat[-1]['session_id'] = self.session_id
-                    total_chat[-1]['created_at'] = datetime.utcnow()
+                    total_chat[-1]['created_at'] = datetime.now()
 
                     chat_pairs = []
                     current_user_msg = ""
