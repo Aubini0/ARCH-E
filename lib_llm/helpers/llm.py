@@ -64,7 +64,7 @@ class LLM:
         print(f"GPT_Model :> {self.model}")
 
 
-    def vector_search(self, query , no_of_results=5 ): 
+    def vector_search(self, query , no_of_results=3 ): 
         as_output = None
         docs = self.vectorStore.similarity_search(
             query, K=no_of_results,
@@ -89,7 +89,9 @@ class LLM:
             if msg['role'] != 'system':
                 
                 temp_pair.append(f"{msg['role']}: {msg['content'].strip()}")
-                chat_pairs.append({  "role" : msg['role'] ,  "message" : msg['content'].strip() })
+                chat_pairs.append({  "role" : msg['role'] ,  "message" : msg['content'] })
+                print( chat_pairs )
+
                 if  msg['role']  == "user" : 
                     current_user_msg = msg['content']
                     current_user_msg = current_user_msg.strip().lower()
@@ -97,8 +99,8 @@ class LLM:
                 if len(temp_pair) == 2:  # One user and one assistant message makes a pair
                     conversation_pairs.append(" ".join(temp_pair))
                     temp_pair = []
-                if len(chat_pairs) == 2 : 
 
+                if len(chat_pairs) == 2 : 
                     total_chat.append({ obj['role'] : obj['message'] for obj in chat_pairs })
                     total_chat[-1]['user_id'] = self.guid
                     total_chat[-1]['metadata'] = self.all_messages.get( current_user_msg )
@@ -248,7 +250,7 @@ class LLM:
 
         message = LLM.LLMMessage(
             role=LLM.Role.ASSISTANT,
-            content="".join(words).strip().replace("\n", " "),
+            content="".join(words).strip(),
         )
         self.add_message(message)
 

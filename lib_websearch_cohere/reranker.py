@@ -1,24 +1,22 @@
 from typing import List
 from langchain.schema.document import Document
 from langchain_community.vectorstores import Chroma
-from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.document_loaders import TextLoader
 from langchain_community.embeddings import CohereEmbeddings
 from langchain.retrievers import ContextualCompressionRetriever
 from langchain.retrievers.document_compressors import CohereRerank
-
+from langchain.text_splitter import CharacterTextSplitter , RecursiveCharacterTextSplitter
 
 
 class Cohere_Reranker : 
     def __init__(self , api_key) -> None:
         self.api_key = api_key
-        self.cohere_rerank = CohereRerank(cohere_api_key=self.api_key , top_n=2)
+        self.cohere_rerank = CohereRerank(cohere_api_key=self.api_key , top_n=3)
         self.cohere_embeddings = CohereEmbeddings(cohere_api_key=self.api_key)
 
 
 
     def get_text_chunks_langchain(self , text):
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        text_splitter = RecursiveCharacterTextSplitter( chunk_size = 1000 , chunk_overlap = 20)
         docs = [Document(page_content=x) for x in text_splitter.split_text(text)]
         return docs
 
