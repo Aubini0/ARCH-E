@@ -89,8 +89,7 @@ class LLM:
             if msg['role'] != 'system':
                 
                 temp_pair.append(f"{msg['role']}: {msg['content'].strip()}")
-                chat_pairs.append({  "role" : msg['role'] ,  "message" : msg['content'] })
-                print( chat_pairs )
+                chat_pairs.append({  "role" : msg['role'] ,  "message" : msg['content'].strip() })
 
                 if  msg['role']  == "user" : 
                     current_user_msg = msg['content']

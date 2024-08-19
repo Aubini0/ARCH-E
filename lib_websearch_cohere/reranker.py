@@ -16,7 +16,7 @@ class Cohere_Reranker :
 
 
     def get_text_chunks_langchain(self , text):
-        text_splitter = RecursiveCharacterTextSplitter( chunk_size = 1000 , chunk_overlap = 20)
+        text_splitter = RecursiveCharacterTextSplitter( chunk_size = 1200 , chunk_overlap = 20)
         docs = [Document(page_content=x) for x in text_splitter.split_text(text)]
         return docs
 
