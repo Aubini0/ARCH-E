@@ -1,50 +1,38 @@
 import re
 import copy
+from bson import ObjectId
+from lib_users.token_utils import decode_token
+from fastapi import Request, HTTPException, status
+from lib_database.db_connect import users_collection
+from jwt import ExpiredSignatureError, InvalidTokenError
+
+
+def get_user_data_from_token(token: str) -> str:
+    try : 
+        user_data = decode_token(token)
+        user_data = users_collection.find_one({ "_id"  : ObjectId( user_data["id"]) })
+        if user_data : 
+            user_data["id"] = str(user_data["_id"])
+            print(user_data)
+            return user_data
+        else : 
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= { "status" : True , "data" : { } , "message" : "User Not Found" })
+
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail={ "status" : True , "data" : { } , "message" : "Token Expired" })
+    except InvalidTokenError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail= { "status" : True , "data" : { } , "message" : "Invalid token" })
 
 
 
-# import spacy
-# from sklearn.feature_extraction.text import TfidfVectorizer
+async def verify_token(request: Request) -> str:
+    headers = request.headers
+    token = headers.get('authorization' , None)
+    if not token:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail= { "status" : True , "data" : { } , "message" : "Token not provided" })
 
-
-# def extract_relevant_keywords(text):
-#     # Step 1: Named Entity Recognition (NER)
-#     entities = extract_keywords(text)
-#     if entities:
-#         return entities
-    
-#     # Step 2: TF-IDF based extraction
-#     tfidf_keywords = extract_tfidf_keywords([text])
-#     return tfidf_keywords
-
-# def extract_keywords(texts : list):
-#     vectorizer = TfidfVectorizer(max_features=5)  # Limit to top 5 keywords
-#     X = vectorizer.fit_transform(texts)
-#     feature_names = vectorizer.get_feature_names_out()
-#     return feature_names
-
-# from spacy.lang.en.stop_words import STOP_WORDS
-
-# def extract_keywords(text):
-#     doc = nlp(text)
-#     keywords = [token.text for token in doc if token.text.lower() not in STOP_WORDS and len(token.text) > 3]
-#     return keywords
-
-# Load spaCy model
-# nlp = spacy.load("en_core_web_sm")
-
-
-# def extract_keywords(text):
-#     doc = nlp(text)
-#     keywords = [ent.text for ent in doc.ents if ent.label_ in ('PERSON', 'ORG', 'GPE', 'EVENT')]
-#     return keywords
-
-# def extract_keywords(text):
-#     doc = nlp(text.lower())
-#     keywords = [token.text for token in doc if token.is_alpha and not token.is_stop and token.pos_ in ["NOUN", "PROPN", "VERB"]]
-#     print(keywords)
-#     return keywords
-
+    token = token.split("Bearer ")[1]
+    return get_user_data_from_token(token)
 
 
 
@@ -53,8 +41,6 @@ def extract_keywords(text):
     words = re.findall(r'\b\w+\b', text.lower())
     keywords = [word for word in words if len(word) > 3]
     return keywords
-
-
 
 
 def find_matching_query(user_query  : str , assitant_reply : str , response_data : dict) ->list :
@@ -67,13 +53,11 @@ def find_matching_query(user_query  : str , assitant_reply : str , response_data
             index +=1
     return [] , None
 
-
 def make_chunks(qa_list : list) -> str :
     chunk = ""
     for pair in qa_list : 
         chunk += f"user: {pair['user']} assistant: {pair['assistant']} "
     return chunk
-
 
 
 def segregate_qa_pairs(text : str, session_id : str):

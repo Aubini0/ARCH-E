@@ -6,11 +6,12 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import ( FastAPI, WebSocket, Request, status )
+from fastapi import ( FastAPI, WebSocket, Request, status , Depends , WebSocketDisconnect )
 
 
 # internal modules
 from lib_llm.helpers.llm import LLM
+from lib_api_services.helper import verify_token
 from lib_infrastructure.dispatcher import Dispatcher 
 from lib_youtube.youtube_search import YoutubeSearch
 from jwt import ExpiredSignatureError, InvalidTokenError
@@ -22,8 +23,9 @@ from lib_websocket_services.chat_service import ( process_llm_service )
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
                                              delete_chat_session_service , delete_query_service ,
-                                             delete_all_chats_service , search_sessions_service
+                                             delete_all_chats_service , search_sessions_service, get_query
                                              )
+
 
 
 # loading .env configs
@@ -36,8 +38,8 @@ COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 SESSION_PREFIX = os.getenv("SESSION_PREFIX")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
+MESSAGE_ID_PREFIX = os.getenv("MESSAGE_ID_PREFIX")
 EMBEDDINGS_QA_PAIRS = os.getenv("EMBEDDINGS_QA_PAIRS")
-
 
 
 # app initalization & setup
@@ -105,7 +107,6 @@ async def login(login_payload: login_schema):
     if user.google_access_token is None:
         # print("here")
         if validate_password(user, password):
-            # print("here (2)")
             token = generate_token_and_set_cookie(user.dict())
             return JSONResponse(status_code=status.HTTP_200_OK, content={
                 "success": True,
@@ -122,7 +123,6 @@ async def signup(signup_payload: signup_schema):
     user = UsersRepo.get_user(email)
     if user:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False, "message": "Email already registered"})
-    print(signup_payload)
     new_user = UsersRepo.insert_user(signup_payload)
     # print(new_user.dict())
     token = generate_token_and_set_cookie(new_user.dict())
@@ -153,11 +153,11 @@ async def verify_access( request : Request ):
 
 
     email = user_data["email"]
-    user_ = UsersRepo.get_user(email , without_model=True)
+    user_ = UsersRepo.get_user(email)
     if user_ : 
         return JSONResponse(status_code=status.HTTP_200_OK, content={
             "success": True,
-            "data": user_,
+            "data": user_.json(),
             "message": "working"})
     
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
@@ -165,56 +165,73 @@ async def verify_access( request : Request ):
 
 
 
-
 # API to retrieve queries by search
-@app.get("/search/query/{user_id}/")
-async def search_query(user_id : str , query: str):
+@app.get("/search/query")
+async def search_query( query: str , user_data = Depends(verify_token)):
+    user_id = user_data.get("id")
     if user_id : 
         responce = search_query_service( user_id ,  query)
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
 
+
 # API to retrieve sessions by search
-@app.get("/search/session/{user_id}/")
-async def search_session(user_id : str):
+@app.get("/search/session")
+async def search_session(user_data = Depends(verify_token)):
+    user_id = user_data.get("id")
     if user_id : 
         responce = search_sessions_service( user_id )
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
 
+
+
 # API to retrieve all Q/A in a session
 @app.get("/chat_history/{session_id}/")
-async def chat_history(session_id : str ):
-    if session_id : 
+async def chat_history(session_id : str , user_data = Depends(verify_token) ):
+    user_id = user_data.get("id")
+    if session_id and user_id: 
         responce = chat_session_service( session_id )
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" if not session_id else "user_id not provided" })
+
+# API to retrieve a message
+@app.get("/query/{query_id}/")
+async def retrieve_query(query_id : str , user_data = Depends(verify_token) ):
+    user_id = user_data.get("id")
+    if query_id and user_id: 
+        responce , status_code = get_query( query_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "query_id not provided" if not query_id else "user_id not provided" })
 
 # API to delete all Q/A in a session
 @app.delete("/chat_history/{session_id}/")
-async def delete_chat_history(session_id : str ):
-    if session_id : 
+async def delete_chat_history(session_id : str , user_data = Depends(verify_token) ):
+    user_id = user_data.get("id")
+    if session_id and user_id: 
         responce , status_code = delete_chat_session_service( session_id )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" })
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "session_id not provided" if not session_id else "user_id not provided" })
 
 # API to delete a single query
 @app.delete("/query/{query_id}/")
-async def delete_query(query_id : str ):
-    if query_id : 
+async def delete_query(query_id : str  , user_data = Depends(verify_token)):
+    user_id = user_data.get("id")
+    if query_id and user_id:
         responce , status_code = delete_query_service( query_id )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "query_id not provided" })
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "query_id not provided" if not query_id else "user_id not provided"  })
 
 # API to delete all Q/A in a database against a userID
-@app.delete("/all/chats/{user_id}")
-async def delete_all_chat( user_id : str ):
-
+@app.delete("/all/chats")
+async def delete_all_chat( user_data = Depends(verify_token) ):
+    user_id = user_data.get("id")
     if user_id : 
         responce , status_code = delete_all_chats_service( user_id )
         return JSONResponse(status_code=status_code , content = responce)
@@ -230,12 +247,43 @@ async def delete_all_chat( user_id : str ):
 @app.websocket("/invoke_llm/{user_id}/{session_id}")
 async def chat_invoke(websocket: WebSocket , user_id : str ,session_id : str):
     guid = user_id
+    message_index = 0
     stop_flag = asyncio.Event() 
     qa_pairs = int(EMBEDDINGS_QA_PAIRS)
-    
     prompt_generator = PromptGenerator()
     web_search = Cohere_Websearch( GOOGLE_API_KEY, SEARCH_ENGINE_ID ,  COHERE_API_KEY )
-    modelInstance = LLM(guid, session_id , qa_pairs , prompt_generator, web_search , OPENAI_API_KEY)
+    modelInstance = LLM( 
+        guid, session_id , qa_pairs , prompt_generator, web_search , 
+        OPENAI_API_KEY , MESSAGE_ID_PREFIX )
+
+    responce = chat_session_service( session_id )
+    if len(responce) > 0 :  
+        for message in responce : 
+            message_id = f"{MESSAGE_ID_PREFIX}{message_index}"
+            modelInstance.all_messages[ message_id.strip() ] = { 
+                "msg_id" : message.get("id" , None),
+                "user_msg" : message.get("user" , "") , 
+                "existing_msg" : True }
+            
+            modelInstance.all_messages[ message_id.strip() ]["web_links"] = message.get("web_links" , "")
+            modelInstance.all_messages[ message_id.strip() ]["recomendations"] = message.get("recomendations" , [])
+            if message.get("youtube_results" , None ) : 
+                modelInstance.all_messages[ message_id.strip() ]["youtube_results"] = message.get("youtube_results")
+            message_index +=1
+
+
+
+    # current Index will be one less then incase its > 0 because it will be auto incromented in process_llm
+    # function. As that function works once a message is sent, so it incriments it
+    if message_index > 0 :
+        modelInstance.starting_message_index = message_index
+        modelInstance.current_message_index = message_index - 1
+    # in case of 0 message_index, put starting_message_index to 1 to avoid error in llm.py while
+    # getting messages from all_messages because in that messages will be stored from 1
+    else :         
+        modelInstance.current_message_index = message_index
+        modelInstance.starting_message_index = message_index + 1
+
 
 
     await websocket.accept()
@@ -243,7 +291,6 @@ async def chat_invoke(websocket: WebSocket , user_id : str ,session_id : str):
         while True:
             data = await websocket.receive_json()
             if data : 
-
                 if data.get("action") == True:  # Check for stop action
                     stop_flag.set()  # Signal to stop processing
                     continue  # Skip the rest of the loop
@@ -252,13 +299,25 @@ async def chat_invoke(websocket: WebSocket , user_id : str ,session_id : str):
                 # Start processing responses in a separate task
                 asyncio.create_task(process_llm_service( 
                     data , modelInstance , stop_flag , 
-                    youtube_instance , websocket
+                    youtube_instance , MESSAGE_ID_PREFIX , 
+                    websocket
                     ))
 
 
+
+    except WebSocketDisconnect:
+            print(f"Client disconnected: user_id={user_id}, session_id={session_id}")
+            modelInstance.save_conversation()
     except Exception as e:
-        print(f"<<< Client Disconnected >>> {e}")
+        print(f"Unexpected error: {e}")
         modelInstance.save_conversation()
+
+    finally:
+        # Check if the WebSocket is still open before attempting to close it
+        if not websocket.client_state.name == "DISCONNECTED":
+            await websocket.close()
+        print(f"WebSocket connection closed for user {user_id}, session {session_id}")
+
         
 
 

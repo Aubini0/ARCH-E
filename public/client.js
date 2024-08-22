@@ -1,10 +1,19 @@
 let chat_socket;
+
+var message_id = 0;
+// for testing
+// var message_id = 3;
+
 let audioQueue = [];
 let isPlaying = false;
-const chatContainer = document.getElementById('chat_container');
+var connection_made = false;
 const inputField = document.getElementById("user-text-msg");
+const chatContainer = document.getElementById('chat_container');
+const feedbackInputField = document.getElementById("feedback-input");
+
 const sendBtn = document.getElementById("user-text-msg");
 var llmResponseDiv = null;
+var msg_rating = null;
 let audioContext = new (window.AudioContext || window.webkitAudioContext)();
 const currentDomain = window.location.origin;
 
@@ -167,21 +176,51 @@ function addLlmMessage(response, recommendations , web_links) {
 
 
 function sendMessage(){
+  let action = false;
+  let isfeedback = false;
   let user_msg = inputField.value;
+  localStorage.setItem("current_message" , user_msg)
   if(user_msg){
-    let data_sent = JSON.stringify({ "user_msg" : user_msg , "action" :  false })
+    let data_sent = JSON.stringify({  user_msg , action ,  isfeedback })
     chat_socket.send( data_sent )
     inputField.value = "";
+    message_id = message_id + 1;
     addUserMessage(user_msg);
   
   }
 }
 
 
+function rateFeedback(rating) {
+  msg_rating = rating
+}
+
+
+
+function sendRatingMessage(){
+  let action = false;
+  let isfeedback = true;
+  let feedback_value = feedbackInputField.value;
+  let feedback_message = localStorage.getItem("current_message");
+
+  // for testing
+  // message_id = 0 
+  if (feedback_message){
+    let data_sent = JSON.stringify({  feedback_message , feedback_value , message_id , msg_rating , isfeedback , action    })
+    chat_socket.send( data_sent )
+  }
+
+}
+
+
 function sendStopMessage(){
-  let data_sent = JSON.stringify({ "user_msg" : "" , "action" :  true })
+  let action = true;
+  let user_msg = "";
+  let isfeedback = false;
+  let data_sent = JSON.stringify({ user_msg , action , isfeedback })
   chat_socket.send( data_sent )
 }
+
 
 
 
@@ -196,6 +235,7 @@ inputField.addEventListener('keydown', function(event) {
 function main(user_id , session_id){
     const chat_websocketUrl = getWebSocketURL(`/invoke_llm/${user_id}/${session_id}`);
     console.log({ chat_websocketUrl });
+    connection_made = true;
 
     chat_socket = new WebSocket(chat_websocketUrl);
     chat_socket.onopen = async () => {
@@ -224,13 +264,20 @@ function main(user_id , session_id){
 
 
 
+
+
 window.addEventListener("load", () => {
+  // for testing
+  // localStorage.setItem("user_id" , "66c75eb51dea3c35aa0304f2")
+  // localStorage.setItem("session_id" , "chat_session_2177f974-f902-4695-ae67-6b584a3b318f")
+
   let user_id = localStorage.getItem("user_id");
   let session_id = localStorage.getItem("session_id");
 
   // Function to call main() once both user_id and session_id are available
   const checkAndCallMain = () => {
-    if (user_id && session_id) {
+    if (user_id && session_id && !connection_made) {
+      console.log("SUCCESSFULLY_HERE")
       main(user_id, session_id);
     }
   };
@@ -280,9 +327,6 @@ window.addEventListener("load", () => {
     checkAndCallMain();  // Check if both values are available
   }
 });
-
-
-
 
 
 

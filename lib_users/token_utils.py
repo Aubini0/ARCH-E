@@ -3,9 +3,9 @@ import os
 from datetime import datetime, timedelta
 
 def generate_token_and_set_cookie(user_info):
-    print(user_info)
     token = jwt.encode(
         {
+            "id" : user_info["id"],
             "email": user_info["email"],
             "exp": datetime.now() + timedelta(days=15)
         },

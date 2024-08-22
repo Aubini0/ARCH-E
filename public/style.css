@@ -334,3 +334,23 @@ h1 {
 
 
 
+
+
+
+.feedback-container {
+  margin-top: 10px;
+}
+
+.rating-buttons {
+  display: flex;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.rating-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: #ffd700; /* Gold color for the stars */
+}

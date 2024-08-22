@@ -80,7 +80,7 @@ def search_query_service( user_id , user_query ) :
             'session_id': chat['session_id'],
             'created_at': chat['created_at'].isoformat()  # Convert datetime to string
         }
-        for chat in chats_collection.find( query ).sort("created_at")
+        for chat in chats_collection.find( query , { "metadata" : 0} ).sort("created_at")
         ]
     
     return all_resp
@@ -137,8 +137,67 @@ def search_sessions_service( user_id  ) :
 
 def chat_session_service( session_id , limit = 10 ) :
     all_chats = []
-    all_chats = list(chats_collection.find({"session_id" : session_id} , { "created_at" : 0 ,  "_id": 0}).sort("created_at"))
+
+    all_chats = [  
+        {
+            "id"  : str(chat["_id"]),
+            'user': chat['user'],
+            'assistant': chat['assistant'],
+            'user_id': chat['user_id'],
+            'session_id': chat['session_id'],
+            "metadata" : chat["metadata"],
+            'created_at': chat['created_at'].isoformat()  # Convert datetime to string
+        }
+        for chat in chats_collection.find({"session_id" : session_id} ).sort("created_at")
+    ]
+
     return all_chats
+
+
+
+
+def get_query( query_id , limit = 10 ) :
+    try : 
+        chat = chats_collection.find_one({"_id" : ObjectId(query_id)} )
+        if not chat : 
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"No records found for query_id: {query_id}"
+            )
+
+        query = {
+            "id"  : str(chat["_id"]),
+            'user': chat['user'],
+            'assistant': chat['assistant'],
+            'user_id': chat['user_id'],
+            'session_id': chat['session_id'],
+            "metadata" : chat["metadata"],
+            'created_at': chat['created_at'].isoformat()  # Convert datetime to string
+        }
+        response = {
+            "status" : True,
+            "message": "Query Fetched.",
+            "data" : { "results" : query },
+        }
+
+        return response , status.HTTP_200_OK
+
+
+    except Exception as e : 
+        print(e)
+        if isinstance(e , HTTPException) : status_code = e.status_code
+        else : status_code = status.HTTP_400_BAD_REQUEST
+        response = {
+            "status" : False,
+            "message": "Failed to delete query.",
+            "data" : {},
+            "error": str(e),
+        }
+
+        return response , status_code
+
+
+
 
 def delete_query_service(query_id):
     try : 
@@ -241,3 +300,7 @@ def delete_chat_session_service(session_id):
 
 
 
+
+
+# Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YmQwZDRkMmJhY2Q0N2EzYjcxNjI4NyIsImVtYWlsIjoidGVzdDFAeW9wbWFpbC5jb20iLCJleHAiOjE3MjU2NTQxOTJ9.qonta-MlGnQmfZ8_M0l6rnQbi1g90Zh9HYg3FnLQ0Ck
+# Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2Yzc1ZWI1MWRlYTNjMzVhYTAzMDRmMiIsImVtYWlsIjoidGVzdF8xQHlvcG1haWwuY29tIiwiZXhwIjoxNzI1NjU1OTc2fQ.E3yKpNcc71pt2l-56k3Qdy7pDL_0WDsdugMUSHvq7xM

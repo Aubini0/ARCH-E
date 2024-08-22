@@ -19,7 +19,7 @@ class User(BaseModel):
         # index and unique property of username
         self.username = self.email
         # self.id = str(ObjectId())
-    # id: str = Field(default_factory=ObjectId, alias="_id")
+    id: Optional[str] 
     name: Optional[str]
     full_name: str = Field(...)
     username: Optional[str]

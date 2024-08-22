@@ -6,22 +6,16 @@ from bson.objectid import ObjectId
 class UsersRepo:
     
     @staticmethod
-    def get_user(email , without_model = False):
+    def get_user(email):
         try:
-            user = users_collection.find_one({
-                "email": { "$eq":email }
-            })
-            user['_id'] = str(user['_id'])
-            # print(user)
-            if without_model : 
-                user = { 
-                    "id" : user['_id'] , 'name': user['name'], 'full_name': user['full_name'], 
-                    'username': user['username'],
-                    'email': user['email'] }
-                return user
-            else : 
-                user_model = User(**user)
-                return user_model
+            user = users_collection.find_one(
+                { "email": { "$eq":email } },
+                # { "password": 0, "datetime": 0 }
+                )
+            user['id'] = str(user['_id'])
+            user_model = User(**user)
+            return user_model
+
         except Exception as e:
             print(e)
             return None

@@ -1,5 +1,7 @@
 from __future__ import annotations
 from enum import Enum
+from bson import ObjectId
+from pymongo import UpdateOne
 from datetime import datetime
 from bs4 import BeautifulSoup
 from openai import AsyncOpenAI , OpenAI
@@ -7,7 +9,7 @@ from lib_websearch.rag_template import RAGTemplate
 from langchain.llms import OpenAI as langchainOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import MongoDBAtlasVectorSearch
-from lib_database.db_connect import embeddings_collection , chats_collection
+from lib_database.db_connect import ( embeddings_collection , chats_collection , users_collection )
 
 
 
@@ -41,8 +43,11 @@ class LLM:
 
     def __init__( 
             self, guid , session_id , qa_pairs : int , prompt_generator , 
-            web_search_instance , api_key , model="4o", custom_functions=None
+            web_search_instance , api_key , message_id_prefix : str , 
+            model="4o", custom_functions=None, 
+            current_message_index : int = 0 , starting_message_index : int = 0
             ):
+
 
         self.guid = guid
         self.web_links = ""
@@ -52,10 +57,15 @@ class LLM:
         self.model = LLM.models[model]
         self.user_message_appened = False
         self.prompt_generator = prompt_generator
+        self.message_id_prefix = message_id_prefix
         self.custom_functions = custom_functions or []
         self.web_search_instance = web_search_instance
         self.client = AsyncOpenAI( api_key=self.api_key )
         self.client_sync = OpenAI( api_key=self.api_key )
+        # used for updating for each successive message in websocket
+        self.current_message_index = current_message_index
+        # used for referencing in saving chats for a starting point in loop
+        self.starting_message_index = starting_message_index
         self.langchain_llm = langchainOpenAI(openai_api_key=self.api_key, temperature=0)
         self.embeddings = OpenAIEmbeddings(openai_api_key=self.api_key)
         self.vectorStore = MongoDBAtlasVectorSearch( embeddings_collection, self.embeddings )
@@ -81,59 +91,92 @@ class LLM:
         conversation_pairs  , temp_pair , chat_pairs  , embedding_strings = [] , [] , [] , []
         # Combine pairs into strings of 2-3 pairs each
         combined_pairs , temp_combined , total_chat = [] , [] , []
-        # current_user_msg
-        current_user_msg = ""
 
         messages_array = self.messages
         for msg in messages_array:
-            if msg['role'] != 'system':
-                
+            if msg['role'] != 'system':                
                 temp_pair.append(f"{msg['role']}: {msg['content'].strip()}")
                 chat_pairs.append({  "role" : msg['role'] ,  "message" : msg['content'].strip() })
 
-                if  msg['role']  == "user" : 
-                    current_user_msg = msg['content']
-                    current_user_msg = current_user_msg.strip().lower()
 
-                if len(temp_pair) == 2:  # One user and one assistant message makes a pair
+                # One user and one assistant message makes a pair
+                if len(temp_pair) == 2: 
                     conversation_pairs.append(" ".join(temp_pair))
                     temp_pair = []
 
+                # One user and one assistant message makes a pair
                 if len(chat_pairs) == 2 : 
+                    message_id = f"{self.message_id_prefix}{self.starting_message_index}"
+
                     total_chat.append({ obj['role'] : obj['message'] for obj in chat_pairs })
                     total_chat[-1]['user_id'] = self.guid
-                    total_chat[-1]['metadata'] = self.all_messages.get( current_user_msg )
+
+                    metadata = self.all_messages.get( message_id.strip() )
+                    if metadata : 
+                        if metadata.get("user_msg" , None) :  del metadata["user_msg"]
+                        if metadata.get("existing_msg" , None) : del metadata["existing_msg"]
+                        total_chat[-1]['metadata'] = metadata
+
                     total_chat[-1]['session_id'] = self.session_id
                     total_chat[-1]['created_at'] = datetime.now()
 
                     chat_pairs = []
-                    current_user_msg = ""
+                    self.starting_message_index += 1
 
         for i, pair in enumerate(conversation_pairs):
             temp_combined.append(pair)
-            if len(temp_combined) == self.qa_pairs or i == len(conversation_pairs) - 1:  # Max 3 pairs or end of list
+            # Max 3 pairs or end of list
+            if len(temp_combined) == self.qa_pairs or i == len(conversation_pairs) - 1:  
                 combined_pairs.append(" ".join(temp_combined))
                 temp_combined = []
 
         embedding_strings.extend(combined_pairs)
         return embedding_strings , total_chat
 
-    def save_conversation(self) : 
-        embeddingsData , totalChat = self.create_embedding_strings(  )
-        metadatas = [ ]
-        for _ in range(0 , len(embeddingsData)) : 
-            metadatas.append({"user_id": self.guid , "session_id" : self.session_id})
-        
-        if len(embeddingsData) > 0 : 
-            self.vectorStore = self.vectorStore.from_texts( 
-                embeddingsData , self.embeddings , 
-                metadatas=metadatas ,  collection=embeddings_collection 
-            )
-        if len(totalChat) > 0 :        
-            # inserting chats to chat collection
-            chats_collection.insert_many( totalChat )
+    def save_previous_queries_feedback(self) : 
+        operations = [ ]
+        for value in self.all_messages.values() : 
+            msg_id = value.get("msg_id" , None)
+            rating_value = value.get("rating" , None)
+            feedback_value = value.get("feedback" , None)
+            existing_msg = value.get("existing_msg" , False)
+            if existing_msg and msg_id and ( rating_value or feedback_value ) :
+                update_fields = {}
+                if rating_value is not None: update_fields["metadata.rating"] = rating_value   
+                if feedback_value is not None: update_fields["metadata.feedback"] = feedback_value
+                operations.append(
+                    UpdateOne(
+                        {"_id": ObjectId(msg_id) }, 
+                        {"$set": update_fields}  # Set new values in metadata
+                    )
+                )
+        if len(operations) > 0 : 
+            chats_collection.bulk_write(operations)
+            print("Previous Queries Feedback updated")
 
-        print(" ... Embddings + Chats Added ... ")
+    def save_conversation(self) : 
+        try : user = users_collection.find_one({ "_id" : ObjectId(self.guid) } )
+        except : user = None
+
+        if user : 
+            embeddingsData , totalChat = self.create_embedding_strings(  )
+            metadatas = [ ]
+            for _ in range(0 , len(embeddingsData)) : 
+                metadatas.append({"user_id": self.guid , "session_id" : self.session_id})
+            
+            if len(embeddingsData) > 0 : 
+                self.vectorStore = self.vectorStore.from_texts( 
+                    embeddingsData , self.embeddings , 
+                    metadatas=metadatas ,  collection=embeddings_collection 
+                )
+            if len(totalChat) > 0 :        
+                # inserting chats to chat collection
+                chats_collection.insert_many( totalChat )
+                self.save_previous_queries_feedback()            
+
+            print(" ... Embddings + Chats Added ... ")
+        else : 
+            print(" ... Chat Session Ended ... ")
         
     def reset(self):
         self.messages = []
@@ -269,18 +312,3 @@ class LLM:
         return responce
 
 
-
-    # import time,  asyncio
-    # from langchain.document_loaders import DirectoryLoader
-    # from langchain.chains import RetrievalQA
-    # def vector_query(self, query ):
-    #     as_output = None
-    #     retriever = self.vectorStore.as_retriever()
-    #     docs = self.vectorStore.similarity_search(query, K=1)
-    #     if len(docs) > 0 :
-    #         as_output = docs[0].page_content
-    #     qa = RetrievalQA.from_chain_type(self.langchain_llm, chain_type="stuff", retriever=retriever)
-    #     # Execute the chain
-    #     retriever_output = qa.run(query)
-    #     print( ">>>" , as_output, ">>>" , retriever_output )
-    #     return retriever_output
