@@ -222,6 +222,16 @@ function sendStopMessage(){
 }
 
 
+function sendRegenerateMessage(){
+  let action = false;
+  let user_msg = "";
+  let isfeedback = false;
+  let regenerate_resp = true;
+  let data_sent = JSON.stringify({ user_msg , action , isfeedback ,  regenerate_resp})
+  chat_socket.send( data_sent )
+}
+
+
 
 
 inputField.addEventListener('keydown', function(event) {

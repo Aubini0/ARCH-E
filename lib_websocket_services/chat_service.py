@@ -19,7 +19,15 @@ async def process_llm_service(
             modelInstance.all_messages[message_id]["rating"] = message_rating
             modelInstance.all_messages[message_id]["feedback"] = message_feedback
 
-        print("Fetched_Obj :> " , msg_obj , "Current_Msg :> " , data)
+        print("Feedback & Rating updated")
+
+    elif data.get("regenerate_resp" , False) : 
+        message_id = f"{message_id_prefix}{modelInstance.current_message_index}"
+        del modelInstance.messages[-2:]
+        del modelInstance.all_messages[ message_id ]
+        modelInstance.current_message_index -= 1
+
+        print("Regenerate Responce")
 
 
     else : 
