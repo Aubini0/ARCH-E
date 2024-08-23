@@ -172,9 +172,11 @@ class LLM:
             if len(totalChat) > 0 :        
                 # inserting chats to chat collection
                 chats_collection.insert_many( totalChat )
-                self.save_previous_queries_feedback()            
+                
+            # updating previous messages feedback if any
+            self.save_previous_queries_feedback()            
 
-            print(" ... Embddings + Chats Added ... ")
+            print(" ... Embddings + Chats + FeedBack Added ... ")
         else : 
             print(" ... Chat Session Ended ... ")
         

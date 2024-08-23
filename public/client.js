@@ -206,11 +206,15 @@ function sendRatingMessage(){
   // for testing
   // message_id = 0 
   if (feedback_message){
-    let data_sent = JSON.stringify({  feedback_message , feedback_value , message_id , msg_rating , isfeedback , action    })
+    let data_sent = JSON.stringify({  
+      feedback_message , feedback_value , message_id , msg_rating , 
+      isfeedback , action    
+    })
     chat_socket.send( data_sent )
   }
-
 }
+
+
 
 
 function sendStopMessage(){
@@ -230,6 +234,7 @@ function sendRegenerateMessage(){
   let data_sent = JSON.stringify({ user_msg , action , isfeedback ,  regenerate_resp})
   chat_socket.send( data_sent )
 }
+
 
 
 
