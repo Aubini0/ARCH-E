@@ -1,3 +1,4 @@
+import copy
 from fastapi import ( WebSocket )
 from lib_llm.helpers.llm import LLM
 from lib_youtube.youtube_search import YoutubeSearch
@@ -34,7 +35,7 @@ async def process_llm_service(
         clear_messsge = { "clear" : True }
 
         user_msg=LLM.LLMMessage(role=LLM.Role.USER, content=data['user_msg'])
-        user_inital_message = data['user_msg']
+        user_inital_message = copy.deepcopy( user_msg )
 
 
 
@@ -63,7 +64,7 @@ async def process_llm_service(
         modelInstance.current_message_index += 1
         message_index = modelInstance.current_message_index
         message_id = f"{message_id_prefix}{message_index}"
-        modelInstance.all_messages[message_id.strip()] = { "user_msg" : user_inital_message } 
+        modelInstance.all_messages[message_id.strip()] = { "user_msg" : user_inital_message.content } 
 
 
         links_message = { 
@@ -80,7 +81,7 @@ async def process_llm_service(
         # send clear message to start new message
         await websocket.send_json(clear_messsge)
 
-        resp = modelInstance.recomendations(user_msg)
+        resp = modelInstance.recomendations(user_inital_message)
 
         llm_recomendations_resp = { 
             "response" : "" , "web_links" : "" , "recommendations" : resp , 
@@ -95,7 +96,7 @@ async def process_llm_service(
 
         # send youtube results    
         if modelInstance.check_web and not stop_flag.is_set(): 
-            resp = youtube_instance.search(user_inital_message)
+            resp = youtube_instance.search(user_inital_message.content)
             youtube_results_resp = { 
                 "response" : "" , "web_links" : "" , "recommendations" : "" , 
                 "youtube_results" : resp, "clear" : False 
