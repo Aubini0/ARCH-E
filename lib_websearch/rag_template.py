@@ -23,10 +23,10 @@ class RAGTemplate(BasePromptTemplate):
         - If there is no relevant context in the user chat history, use the web search results and apply citations.
         2. Generate Response:
         - From User Chat History: Construct a response using information from the previous chat. Do not include citations.
-        - From Web Search: Construct a response using the retrieved passages. Include citations in the format (Source [number]) for each piece of information.
+        - From Passages: Construct a response using the retrieved passages. Include citations in the format (Source [number]) for each piece of information.
         Example Usage:
         - If the user chat history contains relevant information, the response might be: "Based on our previous discussion, Miami is well-known for its vibrant culture and scenic beaches."
-        - If relying on web search results, the response might be: "Miami is famous for its beaches and nightlife (Source 1)."
+        - If relying on Passages, the response might be: "Miami is famous for its beaches and nightlife (Source 1)."
         This approach ensures that citations are only applied when the response is generated from web search results, maintaining clarity and credibility.
     """
 
