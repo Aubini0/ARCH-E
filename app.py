@@ -162,9 +162,6 @@ async def verify_access( request : Request ):
     
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
 
-
-
-
 # API to retrieve queries by search
 @app.get("/search/query")
 async def search_query( query: str , user_data = Depends(verify_token)):
@@ -175,7 +172,6 @@ async def search_query( query: str , user_data = Depends(verify_token)):
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
 
-
 # API to retrieve sessions by search
 @app.get("/search/session")
 async def search_session(user_data = Depends(verify_token)):
@@ -185,8 +181,6 @@ async def search_session(user_data = Depends(verify_token)):
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
-
-
 
 # API to retrieve all Q/A in a session
 @app.get("/chat_history/{session_id}/")

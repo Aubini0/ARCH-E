@@ -37,7 +37,7 @@ class Web_Reader :
                             text += (line.text.strip() + "\n")
 
                     text = text.strip()
-                    return {"status": True, "page_content": text}
+                    return {"status": True, "page_content": text , "source" : url}
 
         except Exception as e:
             return {"status": False, "error": str(e)}

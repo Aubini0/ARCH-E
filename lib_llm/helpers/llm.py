@@ -18,14 +18,14 @@ from lib_database.db_connect import ( embeddings_collection , chats_collection ,
 class LLM:
     # GPT Models
     models = {
+        "4o" : "gpt-4o",
         "4": "gpt-4-turbo", 
         "35": "gpt-3.5-turbo", 
+        "37" : "gpt-3.5-turbo-16k",
         "4+": "gpt-4-1106-preview",
         "36" : "gpt-3.5-turbo-1106",
-        "37" : "gpt-3.5-turbo-16k",
         "4++" : "gpt-4-0125-preview",
         "35++" : "gpt-3.5-turbo-0125",
-        "4o" : "gpt-4o"
     }
 
     class Role(Enum):
@@ -42,10 +42,10 @@ class LLM:
             return f"{self.role.value}: {self.content}"
 
     def __init__( 
-            self, guid , session_id , qa_pairs : int , prompt_generator , 
-            web_search_instance , api_key , message_id_prefix : str , 
-            model="4o", custom_functions=None, 
-            current_message_index : int = 0 , starting_message_index : int = 0
+        self, guid , session_id , qa_pairs : int , prompt_generator , 
+        web_search_instance , api_key , message_id_prefix : str , 
+        model="4o", custom_functions=None, 
+        current_message_index : int = 0 , starting_message_index : int = 0
             ):
 
 
@@ -71,7 +71,7 @@ class LLM:
         self.vectorStore = MongoDBAtlasVectorSearch( embeddings_collection, self.embeddings )
 
         self.reset()
-        print(f"GPT_Model :> {self.model}")
+        print(f"Model :> {self.model}")
 
 
     def vector_search(self, query , no_of_results=3 ): 
@@ -87,10 +87,10 @@ class LLM:
         return as_output
 
     def create_embedding_strings(self):
-        # Collect the user-assistant conversation pairs
-        conversation_pairs  , temp_pair , chat_pairs  , embedding_strings = [] , [] , [] , []
         # Combine pairs into strings of 2-3 pairs each
         combined_pairs , temp_combined , total_chat = [] , [] , []
+        # Collect the user-assistant conversation pairs
+        conversation_pairs  , temp_pair , chat_pairs  , embedding_strings = [] , [] , [] , []
 
         messages_array = self.messages
         for msg in messages_array:
@@ -185,8 +185,9 @@ class LLM:
         self.all_messages = {}
 
         self.add_message(
-            message=LLM.LLMMessage(LLM.Role.SYSTEM, str(self.prompt_generator))
+            message=LLM.LLMMessage(LLM.Role.SYSTEM, self.prompt_generator.get_main_llm_prompt())
         )
+
         self.recomendation_messages = self.messages
 
     def add_message(self, message: LLMMessage) -> None:
@@ -194,8 +195,8 @@ class LLM:
             {"role": message.role.value, "content": message.content}
         )
 
-    def pop_additional_info(self) -> None : 
-        self.messages[-1]['content'] = self.messages[-1]['content'].split("Question:")[-1]
+    def pop_additional_info(self , original_user_msg) -> None : 
+        self.messages[-1]['content'] = original_user_msg
 
     def parse_recomendations(self , html_string) : 
         soup = BeautifulSoup(html_string, 'html.parser')
@@ -229,22 +230,39 @@ class LLM:
         else:
             return False
 
+    def recomendations(self, message: LLM.LLMMessage) -> str:
+        reccomended_messages_array = [ 
+            self.recomendation_messages[0] , 
+            { 
+                "role" : message.role.value , 
+                "content" : self.prompt_generator.get_recommendation_llm_prompt( message.content ) 
+            }
+        ]
+
+        responce = self.client_sync.chat.completions.create(
+            model=self.model, messages=reccomended_messages_array,
+            stream=False, temperature=0.2
+        )
+
+        responce = responce.choices[0].message.content
+        responce = self.parse_recomendations(responce)
+        return responce
+
+
     async def interaction(self, message: LLM.LLMMessage) -> str:
-        similarity_resp = self.vector_search( message.content  )
-
-
+        original_user_msg = message.content
         self.check_web , web_results , self.user_message_appened = False ,  None , False
+
+
+        similarity_resp = self.vector_search( message.content  )
         self.check_web = self.check_web_required( message.content )
 
-        print(f"Check_Web :> {self.check_web} , WebResults : {web_results}")
+        print(f"Check_Web :> {self.check_web}")
 
         if self.check_web : 
             resp = await self.web_search_instance.run( message.content )
-            if resp['status'] : 
-                web_results , self.web_links = resp['compressed_docs'] , resp['links']
-            web_results = ". ".join(web_results)
+            if resp['status'] :  web_results , self.web_links = resp['compressed_docs'] , resp['links']
             print( "... Web_Search_Retrieved ..." )
-
         else : self.web_links = ""
 
 
@@ -288,7 +306,7 @@ class LLM:
 
 
         # strip out extra info from message prompt to store original message and its embeddings
-        self.pop_additional_info()
+        self.pop_additional_info( original_user_msg )
         self.user_message_appened = False
 
 
@@ -297,20 +315,4 @@ class LLM:
             content="".join(words).strip(),
         )
         self.add_message(message)
-
-    def recomendations(self, message: LLM.LLMMessage) -> str:
-        messages_array = [ 
-            self.recomendation_messages[0] , 
-            {"role": message.role.value, "content": message.content},
-            { "role" : message.role.value , "content" : "Generate 5 reference questions that the user can ask based on what we are talking about? Only give your answer in html format" }
-        ]
-        responce = self.client_sync.chat.completions.create(
-            model=self.model, messages=messages_array,
-            stream=False, temperature=0.2
-        )
-
-        responce = responce.choices[0].message.content
-        responce = self.parse_recomendations(responce)
-        return responce
-
 

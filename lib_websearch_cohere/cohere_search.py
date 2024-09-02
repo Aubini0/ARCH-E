@@ -11,25 +11,28 @@ class Cohere_Websearch :
     
     async def run(self , query , num_top_results = 4) : 
         try : 
-            tasks , shortListedLinks = [] , []
+            tasks = []
             links = self.search.get_links( query )
 
             for link in links[:num_top_results]:
                 tasks.append(self.reader.read_text(link))
-                shortListedLinks.append(link)
 
 
             responses = await asyncio.gather(*tasks)
-            documents = ""
-            
+            chunked_documents = []
             for resp in responses:
-                if resp['status']: documents += resp['page_content'] + "\n"
+                if resp["status"] : chunked_documents.extend( self.reranker.get_text_chunks_langchain( resp['page_content'] , resp['source'] ) )
                 else: print(f"Failed to extract content from {link}: {resp['error']}")
 
 
-            self.reranker.initalize_compressor(documents)
-            compressed_docs = self.reranker.get_top_k( query , k_results=3 )
-            return { "status" : True , "compressed_docs" : compressed_docs , "links" : shortListedLinks }
+            self.reranker.initalize_compressor(chunked_documents)
+            compressed_docs , shortListedLinks = self.reranker.get_top_k( query , k_results=3 )
+
+            return { 
+                "status" : True , 
+                "links" : shortListedLinks,
+                "compressed_docs" : compressed_docs , 
+                }
         
         except Exception as e :
             print(e) 

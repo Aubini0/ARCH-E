@@ -15,13 +15,13 @@ class Cohere_Reranker :
 
 
 
-    def get_text_chunks_langchain(self , text):
+    def get_text_chunks_langchain(self , text , source_url):
         text_splitter = RecursiveCharacterTextSplitter( chunk_size = 1200 , chunk_overlap = 20)
-        docs = [Document(page_content=x) for x in text_splitter.split_text(text)]
+        docs = [Document(page_content=x ,metadata={"source": source_url}) for x in text_splitter.split_text(text)]
         return docs
 
-    def initalize_compressor(self , raw_documents) : 
-        self.documents = self.get_text_chunks_langchain( raw_documents )
+    def initalize_compressor(self , chunked_documents) : 
+        self.documents = chunked_documents
         print("Total_Docs :> " , len(self.documents))
         self.db = Chroma.from_documents(self.documents, self.cohere_embeddings)
         self.compression_retriever = ContextualCompressionRetriever(
@@ -39,12 +39,16 @@ class Cohere_Reranker :
             k_results (int): The number of top results to return.
 
         Returns:
-            List[str]: A list of the top k relevant passages.
+            final_docs[str]: A list of the top k relevant passages.
+            shortListedLinks[str]: A list of sources used for genersting response.
         """
-        print("start query")
+        print("StartQuery")
         compressed_docs = self.compression_retriever.invoke(query)
-        print("CompressedDocs : " , len(compressed_docs))
-        final_docs = [doc.page_content for doc in compressed_docs[:k_results]]
-        print("FinalDocs : " , len(final_docs))
-        return final_docs
+        final_docs , shortListedLinks = [ ] , set()
+        for doc in  compressed_docs[:k_results] : 
+            final_docs.append({ "page_content" :  doc.page_content , "source" : doc.metadata["source"]} )
+            shortListedLinks.add(doc.metadata["source"])
+        shortListedLinks = list(shortListedLinks)
+        print("EndQuery" , "CompressedDocs : " , len(compressed_docs) , "FinalDocs : " , len(final_docs))
+        return final_docs , shortListedLinks
     
