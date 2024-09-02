@@ -17,10 +17,7 @@ class RAGTemplate(BasePromptTemplate):
         - Passages: {passages}
         - User Previous Chat: {previous_chat}
         Instructions:
-        1. Determine Context:
-        - Check if the user previous chat history provides sufficient context for the response.
-        - If there is no relevant context in the user chat history, use the Passages and apply citations.
-        2. Generate Response:
+        1. Generate Response:
         - From User Chat History: Construct a response using information from the previous chat. Do not include citations.
         - From Passages: Construct a response using the retrieved passages. Include citations in the format (Source [number]) for each piece of information.
         Example Usage:
