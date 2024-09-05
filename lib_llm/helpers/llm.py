@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 from enum import Enum
 from bson import ObjectId
 from pymongo import UpdateOne
@@ -249,6 +250,12 @@ class LLM:
         return responce
 
 
+    def remove_source_references(self , text):
+        text = re.sub(r'\(Source\s*\[\s*\d+\s*\]\)', '', text)
+        text = re.sub(r'\(Source\s*\d+\)', '', text)
+        return text.strip()
+
+
     async def interaction(self, message: LLM.LLMMessage) -> str:
         original_user_msg = message.content
         self.check_web , web_results , self.user_message_appened = False ,  None , False
@@ -309,10 +316,11 @@ class LLM:
         self.pop_additional_info( original_user_msg )
         self.user_message_appened = False
 
-
+        # strip out source[number] from assistant content
+        assistant_content = self.remove_source_references( "".join(words).strip(), )
         message = LLM.LLMMessage(
             role=LLM.Role.ASSISTANT,
-            content="".join(words).strip(),
+            content=assistant_content
         )
         self.add_message(message)
 
