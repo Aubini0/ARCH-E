@@ -26,7 +26,11 @@ class Cohere_Reranker :
         self.db = Chroma.from_documents(self.documents, self.cohere_embeddings)
         self.compression_retriever = ContextualCompressionRetriever(
             base_compressor=self.cohere_rerank, 
-            base_retriever=self.db.as_retriever( search_kwargs = {'k': 6} )
+            base_retriever=self.db.as_retriever(
+                # search_kwargs = {'k': 6} 
+                search_type="mmr",
+                search_kwargs={'k': 6, 'lambda_mult': 0.25 , "fetch_k" : 50}                 
+                 )
         )
 
 
