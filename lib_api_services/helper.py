@@ -13,7 +13,6 @@ def get_user_data_from_token(token: str) -> str:
         user_data = users_collection.find_one({ "_id"  : ObjectId( user_data["id"]) })
         if user_data : 
             user_data["id"] = str(user_data["_id"])
-            print(user_data)
             return user_data
         else : 
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= { "status" : True , "data" : { } , "message" : "User Not Found" })

@@ -100,12 +100,10 @@ async def get_sessionId( ):
 async def login(login_payload: login_schema):
     email = login_payload.email
     user = UsersRepo.get_user(email)
-    # print("USER :> " , user)
     password = login_payload.password
     if user is None:
         return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"success": False, "message": "Email not found"})
     if user.google_access_token is None:
-        # print("here")
         if validate_password(user, password):
             token = generate_token_and_set_cookie(user.dict())
             return JSONResponse(status_code=status.HTTP_200_OK, content={
@@ -124,7 +122,6 @@ async def signup(signup_payload: signup_schema):
     if user:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False, "message": "Email already registered"})
     new_user = UsersRepo.insert_user(signup_payload)
-    # print(new_user.dict())
     token = generate_token_and_set_cookie(new_user.dict())
     if new_user:
         return JSONResponse(status_code=status.HTTP_200_OK, content={

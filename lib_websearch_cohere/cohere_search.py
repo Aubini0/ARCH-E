@@ -17,7 +17,7 @@ class Cohere_Websearch :
             for link in links[:num_top_results]:
                 tasks.append(self.reader.read_text(link))
 
-
+            print(f"Links : {links}")
             responses = await asyncio.gather(*tasks)
             chunked_documents = []
             for resp in responses:

@@ -20,8 +20,11 @@ class Search:
             api_key (str): The API key for the Google Search API.
             search_engine_id (str): The search engine ID for the Google Custom Search Engine.
         """
+
         self.api_key = api_key
+        self.domain = "google.com"
         self.search_engine_id = search_engine_id
+        self.excluded_sites = "youtube.com spotify.com"
         self.url = "https://www.googleapis.com/customsearch/v1"
 
     def get_links(self, query: str) -> List[str]:
@@ -34,11 +37,15 @@ class Search:
         Returns:
             List[str]: A list of URLs of the top search results.
         """
+
         params = {
             'q': query,
             'key': self.api_key,
-            'cx': self.search_engine_id
+            'cx':  self.search_engine_id,
+            "googlehost" : self.domain,
+            "excludeTerms" : self.excluded_sites
         }
+        
         response = requests.get(self.url, params=params)
 
         if response.status_code == 200:
@@ -48,3 +55,4 @@ class Search:
         else:
             print(f"Error: {response.status_code}")
             return []
+
