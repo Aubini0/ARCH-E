@@ -10,7 +10,7 @@ from langchain.text_splitter import CharacterTextSplitter , RecursiveCharacterTe
 class Cohere_Reranker : 
     def __init__(self , api_key) -> None:
         self.api_key = api_key
-        self.cohere_rerank = CohereRerank(cohere_api_key=self.api_key , top_n=3)
+        self.cohere_rerank = CohereRerank(cohere_api_key=self.api_key , top_n=4)
         self.cohere_embeddings = CohereEmbeddings(cohere_api_key=self.api_key)
 
 

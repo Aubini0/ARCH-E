@@ -9,7 +9,7 @@ class Cohere_Websearch :
         self.search = Search(google_api_key, search_engine_id)
         self.reranker = Cohere_Reranker( cohere_api_key )
     
-    async def run(self , query , num_top_results = 4) : 
+    async def run(self , query , num_top_results = 6) : 
         try : 
             tasks = []
             links = self.search.get_links( query )
@@ -26,7 +26,7 @@ class Cohere_Websearch :
 
 
             self.reranker.initalize_compressor(chunked_documents)
-            compressed_docs , shortListedLinks = self.reranker.get_top_k( query , k_results=3 )
+            compressed_docs , shortListedLinks = self.reranker.get_top_k( query , k_results=4 )
 
             return { 
                 "status" : True , 

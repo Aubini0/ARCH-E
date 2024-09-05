@@ -24,7 +24,8 @@ class Search:
         self.api_key = api_key
         self.domain = "google.com"
         self.search_engine_id = search_engine_id
-        self.excluded_sites = "youtube.com spotify.com"
+        # self.excluded_sites = "youtube.com spotify.com"
+        self.excluded_sites = "youtube.com"
         self.url = "https://www.googleapis.com/customsearch/v1"
 
     def get_links(self, query: str) -> List[str]:

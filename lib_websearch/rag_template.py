@@ -18,12 +18,12 @@ class RAGTemplate(BasePromptTemplate):
         - User Previous Chat: {previous_chat}
         Instructions:
         1. Generate Response:
+        - Use Both of them to generate response
         - From User Chat History: Construct a response using information from the previous chat. Do not include citations.
         - From Passages: Construct a response using the retrieved passages. Include citations in the format (Source [number]) for each piece of information.
         Example Usage:
         - If the user chat history contains relevant information, the response might be: "Based on our previous discussion, Miami is well-known for its vibrant culture and scenic beaches."
         - If relying on Passages, the response might be: "Miami is famous for its beaches and nightlife (Source 1)."
-        This approach ensures that citations are only applied when the response is generated from web search results, maintaining clarity and credibility.
     """
 
 
