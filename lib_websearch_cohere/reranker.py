@@ -46,13 +46,39 @@ class Cohere_Reranker :
             final_docs[str]: A list of the top k relevant passages.
             shortListedLinks[str]: A list of sources used for genersting response.
         """
-        print("StartQuery")
+        # compressed_docs = self.compression_retriever.invoke(query)
+        # final_docs , shortListedLinks = [ ] , set()
+        # for doc in  compressed_docs[:k_results] : 
+        #     final_docs.append({ "page_content" :  doc.page_content , "source" : doc.metadata["source"]} )
+        #     shortListedLinks.add(doc.metadata["source"])
+        # shortListedLinks = list(shortListedLinks)
+        # print("EndQuery" , "CompressedDocs : " , len(compressed_docs) , "FinalDocs : " , len(final_docs))
+        # return final_docs , shortListedLinks
+
+
+        # Retrieve documents and initialize variables
         compressed_docs = self.compression_retriever.invoke(query)
-        final_docs , shortListedLinks = [ ] , set()
-        for doc in  compressed_docs[:k_results] : 
-            final_docs.append({ "page_content" :  doc.page_content , "source" : doc.metadata["source"]} )
-            shortListedLinks.add(doc.metadata["source"])
-        shortListedLinks = list(shortListedLinks)
-        print("EndQuery" , "CompressedDocs : " , len(compressed_docs) , "FinalDocs : " , len(final_docs))
-        return final_docs , shortListedLinks
-    
+        final_docs, shortListedLinks, source_map , source_counter = [], set(), {} , 1
+
+        # Iterate through retrieved documents up to k_results
+        for doc in compressed_docs[:k_results]:
+            source = doc.metadata["source"]
+            
+            # Only map new sources, using set for fast lookup
+            if source not in source_map:
+                source_map[source] = source_counter
+                source_counter += 1
+            
+            # Append the document with page content and source number
+            final_docs.append({
+                "page_content": doc.page_content,
+                "source": source,
+                "source_number": source_map[source]
+            })
+            
+            # Add to shortListedLinks set (no need to convert to set at the end)
+            shortListedLinks.add(source)
+
+        print("EndQuery. CompressedDocs :>", len(compressed_docs), "FinalDocs :>", len(final_docs))
+        
+        return final_docs, list(shortListedLinks)    

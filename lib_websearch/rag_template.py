@@ -19,11 +19,11 @@ class RAGTemplate(BasePromptTemplate):
         Instructions:
         1. Generate Response:
         - Use Both of them to generate response
-        - From User Chat History: Construct a response using information from the previous chat. Do not include citations.
-        - From Passages: Construct a response using the retrieved passages. Include citations in the format (Source [number]) for each piece of information.
+        - From User Chat History: Construct a response using information from the previous chat
+        - From Passages: Construct a response using the retrieved passages. Include citations in the format (Source [source_number] [source]) for each piece of information.
         Example Usage:
-        - If the user chat history contains relevant information, the response might be: "Based on our previous discussion, Miami is well-known for its vibrant culture and scenic beaches."
-        - If relying on Passages, the response might be: "Miami is famous for its beaches and nightlife (Source 1)."
+        - If using the user chat history, the response might be: "Based on our previous discussion, Miami is well-known for its vibrant culture and scenic beaches."
+        - If using the passages, the response might be: "Miami is famous for its beaches and nightlife (Source 1 https://www/example.com)."
     """
 
 
@@ -36,9 +36,9 @@ class RAGTemplate(BasePromptTemplate):
         1. Determine Context:
         - Use the web search results and apply citations.
         2. Generate Response:
-        - From Web Search: Construct a response using the retrieved passages. Include citations in the format (Source [number]) for each piece of information.
+        - From Web Search: Construct a response using the retrieved passages. Include citations in the format (Source [source_number] [source]) for each piece of information.
         Example Usage:
-        - If relying on web search results, the response might be: "Miami is famous for its beaches and nightlife (Source 1)."
+        - If relying on web search results, the response might be: "Miami is famous for its beaches and nightlife (Source 1 https://www/example.com)."
     """
 
 
