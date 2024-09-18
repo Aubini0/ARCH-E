@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr 
 
 
 class invoke_llm_schema(BaseModel):
@@ -14,3 +14,5 @@ class signup_schema(BaseModel):
     full_name: str
     email: EmailStr
     password: str
+
+

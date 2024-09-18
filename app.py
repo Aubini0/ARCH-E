@@ -1,12 +1,15 @@
 # external modules
 import os , uuid , asyncio
+from typing import Optional
+from datetime import datetime
 from dotenv import load_dotenv
 from lib_users.repo import UsersRepo
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import ( FastAPI, WebSocket, Request, status , Depends , WebSocketDisconnect )
+from fastapi import ( FastAPI, UploadFile, File, Form ,  WebSocket, Request, 
+                     status , Depends , WebSocketDisconnect )
 
 
 # internal modules
@@ -17,7 +20,7 @@ from lib_youtube.youtube_search import YoutubeSearch
 from jwt import ExpiredSignatureError, InvalidTokenError
 from lib_users.password_utils import ( validate_password )
 from lib_llm.helpers.prompt_generator import PromptGenerator
-from api_request_schemas import ( login_schema, signup_schema )
+from api_request_schemas import ( login_schema, signup_schema  )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
@@ -25,6 +28,8 @@ from lib_api_services.search_service import ( chat_session_service, search_query
                                              delete_chat_session_service , delete_query_service ,
                                              delete_all_chats_service , search_sessions_service, get_query
                                              )
+
+
 
 
 
@@ -89,13 +94,14 @@ async def get_guest_userId( ):
     guid = str(uuid.uuid4())
     return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "user_id" : guid } , "message" : "user_id returned" })
 
-# API to get user_id for websocket
+# API to get session_id for websocket caht sessions
 @app.get("/session/id")
 async def get_sessionId( ):
     # generate seesion_id for new chat
     session_id = f"{SESSION_PREFIX}{str(uuid.uuid4())}" 
     return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "session_id" : session_id } , "message" : "session_id returned" })
 
+# API to login
 @app.post("/auth/login", status_code=200)
 async def login(login_payload: login_schema):
     email = login_payload.email
@@ -115,6 +121,7 @@ async def login(login_payload: login_schema):
         
     return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={"success": False, "message": "Wrong email or password"})
 
+# API to signup
 @app.post("/auth/signup", status_code=200)
 async def signup(signup_payload: signup_schema):
     email = signup_payload.email
@@ -133,6 +140,7 @@ async def signup(signup_payload: signup_schema):
         })
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False,"message": "An error occurred"})
 
+# API to get user info
 @app.get("/auth/verify_access", status_code=200)
 async def verify_access( request : Request ):
     headers = request.headers
@@ -158,6 +166,51 @@ async def verify_access( request : Request ):
             "message": "working"})
     
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
+
+
+
+# API to edit profile
+@app.put("/auth/user/profile")
+async def edit_profile(
+    full_name: Optional[str] = Form(None),  # Use Form for form fields
+    file: Optional[UploadFile] = File(None),  # Use File for file uploads
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    
+    if not user_id:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={
+            "status": False,
+            "data": {},
+            "message": "User not found"
+        })
+    
+    update_data = {}
+    # Handle form data and file
+    if full_name:
+        print(f"Full name: {full_name}")
+        update_data["full_name"] = full_name
+    if file:
+        print(f"File received: {file.filename}")
+        _, file_extension = os.path.splitext(file.filename)
+                
+        # Here you'd save the file (e.g., on disk or cloud storage)
+        file_location = f"public/uploads/profile_pictures/{user_id}{file_extension}"
+        with open(file_location, "wb") as f:
+            f.write(file.file.read())
+        update_data["profilePic"] = file_location
+
+    update_data["updatedAt"] = datetime.now()
+
+    updated_user = UsersRepo.update_user( user_id , update_data )
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content={
+        "status": True,
+        "data": { "updated_user" : updated_user.json() },
+        "message": "Profile updated"
+    })
+
+
 
 # API to retrieve queries by search
 @app.get("/search/query")
