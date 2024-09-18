@@ -193,12 +193,14 @@ async def edit_profile(
     if file:
         print(f"File received: {file.filename}")
         _, file_extension = os.path.splitext(file.filename)
-                
-        # Here you'd save the file (e.g., on disk or cloud storage)
-        file_location = f"public/uploads/profile_pictures/{user_id}{file_extension}"
+
+        file_name = f"{user_id}{file_extension}"                
+        file_location = f"public/uploads/profile_pictures/{file_name}"
         with open(file_location, "wb") as f:
             f.write(file.file.read())
-        update_data["profilePic"] = file_location
+        
+        server_location = f"https://api.arche.social/uploads/profile_pictures/{file_name}"
+        update_data["profilePic"] = server_location
 
     update_data["updatedAt"] = datetime.now()
 
