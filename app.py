@@ -24,7 +24,7 @@ from lib_llm.helpers.prompt_generator import PromptGenerator
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 
-from api_request_schemas import ( login_schema, signup_schema , folder_schema , object_id_schema  )
+from api_request_schemas import ( login_schema, signup_schema , folder_schema , object_id_schema,NoteSchema  )
 
 from lib_utils.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
@@ -37,6 +37,8 @@ from lib_api_services.file_management_service import ( upload_file_service , ret
                                                       retrieve_files_of_folder_service, delete_file_service,
                                                       update_file_service
                                                       )
+
+from lib_api_services.notes_service import ( create_note_service , delete_note_service)
 
 
 
@@ -328,6 +330,32 @@ async def retrieve_files_of_folder(
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "folder_id not provided" })
 
+#API TO CREATE NOTES SERVICE
+@app.get("/notes/create/note") 
+async def create_note( 
+    notes_payload : NoteSchema,
+    user_data = Depends(verify_token) 
+):
+    user_id = user_data.get("id")     
+    if user_id:  
+        responce , status_code = create_note_service( user_id , notes_payload )
+        return JSONResponse(status_code=status_code , content = responce)
+    else :  
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+
+#API TO DELETE NOTES
+@app.get("/notes/delete/note") 
+async def delete_note( 
+    notes_payload : NoteSchema, 
+    user_data = Depends(verify_token) 
+):
+    user_id = user_data.get("id")     
+    if user_id:     
+        responce , status_code = delete_note_service( user_id , notes_payload )
+        return JSONResponse(status_code=status_code , content = responce)
+    else :  
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
 
 
 

@@ -33,8 +33,10 @@ class FilesRepo:
         try:
             id = ObjectId(id)
             query = {
+
                 "user_id": id,
                 "$or": [
+
                     {"folder_id": None}, {"folder_id": {"$exists": False}} 
                 ]
             }

@@ -19,7 +19,11 @@ class signup_schema(BaseModel):
 class folder_schema(BaseModel) : 
     folder_name : str
 
-
+class NoteSchema(BaseModel): 
+    text: str
+    x_position: float
+    y_position: float
+    z_position: float
 
 class object_id_schema(BaseModel) : 
     id : ObjectId
@@ -37,3 +41,4 @@ class object_id_schema(BaseModel) :
 
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
+

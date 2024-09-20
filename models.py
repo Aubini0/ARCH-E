@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Optional, List
 from pydantic import ( BaseModel, Field, EmailStr , validator )
 
-
 class User(BaseModel):
     def __init__(self,  **data) -> None:
         super().__init__(**data)
@@ -77,3 +76,22 @@ class Folders(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
+
+
+class Notes(BaseModel):
+    text: str
+    user_id: ObjectId
+    x_position: float
+    y_position: float
+    z_position: float
+    createdAt: datetime = Field(default_factory=datetime.now)
+    updatedAt: datetime = Field(default_factory=datetime.now)
+
+    @validator('user_id')  
+    def validate_object_id(cls, value):
+        if not isinstance(value, ObjectId):
+            raise ValueError('Invalid ObjectId')
+        return value  
+
+    class Config:
+        arbitrary_types_allowed = True 
