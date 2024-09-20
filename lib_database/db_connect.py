@@ -17,21 +17,23 @@ MONGO_PASSWORD_PROD = os.getenv("PASSWORDMONGO_PROD")
 
 
 dbName = os.getenv("DB_NAME")
+notes_collection_name = os.getenv("NOTES_COLLECTION")
 files_collection_name = os.getenv("FILES_COLLECTION")
 chat_collection_name = os.getenv("CHAT_DB_COLLECTION")
 users_collection_name = os.getenv("USER_DB_COLLECTION")
 folders_collection_name = os.getenv("FOLDERS_COLLECTION")
 embeddings_collection_name = os.getenv("EMBEDDINGS_COLLECTION")
-notes_collection = os.getenv("NOTES_COLLECTION")
 
 
 MONGO_URI_DEV = f'mongodb+srv://{MONGO_USERNAME_DEV}:{MONGO_PASSWORD_DEV}@{MONGO_HOST_DEV}/?retryWrites=true&w=majority'
 MONGO_URI_PROD = f'mongodb+srv://{MONGO_USERNAME_PROD}:{MONGO_PASSWORD_PROD}@{MONGO_HOST_PROD}/?retryWrites=true&w=majority'
 
 client = MongoClient(MONGO_URI_PROD)
+
 chats_collection = client[dbName][chat_collection_name]
 users_collection = client[dbName][users_collection_name]
 files_collection = client[dbName][files_collection_name]
+notes_collection = client[dbName][notes_collection_name]
 folders_collection = client[dbName][folders_collection_name]
 embeddings_collection = client[dbName][embeddings_collection_name]
 
