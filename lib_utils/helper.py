@@ -1,7 +1,7 @@
 import re
 import copy
 from bson import ObjectId
-from lib_users.token_utils import decode_token
+from lib_utils.token_utils import decode_token
 from fastapi import Request, HTTPException, status
 from lib_database.db_connect import users_collection
 from jwt import ExpiredSignatureError, InvalidTokenError

@@ -5,7 +5,8 @@ from fastapi import status , HTTPException
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import MongoDBAtlasVectorSearch
 from lib_database.db_connect import embeddings_collection ,chats_collection
-from lib_api_services.helper import segregate_qa_pairs , find_matching_query , make_chunks , extract_keywords
+from lib_utils.helper import ( segregate_qa_pairs , find_matching_query , make_chunks , 
+                              extract_keywords)
 
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -85,8 +86,6 @@ def search_query_service( user_id , user_query ) :
     
     return all_resp
 
-
-
 def search_sessions_service( user_id  ) : 
 
     pipeline = [
@@ -133,8 +132,6 @@ def search_sessions_service( user_id  ) :
 
     return all_resp
 
-
-
 def chat_session_service( session_id , limit = 10 ) :
     all_chats = []
 
@@ -152,9 +149,6 @@ def chat_session_service( session_id , limit = 10 ) :
     ]
 
     return all_chats
-
-
-
 
 def get_query( query_id , limit = 10 ) :
     try : 
@@ -195,9 +189,6 @@ def get_query( query_id , limit = 10 ) :
         }
 
         return response , status_code
-
-
-
 
 def delete_query_service(query_id):
     try : 
@@ -302,5 +293,3 @@ def delete_chat_session_service(session_id):
 
 
 
-# Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2YmQwZDRkMmJhY2Q0N2EzYjcxNjI4NyIsImVtYWlsIjoidGVzdDFAeW9wbWFpbC5jb20iLCJleHAiOjE3MjU2NTQxOTJ9.qonta-MlGnQmfZ8_M0l6rnQbi1g90Zh9HYg3FnLQ0Ck
-# Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY2Yzc1ZWI1MWRlYTNjMzVhYTAzMDRmMiIsImVtYWlsIjoidGVzdF8xQHlvcG1haWwuY29tIiwiZXhwIjoxNzI1NjU1OTc2fQ.E3yKpNcc71pt2l-56k3Qdy7pDL_0WDsdugMUSHvq7xM

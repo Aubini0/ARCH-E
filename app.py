@@ -3,7 +3,7 @@ import os , uuid , asyncio
 from typing import Optional
 from datetime import datetime
 from dotenv import load_dotenv
-from lib_users.repo import UsersRepo
+from lib_db_repos import UsersRepo
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -14,22 +14,25 @@ from fastapi import ( FastAPI, UploadFile, File, Form ,  WebSocket, Request,
 
 # internal modules
 from lib_llm.helpers.llm import LLM
-from lib_api_services.helper import verify_token
+from lib_utils.helper import verify_token
+from lib_utils.file_utils import ( upload_file )
 from lib_infrastructure.dispatcher import Dispatcher 
 from lib_youtube.youtube_search import YoutubeSearch
 from jwt import ExpiredSignatureError, InvalidTokenError
-from lib_users.password_utils import ( validate_password )
+from lib_utils.password_utils import ( validate_password )
 from lib_llm.helpers.prompt_generator import PromptGenerator
-from api_request_schemas import ( login_schema, signup_schema  )
+from api_request_schemas import ( login_schema, signup_schema , folder_schema  )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
-from lib_users.token_utils import ( generate_token_and_set_cookie , decode_token )
+from lib_utils.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
                                              delete_chat_session_service , delete_query_service ,
                                              delete_all_chats_service , search_sessions_service, get_query
                                              )
 
-
+from lib_api_services.file_management_service import ( upload_file_service , retrieve_files_service , 
+                                                      create_folder_service , retrieve_folders_service
+                                                      )
 
 
 
@@ -167,8 +170,6 @@ async def verify_access( request : Request ):
     
     return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "success" : False, "message" : "Not authorized"})
 
-
-
 # API to edit profile
 @app.put("/auth/user/profile")
 async def edit_profile(
@@ -191,16 +192,12 @@ async def edit_profile(
         print(f"Full name: {full_name}")
         update_data["full_name"] = full_name
     if file:
-        print(f"File received: {file.filename}")
-        _, file_extension = os.path.splitext(file.filename)
-
-        file_name = f"{user_id}{file_extension}"                
-        file_location = f"public/uploads/profile_pictures/{file_name}"
-        with open(file_location, "wb") as f:
-            f.write(file.file.read())
-        
-        server_location = f"https://api.arche.social/uploads/profile_pictures/{file_name}"
-        update_data["profilePic"] = server_location
+        file_server_location = "public/uploads/profile_pictures"
+        file_base_url_path = "https://api.arche.social/uploads/profile_pictures"
+        response = upload_file( user_id , file , file_server_location , file_base_url_path )
+        if response["status"] : 
+            server_location = response["location"]
+            update_data["profilePic"] = server_location
 
     update_data["updatedAt"] = datetime.now()
 
@@ -211,6 +208,65 @@ async def edit_profile(
         "data": { "updated_user" : updated_user.json() },
         "message": "Profile updated"
     })
+
+# API to upload file
+@app.post("/file-management/upload/file")
+async def upload_files(
+    file: UploadFile = File(None),  # Use File for file uploads
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id:
+        responce , status_code = upload_file_service( user_id , file )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+# API to retrieve files
+@app.get("/file-management/retrieve/files")
+async def retrieve_files(
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id:
+        responce , status_code = retrieve_files_service( user_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+
+# API to create folder
+@app.post("/file-management/create/folder")
+async def create_folder(
+    folder_payload : folder_schema,
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id:
+        responce , status_code = create_folder_service( user_id , folder_payload )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+
+
+# API to retrieve folders
+@app.get("/file-management/retrieve/folders")
+async def retrieve_folders(
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id:
+        responce , status_code = retrieve_folders_service( user_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+
+
+
+
+
 
 
 
@@ -284,10 +340,6 @@ async def delete_all_chat( user_data = Depends(verify_token) ):
 
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" })
-
-
-
-
 
 # WebSocket endpoint for Q/A between LLM
 @app.websocket("/invoke_llm/{user_id}/{session_id}")

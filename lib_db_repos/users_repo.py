@@ -1,6 +1,6 @@
 from lib_database.db_connect import users_collection
-from lib_users.models import User
-from lib_users.password_utils import hash_password
+from models import User
+from lib_utils.password_utils import hash_password
 from bson.objectid import ObjectId
 from typing import Optional
 

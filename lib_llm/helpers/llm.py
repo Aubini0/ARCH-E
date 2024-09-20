@@ -6,7 +6,7 @@ from pymongo import UpdateOne
 from datetime import datetime
 from bs4 import BeautifulSoup
 from openai import AsyncOpenAI , OpenAI
-from lib_websearch.rag_template import RAGTemplate
+from lib_websearch_cohere.rag_template import RAGTemplate
 from langchain.llms import OpenAI as langchainOpenAI
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import MongoDBAtlasVectorSearch

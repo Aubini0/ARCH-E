@@ -1,5 +1,5 @@
 from langchain.prompts import PromptTemplate
-from lib_websearch.base_template import BasePromptTemplate
+from lib_websearch_cohere.base_template import BasePromptTemplate
 from typing import Optional
 
 class RAGTemplate(BasePromptTemplate):
