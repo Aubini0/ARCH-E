@@ -16,6 +16,10 @@ def upload_file(user_id , file , file_server_location ,  file_base_url_path , is
         _, file_extension = os.path.splitext(file.filename)
 
         if is_unique : 
+            # in case of unique files make all of same extension
+            # to avoid over head of scanning for duplicates each time
+            # a new file is created. 
+            file_extension = ".png"
             file_name = f"{user_id}{file_extension}"                
             file_location = f"{file_base_url_path}/{file_name}"
             file_server_location = f"{file_server_location}/{file_name}"
