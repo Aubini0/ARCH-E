@@ -25,6 +25,7 @@ folders_collection_name = os.getenv("FOLDERS_COLLECTION")
 embeddings_collection_name = os.getenv("EMBEDDINGS_COLLECTION")
 
 
+
 MONGO_URI_DEV = f'mongodb+srv://{MONGO_USERNAME_DEV}:{MONGO_PASSWORD_DEV}@{MONGO_HOST_DEV}/?retryWrites=true&w=majority'
 MONGO_URI_PROD = f'mongodb+srv://{MONGO_USERNAME_PROD}:{MONGO_PASSWORD_PROD}@{MONGO_HOST_PROD}/?retryWrites=true&w=majority'
 

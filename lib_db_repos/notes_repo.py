@@ -24,7 +24,7 @@ class NotesRepo:
         return doc
 
     @staticmethod
-    def get_notes(user_id: str):
+    def get_notes(user_id: str): 
         try:
             
             user_id = ObjectId(user_id)
@@ -41,7 +41,7 @@ class NotesRepo:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error retrieving notes: {str(e)}"
-            )
+            ) 
 
     @staticmethod
     def create_note(data):
@@ -62,7 +62,31 @@ class NotesRepo:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Error creating note: {str(e)}"
             )
-    
+
+    @staticmethod
+    def update_note(note_id: str, data):
+        try:
+            note_id = ObjectId(note_id)
+
+            update_data = {key: value for key, value in data.items() if value is not None}
+
+            result = notes_collection.update_one(
+                {"_id": note_id},
+                {"$set": update_data}
+            )
+            if result.matched_count == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Note not found"
+                )
+
+            return {"status": True, "message": "Note updated successfully."}
+
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error updating note: {str(e)}"
+            )
 
 
     @staticmethod
