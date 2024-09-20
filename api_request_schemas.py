@@ -20,7 +20,7 @@ class folder_schema(BaseModel) :
     folder_name : str
 
 class NoteSchema(BaseModel): 
-    text: str
+    text: str 
     x_position: float
     y_position: float
-    z_position: float
+    z_position: float 

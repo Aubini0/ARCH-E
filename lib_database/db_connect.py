@@ -22,7 +22,7 @@ chat_collection_name = os.getenv("CHAT_DB_COLLECTION")
 users_collection_name = os.getenv("USER_DB_COLLECTION")
 folders_collection_name = os.getenv("FOLDERS_COLLECTION")
 embeddings_collection_name = os.getenv("EMBEDDINGS_COLLECTION")
-notes_collection = os.getenv("NOTES_COLLECTION")
+notes_collection_name = os.getenv("NOTES_COLLECTION")
 
 
 MONGO_URI_DEV = f'mongodb+srv://{MONGO_USERNAME_DEV}:{MONGO_PASSWORD_DEV}@{MONGO_HOST_DEV}/?retryWrites=true&w=majority'

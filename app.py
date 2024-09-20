@@ -21,7 +21,7 @@ from lib_youtube.youtube_search import YoutubeSearch
 from jwt import ExpiredSignatureError, InvalidTokenError
 from lib_utils.password_utils import ( validate_password )
 from lib_llm.helpers.prompt_generator import PromptGenerator
-from api_request_schemas import ( login_schema, signup_schema , folder_schema, NoteSchema  )
+from api_request_schemas import ( login_schema, signup_schema , folder_schema, NoteSchema)
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 from lib_utils.token_utils import ( generate_token_and_set_cookie , decode_token )
@@ -227,7 +227,7 @@ async def upload_files(
 # API to retrieve files
 @app.get("/file-management/retrieve/files")
 async def retrieve_files(
-    user_data = Depends(verify_token)
+    user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")
     if user_id:
@@ -239,9 +239,9 @@ async def retrieve_files(
 
 # API to create folder
 @app.post("/file-management/create/folder")
-async def create_folder(
+async def create_folder(  
     folder_payload : folder_schema,
-    user_data = Depends(verify_token)
+    user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")
     if user_id:
@@ -255,7 +255,7 @@ async def create_folder(
 # API to retrieve folders
 @app.get("/file-management/retrieve/folders")
 async def retrieve_folders(
-    user_data = Depends(verify_token)
+    user_data = Depends(verify_token)      
 ):
     user_id = user_data.get("id")
     if user_id:
@@ -267,10 +267,10 @@ async def retrieve_folders(
 
 
 #API TO CREATE NOTES SERVICE
-@app.get("/notes/create/note") 
+@app.post("/notes/create/note") 
 async def create_note( 
     notes_payload : NoteSchema,
-    user_data = Depends(verify_token) 
+    user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")     
     if user_id:  
@@ -281,17 +281,21 @@ async def create_note(
 
 
 #API TO DELETE NOTES
-@app.get("/notes/delete/note") 
+@app.delete("/notes/delete/note/{note_id}")  
 async def delete_note( 
-    notes_payload : NoteSchema, 
-    user_data = Depends(verify_token) 
+    note_id: str, 
+    user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")     
     if user_id:     
-        responce , status_code = delete_note_service( user_id , notes_payload )
-        return JSONResponse(status_code=status_code , content = responce)
-    else :  
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+        response, status_code = delete_note_service(user_id, note_id)
+        return JSONResponse(status_code=status_code, content=response)
+    else:  
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={
+            "status": False,
+            "data": {},
+            "message": "user_id not provided" 
+        })
 
 
 # API TO UPDATE NOTES SERVICE
@@ -299,7 +303,7 @@ async def delete_note(
 async def update_note(
     note_id: str,
     notes_payload: NoteSchema,
-    user_data = Depends(verify_token)
+    user_data = Depends(verify_token) 
 ):
     user_id = user_data.get("id")
     if user_id:
@@ -308,11 +312,11 @@ async def update_note(
     else:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={
             "status": False,
-            "message": "Unauthorized", 
+            "message": "Unauthorized",  
             "data": {}
         })
 
-# API TO LIST ALL  NOTES 
+# API TO LIST ALL  NOTES    
 @app.get("/notes")
 async def get_all_notes(user_data = Depends(verify_token)):
     user_id = user_data.get("id")
@@ -327,9 +331,8 @@ async def get_all_notes(user_data = Depends(verify_token)):
         })
 
 
-
 # API to retrieve queries by search
-@app.get("/search/query")
+@app.get("/search/query") 
 async def search_query( query: str , user_data = Depends(verify_token)):
     user_id = user_data.get("id") 
     if user_id :  
@@ -339,7 +342,7 @@ async def search_query( query: str , user_data = Depends(verify_token)):
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
 
 # API to retrieve sessions by search
-@app.get("/search/session")
+@app.get("/search/session") 
 async def search_session(user_data = Depends(verify_token)):
     user_id = user_data.get("id")
     if user_id : 
