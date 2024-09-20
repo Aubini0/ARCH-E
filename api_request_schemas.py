@@ -16,3 +16,5 @@ class signup_schema(BaseModel):
     password: str
 
 
+class folder_schema(BaseModel) : 
+    folder_name : str
