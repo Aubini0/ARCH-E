@@ -6,7 +6,7 @@ from lib_db_repos import ( FilesRepo , FoldersRepo )
 
 
 
-def upload_file_service(user_id , file):
+def upload_file_service(user_id , file , folder_id = None):
     try : 
         file_server_location = "public/uploads/files"
         file_base_url_path = "https://api.arche.social/uploads/files"
@@ -16,6 +16,8 @@ def upload_file_service(user_id , file):
             file_url = response["location"]
             # preparing payload
             data = { "user_id" :  ObjectId(user_id) , "file_name" : file.filename , "file_url" : file_url }
+            if folder_id : 
+                data["folder_id"] = ObjectId(folder_id)
             file_id = FilesRepo.insert_file( data )
 
             if file_id : 
@@ -54,8 +56,6 @@ def upload_file_service(user_id , file):
 
         return response , status_code
 
-
-
 def retrieve_files_service(user_id):
     try : 
         files = FilesRepo.get_files( user_id )
@@ -85,9 +85,6 @@ def retrieve_files_service(user_id):
         }
 
         return response , status_code
-
-
-
 
 def create_folder_service(user_id , folder_payload : folder_schema):
     try : 
@@ -124,9 +121,6 @@ def create_folder_service(user_id , folder_payload : folder_schema):
 
         return response , status_code
 
-
-
-
 def retrieve_folders_service(user_id):
     try : 
         folders = FoldersRepo.get_folders( user_id )
@@ -157,3 +151,35 @@ def retrieve_folders_service(user_id):
 
         return response , status_code
 
+
+
+
+def retrieve_files_of_folder_service(folder_id):
+    try : 
+        files = FilesRepo.get_files_by_folder( folder_id )
+        if files : 
+            response = {
+                "status" : True,
+                "message": "Files Retrieved.",
+                "data" : { "files" : files }
+            }
+            return response , status.HTTP_200_OK
+
+        else : 
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Files not found"
+            )
+
+    except Exception as e : 
+        print(e)
+        if isinstance(e , HTTPException) : status_code = e.status_code
+        else : status_code = status.HTTP_400_BAD_REQUEST
+        response = {
+            "status" : False,
+            "message": "Failed to Retrieve Files.",
+            "data" : {},
+            "error": str(e),
+        }
+
+        return response , status_code

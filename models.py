@@ -31,16 +31,26 @@ class Files(BaseModel):
     file_name : str    
     user_id: ObjectId
     file_url: str = Field(...)    
+    folder_id : Optional[ObjectId]
     createdAt: datetime = Field(default=datetime.now())
     updatedAt: datetime = Field(default=datetime.now())
     
 
 
-    @validator('user_id')
-    def validate_object_id(cls, value):
+    def custom_object_validator(cls , value) : 
         if not isinstance(value, ObjectId):
             raise ValueError('Invalid ObjectId')
         return value
+
+
+    @validator('user_id')
+    def validate_user_id(cls, value):
+        return Files.custom_object_validator( cls , value )
+
+
+    @validator('folder_id')
+    def validate_folder_id(cls, value):
+        return Files.custom_object_validator( cls ,  value )
 
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
