@@ -13,7 +13,12 @@ class FilesRepo:
 
         if 'user_id' in doc and isinstance(doc['user_id'], ObjectId):
             doc['user_id'] = str(doc['user_id'])
-        
+
+
+        if 'folder_id' in doc and isinstance(doc['folder_id'], ObjectId):
+            doc['folder_id'] = str(doc['folder_id'])
+
+
         # Convert createdAt and updatedAt (datetime) to string (ISO format)
         if 'createdAt' in doc and isinstance(doc['createdAt'], datetime):
             doc['createdAt'] = doc['createdAt'].isoformat()
@@ -29,11 +34,24 @@ class FilesRepo:
             id = ObjectId(id)
             query = {
                 "user_id": id,
-                "$and": [
+                "$or": [
                     {"folder_id": None}, {"folder_id": {"$exists": False}} 
                 ]
             }
             
+            files = files_collection.find(query)
+            converted_files_list = [FilesRepo.serialize_file(doc) for doc in files]
+            return converted_files_list
+
+        except Exception:
+            return None
+
+
+    @staticmethod
+    def get_files_by_folder(id):
+        try:
+            id = ObjectId(id)
+            query = { "folder_id": id }
             files = files_collection.find(query)
             converted_files_list = [FilesRepo.serialize_file(doc) for doc in files]
             return converted_files_list
@@ -58,23 +76,3 @@ class FilesRepo:
             print(e)
             return None
 
-
-
-        try:
-            # Convert the string ID to ObjectId
-            object_id = ObjectId(user_id)
-            # Perform the update using $set for partial updates
-            result = users_collection.update_one( {"_id": object_id},  {"$set": update_data} )
-
-            # Check if the update was successful
-            if result.modified_count > 0:
-                # Fetch the updated user
-                updated_user = users_collection.find_one({"_id": object_id})
-                if updated_user:
-                    updated_user['id'] = str(updated_user['_id'])
-                    return User(**updated_user)
-            else:
-                print(f"No user found with ID {user_id} or no fields updated.")
-        except Exception as e:
-            print(f"Error updating user: {e}")        
-        return None

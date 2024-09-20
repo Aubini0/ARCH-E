@@ -21,9 +21,11 @@ from lib_youtube.youtube_search import YoutubeSearch
 from jwt import ExpiredSignatureError, InvalidTokenError
 from lib_utils.password_utils import ( validate_password )
 from lib_llm.helpers.prompt_generator import PromptGenerator
-from api_request_schemas import ( login_schema, signup_schema , folder_schema  )
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
+
+from api_request_schemas import ( login_schema, signup_schema , folder_schema , object_id_schema  )
+
 from lib_utils.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
                                              delete_chat_session_service , delete_query_service ,
@@ -31,7 +33,8 @@ from lib_api_services.search_service import ( chat_session_service, search_query
                                              )
 
 from lib_api_services.file_management_service import ( upload_file_service , retrieve_files_service , 
-                                                      create_folder_service , retrieve_folders_service
+                                                      create_folder_service , retrieve_folders_service,
+                                                      retrieve_files_of_folder_service
                                                       )
 
 
@@ -209,6 +212,8 @@ async def edit_profile(
         "message": "Profile updated"
     })
 
+
+
 # API to upload file
 @app.post("/file-management/upload/file")
 async def upload_files(
@@ -234,7 +239,6 @@ async def retrieve_files(
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
 
-
 # API to create folder
 @app.post("/file-management/create/folder")
 async def create_folder(
@@ -248,8 +252,6 @@ async def create_folder(
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
 
-
-
 # API to retrieve folders
 @app.get("/file-management/retrieve/folders")
 async def retrieve_folders(
@@ -262,7 +264,32 @@ async def retrieve_folders(
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
 
+# API to upload file to folder
+@app.post("/file-management/upload/file-to-folder")
+async def upload_files_to_folder(
+    folder_id : Optional[str] = Form(None),
+    file: UploadFile = File(None),  # Use File for file uploads
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id and folder_id:
+        responce , status_code = upload_file_service( user_id  , file , folder_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "folder_id not provided" })
 
+# API to retrieve files of a folder
+@app.get("/file-management/retrieve/files-of-folder")
+async def retrieve_files_of_folder(
+    folder_id : str,
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id and folder_id:
+        responce , status_code = retrieve_files_of_folder_service( folder_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "folder_id not provided" })
 
 
 
