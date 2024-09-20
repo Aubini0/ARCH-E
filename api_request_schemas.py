@@ -18,3 +18,9 @@ class signup_schema(BaseModel):
 
 class folder_schema(BaseModel) : 
     folder_name : str
+
+class NoteSchema(BaseModel): 
+    text: str
+    x_position: float
+    y_position: float
+    z_position: float

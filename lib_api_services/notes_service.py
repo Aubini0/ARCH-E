@@ -1,12 +1,7 @@
 from fastapi import HTTPException, status
 from bson.objectid import ObjectId
-from lib_db_repos import ( NotesRepo) 
-
-class NoteSchema:
-    text: str
-    x_position: float
-    y_position: float
-    z_position: float
+from api_request_schemas import NoteSchema 
+from lib_db_repos.notes_repo import ( NotesRepo) 
 
 def create_note_service(user_id: str, note_payload: NoteSchema):
     try:

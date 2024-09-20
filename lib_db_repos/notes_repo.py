@@ -1,10 +1,10 @@
 from bson import ObjectId
 from datetime import datetime
-from fastapi import HTTPException, status
-from lib_database.db_connect import notes_collection   
+from fastapi import HTTPException, status  
+from lib_database.db_connect import (notes_collection)   
 from models import Notes     
 
-class NotesRepo:
+class NotesRepo: 
 
     @staticmethod 
     def serialize_note(doc):    
