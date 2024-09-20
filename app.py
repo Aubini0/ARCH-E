@@ -330,8 +330,10 @@ async def retrieve_files_of_folder(
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "folder_id not provided" })
 
+
+
 #API TO CREATE NOTES SERVICE
-@app.get("/notes/create/note") 
+@app.post("/notes/create/note") 
 async def create_note( 
     notes_payload : NoteSchema,
     user_data = Depends(verify_token) 
@@ -345,14 +347,14 @@ async def create_note(
 
 
 #API TO DELETE NOTES
-@app.get("/notes/delete/note") 
+@app.delete("/notes/delete/note") 
 async def delete_note( 
-    notes_payload : NoteSchema, 
+    note_id : str, 
     user_data = Depends(verify_token) 
 ):
     user_id = user_data.get("id")     
-    if user_id:     
-        responce , status_code = delete_note_service( user_id , notes_payload )
+    if user_id and note_id:      
+        responce , status_code = delete_note_service( note_id )
         return JSONResponse(status_code=status_code , content = responce)
     else :  
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
