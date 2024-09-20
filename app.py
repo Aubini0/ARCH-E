@@ -34,7 +34,8 @@ from lib_api_services.search_service import ( chat_session_service, search_query
 
 from lib_api_services.file_management_service import ( upload_file_service , retrieve_files_service , 
                                                       create_folder_service , retrieve_folders_service,
-                                                      retrieve_files_of_folder_service
+                                                      retrieve_files_of_folder_service, delete_file_service,
+                                                      update_file_service
                                                       )
 
 from lib_api_services.notes_service import ( create_note_service , delete_note_service,update_note_service,list_all_notes_service)
@@ -223,11 +224,12 @@ async def upload_files(
     user_data = Depends(verify_token)
 ):
     user_id = user_data.get("id")
-    if user_id:
+    if user_id and file:
         responce , status_code = upload_file_service( user_id , file )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "file not provided" })
+
 
 # API to retrieve files
 @app.get("/file-management/retrieve/files")
@@ -240,6 +242,40 @@ async def retrieve_files(
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+
+
+# API to retrieve files
+@app.delete("/file-management/delete/file")
+async def delete_file(
+    file_id : str,
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id and file_id:
+        responce , status_code = delete_file_service( user_id , file_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "file_id not provided" })
+
+
+
+# API to retrieve files
+@app.put("/file-management/update/file")
+async def update_file(
+    file_id : str,
+    file_name : str,
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id and file_id and file_name:
+        responce , status_code = update_file_service( user_id , file_id , file_name )
+        return JSONResponse(status_code=status_code , content = responce)
+    else : 
+        missing_field = "user_id" if not user_id else "file_id" if not file_id else "file_name"
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : f"{missing_field} not provided" })
+
+
 
 # API to create folder
 @app.post("/file-management/create/folder")
@@ -274,11 +310,12 @@ async def upload_files_to_folder(
     user_data = Depends(verify_token)
 ):
     user_id = user_data.get("id")
-    if user_id and folder_id:
+    if user_id and folder_id and file:
         responce , status_code = upload_file_service( user_id  , file , folder_id )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "folder_id not provided" })
+        missing_field = "user_id" if not user_id else "folder_id" if not folder_id else "file"
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : f"{missing_field} not provided" })
 
 # API to retrieve files of a folder
 @app.get("/file-management/retrieve/files-of-folder")
@@ -292,6 +329,8 @@ async def retrieve_files_of_folder(
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "folder_id not provided" })
+
+
 
 #API TO CREATE NOTES SERVICE
 @app.post("/notes/create/note") 
@@ -308,21 +347,20 @@ async def create_note(
 
 
 #API TO DELETE NOTES
-@app.delete("/notes/delete/note/{note_id}")  
+
+@app.delete("/notes/delete/note") 
 async def delete_note( 
-    note_id: str, 
-    user_data = Depends(verify_token)  
+    note_id : str, 
+    user_data = Depends(verify_token) 
 ):
     user_id = user_data.get("id")     
-    if user_id:     
-        response, status_code = delete_note_service(user_id, note_id)
-        return JSONResponse(status_code=status_code, content=response)
-    else:  
-        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={
-            "status": False,
-            "data": {},
-            "message": "user_id not provided" 
-        })
+    if user_id and note_id:      
+        responce , status_code = delete_note_service( note_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else :  
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+
 
 
 # API TO UPDATE NOTES SERVICE

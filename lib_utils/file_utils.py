@@ -35,7 +35,7 @@ def upload_file(user_id , file , file_server_location ,  file_base_url_path , is
         
         print(file_server_location , file_location)
 
-        return { "status" : True , "location" : file_location }
+        return { "status" : True , "server_location" : file_server_location , "location" : file_location }
     except Exception as e : 
         print(e)
         return { "status" : True , "message" : str(e) }
