@@ -1,7 +1,0 @@
-OPEN required PORT 3306 in case of MYSQL and 5432 in case of PostGreSQL
-CREATE A USER with any user name but host as % and any password
-RESTART MYSQL
-Try connecting that user using command : mysql -u <username> -p
-Than for public connection from outside the server you need to change the binding addresss to 0.0.0.0 In
-	/etc/mysql/mysql.conf.d/mysqld.cnf  file
-Restart Mysql

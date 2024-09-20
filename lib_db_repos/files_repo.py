@@ -48,6 +48,47 @@ class FilesRepo:
 
 
     @staticmethod
+    def get_file_by_id(id):
+        try:
+            id = ObjectId(id)
+            query = { "_id": id }
+            file = files_collection.find_one(query)
+            return file
+
+        except Exception:
+            return None
+
+
+    @staticmethod
+    def delete_file_by_id(id):
+        try:
+            id = ObjectId(id)
+            query = { "_id": id }
+            responce = files_collection.delete_one(query)
+            return responce
+
+        except Exception:
+            return None
+
+
+    @staticmethod
+    def update_file_by_id(id, update_data):
+        try:
+            # Convert the id to ObjectId if necessary
+            id = ObjectId(id)
+            query = {"_id": id}
+            # Define the update statement
+            new_values = {"$set": update_data}
+            # Perform the update
+            response = files_collection.update_one(query, new_values)
+            return response
+
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            return None
+
+
+    @staticmethod
     def get_files_by_folder(id):
         try:
             id = ObjectId(id)

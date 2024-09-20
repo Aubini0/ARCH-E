@@ -31,6 +31,7 @@ class Files(BaseModel):
     file_name : str    
     user_id: ObjectId
     file_url: str = Field(...)    
+    file_server_path : str = Field(...)
     folder_id : Optional[ObjectId]
     createdAt: datetime = Field(default=datetime.now())
     updatedAt: datetime = Field(default=datetime.now())
