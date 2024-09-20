@@ -23,26 +23,23 @@ class NoteSchema(BaseModel):
     text: str 
     x_position: float
     y_position: float
-<<<<<<< HEAD
-    z_position: float 
-=======
-    z_position: float
+
+
 
 class object_id_schema(BaseModel) : 
     id : ObjectId
 
     def custom_object_validator(cls , value) : 
-        if not isinstance(value, ObjectId):
+        if not isinstance(value, ObjectId): 
             raise ValueError('Invalid ObjectId')
         return value
 
 
     @validator('id')
     def validate_user_id(cls, value):
-        return object_id_schema.custom_object_validator( cls , value )
+        return object_id_schema.custom_object_validator( cls , value ) 
 
 
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
 
->>>>>>> 9bdd6c24932b7380105c96e7b5a664e9914bd625
