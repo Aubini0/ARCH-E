@@ -23,9 +23,6 @@ class NoteSchema(BaseModel):
     text: str 
     x_position: float
     y_position: float
-<<<<<<< HEAD
-    z_position: float 
-=======
     z_position: float
 
 class object_id_schema(BaseModel) : 
@@ -44,5 +41,3 @@ class object_id_schema(BaseModel) :
 
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
-
->>>>>>> 9bdd6c24932b7380105c96e7b5a664e9914bd625
