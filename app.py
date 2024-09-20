@@ -34,12 +34,12 @@ from lib_api_services.file_management_service import ( upload_file_service , ret
                                                       create_folder_service , retrieve_folders_service
                                                       )
 
-from lib_api_services.notes_service import ( create_note_service , delete_note_service)
+from lib_api_services.notes_service import ( create_note_service , delete_note_service,update_note_service,list_all_notes_service)
 
 
 
 # loading .env configs
-load_dotenv()
+load_dotenv() 
 PORT = int(os.getenv("PORT"))
 JINA_API_KEY = os.getenv("JINA_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -294,15 +294,45 @@ async def delete_note(
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
 
 
+# API TO UPDATE NOTES SERVICE
+@app.put("/notes/update/note/{note_id}")
+async def update_note(
+    note_id: str,
+    notes_payload: NoteSchema,
+    user_data = Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    if user_id:
+        response, status_code = update_note_service(user_id, note_id, notes_payload)
+        return JSONResponse(status_code=status_code, content=response)
+    else:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={
+            "status": False,
+            "message": "Unauthorized", 
+            "data": {}
+        })
 
+# API TO LIST ALL  NOTES 
+@app.get("/notes")
+async def get_all_notes(user_data = Depends(verify_token)):
+    user_id = user_data.get("id")
+    if user_id:
+        response = list_all_notes_service(user_id)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+    else:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={
+            "status": False,
+            "message": "Unauthorized", 
+            "data": {}
+        })
 
 
 
 # API to retrieve queries by search
 @app.get("/search/query")
 async def search_query( query: str , user_data = Depends(verify_token)):
-    user_id = user_data.get("id")
-    if user_id : 
+    user_id = user_data.get("id") 
+    if user_id :  
         responce = search_query_service( user_id ,  query)
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 

@@ -1,14 +1,14 @@
 from fastapi import HTTPException, status
 from bson.objectid import ObjectId
 from api_request_schemas import NoteSchema 
-from lib_db_repos.notes_repo import ( NotesRepo) 
+from lib_db_repos.notes_repo import ( NotesRepo)     
 
 def create_note_service(user_id: str, note_payload: NoteSchema):
     try:
        
         data = {
-            "user_id": ObjectId(user_id), 
-            "text": note_payload.text,
+            "user_id": ObjectId(user_id),   
+            "text": note_payload.text,  
             "x_position": note_payload.x_position,
             "y_position": note_payload.y_position,
             "z_position": note_payload.z_position
@@ -24,12 +24,12 @@ def create_note_service(user_id: str, note_payload: NoteSchema):
                 "message": "Note Created.",
                 "data": {
                     "note_id": str(note_id),
-                    "text": note_payload.text,
-                    "x_position": note_payload.x_position,
+                    "text": note_payload.text, 
+                    "x_position": note_payload.x_position, 
                     "y_position": note_payload.y_position,
-                    "z_position": note_payload.z_position
+                    "z_position": note_payload.z_position 
                 }
-            }
+            } 
             return response, status.HTTP_200_OK
         
         
@@ -47,8 +47,70 @@ def create_note_service(user_id: str, note_payload: NoteSchema):
             "error": str(e),
         }
         return response, status_code
-    
 
+
+def update_note_service(user_id: str, note_id: str, note_payload: NoteSchema):
+    try:
+        update_data = { 
+            "user_id": ObjectId(user_id),  
+            "text": note_payload.text,
+            "x_position": note_payload.x_position, 
+            "y_position": note_payload.y_position,  
+            "z_position": note_payload.z_position   
+        }
+        
+        response = NotesRepo.update_note(note_id, update_data)  
+        
+        return response, status.HTTP_200_OK 
+
+    except HTTPException as e:
+        return {
+            "status": False,
+            "message": "Failed to update note.", 
+            "data": {},
+            "error": str(e),
+        }, e.status_code
+
+    except Exception as e:
+        return {
+            "status": False,
+            "message": "Failed to update note.",
+            "data": {},
+            "error": str(e),
+        }, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+
+def list_all_notes_service(user_id: str):  
+    try:
+        response = NotesRepo.get_notes(user_id) 
+        
+        if not response.get("status"): 
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No notes found" 
+            ) 
+        
+        return response, status.HTTP_200_OK 
+
+    except HTTPException as e:
+        return {
+            "status": False,
+            "message": "Failed to retrieve notes.", 
+            "data": {},
+            "error": str(e),
+        }, e.status_code
+
+    except Exception as e:
+        return {
+            "status": False,
+            "message": "Failed to retrieve notes.",
+            "data": {},
+            "error": str(e),
+        }, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+    
 def delete_note_service(note_id: str):
     try:
        
@@ -68,7 +130,7 @@ def delete_note_service(note_id: str):
     except Exception as e:
         status_code = e.status_code if isinstance(e, HTTPException) else status.HTTP_500_INTERNAL_SERVER_ERROR
         return {
-            "status": False,
+            "status": False, 
             "message": "Failed to delete note.",
             "error": str(e),
-        }, status_code
+        }, status_code 
