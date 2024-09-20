@@ -25,6 +25,18 @@ class FoldersRepo:
         
         return doc
 
+
+    @staticmethod
+    def get_folder_by_id(id):
+        try:
+            id = ObjectId(id)            
+            folder = folders_collection.find_one({"_id" : id})
+            return folder
+        except Exception:
+            return None
+
+
+
     @staticmethod
     def get_folders(id):
         try:
