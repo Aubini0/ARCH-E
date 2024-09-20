@@ -8,6 +8,17 @@ from lib_db_repos import ( FilesRepo , FoldersRepo )
 
 def upload_file_service(user_id , file , folder_id = None):
     try : 
+        data = {}
+        if folder_id : 
+            folder = FoldersRepo.get_folder_by_id(folder_id)
+            if not folder or  str(folder["user_id"]) != user_id : 
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Folder with give Id not found"
+                )
+            
+
+
         file_server_location = "public/uploads/files"
         file_base_url_path = "https://api.arche.social/uploads/files"
         response = upload_file( user_id , file , file_server_location , file_base_url_path , False)
@@ -15,9 +26,15 @@ def upload_file_service(user_id , file , folder_id = None):
         if response["status"] : 
             file_url = response["location"]
             # preparing payload
-            data = { "user_id" :  ObjectId(user_id) , "file_name" : file.filename , "file_url" : file_url }
+            data = { 
+                "user_id" :  ObjectId(user_id) ,
+                "file_name" : file.filename , 
+                "file_url" : file_url 
+                }
             if folder_id : 
                 data["folder_id"] = ObjectId(folder_id)
+
+
             file_id = FilesRepo.insert_file( data )
 
             if file_id : 
