@@ -38,12 +38,12 @@ from lib_api_services.file_management_service import ( upload_file_service , ret
                                                       update_file_service
                                                       )
 
-from lib_api_services.notes_service import ( create_note_service , delete_note_service)
+from lib_api_services.notes_service import ( create_note_service , delete_note_service,update_note_service,list_all_notes_service)
 
 
 
 # loading .env configs
-load_dotenv()
+load_dotenv() 
 PORT = int(os.getenv("PORT"))
 JINA_API_KEY = os.getenv("JINA_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -234,7 +234,7 @@ async def upload_files(
 # API to retrieve files
 @app.get("/file-management/retrieve/files")
 async def retrieve_files(
-    user_data = Depends(verify_token)
+    user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")
     if user_id:
@@ -279,9 +279,9 @@ async def update_file(
 
 # API to create folder
 @app.post("/file-management/create/folder")
-async def create_folder(
+async def create_folder(  
     folder_payload : folder_schema,
-    user_data = Depends(verify_token)
+    user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")
     if user_id:
@@ -293,7 +293,7 @@ async def create_folder(
 # API to retrieve folders
 @app.get("/file-management/retrieve/folders")
 async def retrieve_folders(
-    user_data = Depends(verify_token)
+    user_data = Depends(verify_token)      
 ):
     user_id = user_data.get("id")
     if user_id:
@@ -336,7 +336,7 @@ async def retrieve_files_of_folder(
 @app.post("/notes/create/note") 
 async def create_note( 
     notes_payload : NoteSchema,
-    user_data = Depends(verify_token) 
+    user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")     
     if user_id:  
@@ -347,6 +347,7 @@ async def create_note(
 
 
 #API TO DELETE NOTES
+
 @app.delete("/notes/delete/note") 
 async def delete_note( 
     note_id : str, 
@@ -362,20 +363,51 @@ async def delete_note(
 
 
 
+# API TO UPDATE NOTES SERVICE
+@app.put("/notes/update/note/{note_id}")
+async def update_note(
+    note_id: str,
+    notes_payload: NoteSchema,
+    user_data = Depends(verify_token) 
+):
+    user_id = user_data.get("id")
+    if user_id:
+        response, status_code = update_note_service(user_id, note_id, notes_payload)
+        return JSONResponse(status_code=status_code, content=response)
+    else:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={
+            "status": False,
+            "message": "Unauthorized",  
+            "data": {}
+        })
+
+# API TO LIST ALL  NOTES    
+@app.get("/notes")
+async def get_all_notes(user_data = Depends(verify_token)):
+    user_id = user_data.get("id")
+    if user_id:
+        response = list_all_notes_service(user_id)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+    else:
+        return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={
+            "status": False,
+            "message": "Unauthorized", 
+            "data": {}
+        })
 
 
 # API to retrieve queries by search
-@app.get("/search/query")
+@app.get("/search/query") 
 async def search_query( query: str , user_data = Depends(verify_token)):
-    user_id = user_data.get("id")
-    if user_id : 
+    user_id = user_data.get("id") 
+    if user_id :  
         responce = search_query_service( user_id ,  query)
         return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : responce } , "message" : "search results returned"  })
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "userid not provided" })
 
 # API to retrieve sessions by search
-@app.get("/search/session")
+@app.get("/search/session") 
 async def search_session(user_data = Depends(verify_token)):
     user_id = user_data.get("id")
     if user_id : 
