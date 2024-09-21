@@ -2,8 +2,10 @@
 *.pyc
 /venv
 
-# ignore file
-*.png
-*.jpg
-*.jpeg
-*.gif
+# Ignore all files in public/uploads/profile_pictures and public/uploads/files
+public/uploads/profile_pictures/*
+public/uploads/files/*
+
+# But don't ignore the .gitkeep file
+!public/uploads/profile_pictures/.gitkeep
+!public/uploads/files/.gitkeep

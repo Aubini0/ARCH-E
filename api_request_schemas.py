@@ -1,5 +1,8 @@
+from fastapi import Form 
 from bson import ObjectId
+from typing import Optional
 from pydantic import ( BaseModel, EmailStr , validator )  
+
 
 class invoke_llm_schema(BaseModel):
     guid : str
@@ -18,6 +21,10 @@ class signup_schema(BaseModel):
 
 class folder_schema(BaseModel) : 
     folder_name : str
+    position_x: Optional[float]
+    position_y: Optional[float]
+    position_z: Optional[float]
+
 
 class NoteSchema(BaseModel): 
     text: str 
