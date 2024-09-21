@@ -24,7 +24,11 @@ from lib_llm.helpers.prompt_generator import PromptGenerator
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 
+<<<<<<< HEAD
 from api_request_schemas import ( login_schema, signup_schema , folder_schema , object_id_schema,NoteSchema ,TaskSchema )
+=======
+from api_request_schemas import ( login_schema, signup_schema , folder_schema ,NoteSchema  )
+>>>>>>> 3234536551b81362d0d2f50253daa986d2e5a037
 
 from lib_utils.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
@@ -221,12 +225,16 @@ async def edit_profile(
 # API to upload file
 @app.post("/file-management/upload/file")
 async def upload_files(
-    file: UploadFile = File(None),  # Use File for file uploads
+    file: UploadFile = File(None),
+    position_x: Optional[float] = Form(None),
+    position_y: Optional[float] = Form(None),
+    position_z: Optional[float] = Form(None),
     user_data = Depends(verify_token)
 ):
     user_id = user_data.get("id")
     if user_id and file:
-        responce , status_code = upload_file_service( user_id , file )
+        position_payload = [position_x,position_y,position_z]
+        responce , status_code = upload_file_service( user_id , file , position_payload )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "file not provided" })
@@ -244,8 +252,6 @@ async def retrieve_files(
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
 
-
-
 # API to retrieve files
 @app.delete("/file-management/delete/file")
 async def delete_file(
@@ -258,8 +264,6 @@ async def delete_file(
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "file_id not provided" })
-
-
 
 # API to retrieve files
 @app.put("/file-management/update/file")
@@ -275,8 +279,6 @@ async def update_file(
     else : 
         missing_field = "user_id" if not user_id else "file_id" if not file_id else "file_name"
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : f"{missing_field} not provided" })
-
-
 
 # API to create folder
 @app.post("/file-management/create/folder")
@@ -306,13 +308,18 @@ async def retrieve_folders(
 # API to upload file to folder
 @app.post("/file-management/upload/file-to-folder")
 async def upload_files_to_folder(
+    file: UploadFile = File(None), 
     folder_id : Optional[str] = Form(None),
-    file: UploadFile = File(None),  # Use File for file uploads
+    position_x: Optional[float] = Form(None),
+    position_y: Optional[float] = Form(None),
+    position_z: Optional[float] = Form(None),
+
     user_data = Depends(verify_token)
 ):
     user_id = user_data.get("id")
     if user_id and folder_id and file:
-        responce , status_code = upload_file_service( user_id  , file , folder_id )
+        position_payload = [position_x,position_y,position_z]
+        responce , status_code = upload_file_service( user_id  , file , position_payload,  folder_id )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         missing_field = "user_id" if not user_id else "folder_id" if not folder_id else "file"

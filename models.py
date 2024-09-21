@@ -29,8 +29,11 @@ class Files(BaseModel):
     file_name : str    
     user_id: ObjectId
     file_url: str = Field(...)    
-    file_server_path : str = Field(...)
     folder_id : Optional[ObjectId]
+    file_server_path : str = Field(...)
+    position_x : Optional[float]
+    position_y : Optional[float]
+    position_z : Optional[float]
     createdAt: datetime = Field(default=datetime.now())
     updatedAt: datetime = Field(default=datetime.now())
     
@@ -62,6 +65,9 @@ class Folders(BaseModel):
         
     folder_name : str    
     user_id: ObjectId
+    position_x : Optional[float]
+    position_y : Optional[float]
+    position_z : Optional[float]
     createdAt: datetime = Field(default=datetime.now())
     updatedAt: datetime = Field(default=datetime.now())
     

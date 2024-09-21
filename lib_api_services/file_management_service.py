@@ -8,7 +8,7 @@ from lib_db_repos import ( FilesRepo , FoldersRepo )
 
 
 
-def upload_file_service(user_id , file , folder_id = None):
+def upload_file_service(user_id , file , position_payload , folder_id = None):
     try : 
         data = {}
         if folder_id : 
@@ -34,7 +34,10 @@ def upload_file_service(user_id , file , folder_id = None):
                 "user_id" :  ObjectId(user_id) ,
                 "file_name" : file.filename , 
                 "file_url" : file_url ,
-                "file_server_path" : file_server_path
+                "file_server_path" : file_server_path,
+                "position_x": position_payload[0],
+                "position_y": position_payload[1],
+                "position_z": position_payload[2]
                 }
             if folder_id : 
                 data["folder_id"] = ObjectId(folder_id)
@@ -110,9 +113,15 @@ def retrieve_files_service(user_id):
 
 def create_folder_service(user_id , folder_payload : folder_schema):
     try : 
-        data = { "user_id" : ObjectId(user_id) , "folder_name" : folder_payload.folder_name }
+        data = { 
+            "user_id" : ObjectId(user_id) , 
+            "folder_name" : folder_payload.folder_name,
+            "position_x": folder_payload.position_x if folder_payload and folder_payload.position_x else None,
+            "position_y": folder_payload.position_y if folder_payload and folder_payload.position_y else None,
+            "position_z": folder_payload.position_z if folder_payload and folder_payload.position_z else None,
+            }
+        
         folder_id = FoldersRepo.create_folder(data)
-        print(">>>>" , folder_id)
         folder_name = folder_payload.folder_name
         if folder_id : 
             response = {
