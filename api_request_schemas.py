@@ -50,10 +50,7 @@ class object_id_schema(BaseModel) :
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
 
-<<<<<<< HEAD
 class TaskSchema(BaseModel):
     text: str
     is_done: Optional[bool] = False 
     order: int 
-=======
->>>>>>> 3234536551b81362d0d2f50253daa986d2e5a037

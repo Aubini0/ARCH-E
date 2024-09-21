@@ -20,15 +20,11 @@ from lib_infrastructure.dispatcher import Dispatcher
 from lib_youtube.youtube_search import YoutubeSearch
 from jwt import ExpiredSignatureError, InvalidTokenError
 from lib_utils.password_utils import ( validate_password )
-from lib_llm.helpers.prompt_generator import PromptGenerator
+from lib_llm.helpers.prompt_generator import PromptGenerator 
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 
-<<<<<<< HEAD
 from api_request_schemas import ( login_schema, signup_schema , folder_schema , object_id_schema,NoteSchema ,TaskSchema )
-=======
-from api_request_schemas import ( login_schema, signup_schema , folder_schema ,NoteSchema  )
->>>>>>> 3234536551b81362d0d2f50253daa986d2e5a037
 
 from lib_utils.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
