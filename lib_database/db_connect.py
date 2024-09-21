@@ -6,7 +6,7 @@ from lib_database.db_configurations import create_unique_index
 load_dotenv()
 
 # dev db credentials
-MONGO_HOST_DEV = os.getenv("DB_HOST")
+MONGO_HOST_DEV = os.getenv("DB_HOST") 
 MONGO_USERNAME_DEV = os.getenv("USERMONGO")
 MONGO_PASSWORD_DEV = os.getenv("PASSWORDMONGO")
 
@@ -23,11 +23,13 @@ chat_collection_name = os.getenv("CHAT_DB_COLLECTION")
 users_collection_name = os.getenv("USER_DB_COLLECTION")
 folders_collection_name = os.getenv("FOLDERS_COLLECTION")
 embeddings_collection_name = os.getenv("EMBEDDINGS_COLLECTION")
+tasks_collection_name = os.getenv("TASKS_COLLECTION") 
 
 
 
 MONGO_URI_DEV = f'mongodb+srv://{MONGO_USERNAME_DEV}:{MONGO_PASSWORD_DEV}@{MONGO_HOST_DEV}/?retryWrites=true&w=majority'
 MONGO_URI_PROD = f'mongodb+srv://{MONGO_USERNAME_PROD}:{MONGO_PASSWORD_PROD}@{MONGO_HOST_PROD}/?retryWrites=true&w=majority'
+
 
 client = MongoClient(MONGO_URI_PROD)
 
@@ -36,7 +38,8 @@ users_collection = client[dbName][users_collection_name]
 files_collection = client[dbName][files_collection_name]
 notes_collection = client[dbName][notes_collection_name]
 folders_collection = client[dbName][folders_collection_name]
-embeddings_collection = client[dbName][embeddings_collection_name]
+embeddings_collection = client[dbName][embeddings_collection_name] 
+tasks_collection = client[dbName][tasks_collection_name]
 
 
 

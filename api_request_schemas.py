@@ -1,5 +1,6 @@
 from bson import ObjectId
 from pydantic import ( BaseModel, EmailStr , validator )  
+from typing import Optional
 
 class invoke_llm_schema(BaseModel):
     guid : str
@@ -41,7 +42,8 @@ class object_id_schema(BaseModel) :
 
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
-<<<<<<< HEAD
 
-=======
->>>>>>> 1314bf4b7bfe9ead5c0b3d5d4a4e90cddadb1d89
+class TaskSchema(BaseModel):
+    text: str
+    is_done: Optional[bool] = False 
+    order: int 

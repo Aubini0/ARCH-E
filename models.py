@@ -22,7 +22,6 @@ class User(BaseModel):
     
 
 
-
 class Files(BaseModel):
     def __init__(self,  **data) -> None:
         super().__init__(**data)
@@ -43,7 +42,7 @@ class Files(BaseModel):
         return value
 
 
-    @validator('user_id')
+    @validator('user_id') 
     def validate_user_id(cls, value):
         return Files.custom_object_validator( cls , value )
 
@@ -66,8 +65,6 @@ class Folders(BaseModel):
     createdAt: datetime = Field(default=datetime.now())
     updatedAt: datetime = Field(default=datetime.now())
     
-
-
     @validator('user_id')
     def validate_object_id(cls, value):
         if not isinstance(value, ObjectId):
@@ -77,6 +74,23 @@ class Folders(BaseModel):
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
 
+class Tasks(BaseModel):
+    text: str
+    user_id: ObjectId
+    is_done: Optional[bool] = False 
+    order: int     
+    createdAt: datetime = Field(default_factory=datetime.now)
+    updatedAt: datetime = Field(default_factory=datetime.now)
+
+    @validator('user_id')  
+    def validate_object_id(cls, value):
+        if not isinstance(value, ObjectId):
+            raise ValueError('Invalid ObjectId')
+        return value
+    
+
+    class Config: 
+        arbitrary_types_allowed = True
 
 class Notes(BaseModel):
     text: str
@@ -95,3 +109,5 @@ class Notes(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True 
+
+

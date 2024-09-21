@@ -24,7 +24,7 @@ from lib_llm.helpers.prompt_generator import PromptGenerator
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 
-from api_request_schemas import ( login_schema, signup_schema , folder_schema , object_id_schema,NoteSchema  )
+from api_request_schemas import ( login_schema, signup_schema , folder_schema , object_id_schema,NoteSchema ,TaskSchema )
 
 from lib_utils.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
@@ -39,6 +39,7 @@ from lib_api_services.file_management_service import ( upload_file_service , ret
                                                       )
 
 from lib_api_services.notes_service import ( create_note_service , delete_note_service,update_note_service,list_all_notes_service)
+from lib_api_services.task_service import ( create_task_service , update_task_service,rearrange_task_service,delete_task_service,list_all_tasks_service )
 
 
 
@@ -395,6 +396,111 @@ async def get_all_notes(user_data = Depends(verify_token)):
             "data": {}
         })
 
+
+
+#API TO CREATE TASK 
+@app.post("/tasks/create/task")
+async def create_task( 
+    task_payload : TaskSchema,
+    user_data = Depends(verify_token)  
+):
+    user_id = user_data.get("id")     
+    if user_id:  
+        response = create_task_service( user_id , task_payload )
+        return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : response } , "message" : "task created SUCCESFFULLY"  })
+
+    else :  
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+
+#API TO UPDATE TASK   
+@app.put("/tasks/update/task/{task_id}")
+async def update_task(
+    task_id: str,  
+    task_payload: TaskSchema,  
+    user_data = Depends(verify_token)  
+):
+    user_id = user_data.get("id")
+    
+    if user_id:
+        response, status_code = update_task_service(user_id, task_id, task_payload)
+        
+        return JSONResponse( status_code=status_code, content={ "status": True, "data": {"result": response}, "message": "Task updated successfully" })
+    else:
+        return JSONResponse( status_code=status.HTTP_400_BAD_REQUEST,  content={"status": False,"data": {},"message": "User ID not provided" })
+
+# API TO RE-ARRANGE TASKS
+@app.put("/tasks/rearrange")  
+async def rearrange_task(
+    task_order_payload: dict, 
+    user_data=Depends(verify_token)
+):
+    user_id = user_data.get("id")
+    
+    if not user_id:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "status": False,
+                "message": "User ID not provided",
+                "data": {}
+            }
+        )
+
+    try:
+        if not task_order_payload or not isinstance(task_order_payload, dict):
+            raise ValueError("Invalid task order payload provided")
+
+        response, status_code = rearrange_task_service(user_id, task_order_payload)
+        return JSONResponse(status_code=status_code, content=response)
+
+    except ValueError as ve:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "status": False,
+                "message": str(ve),
+                "data": {}
+            }
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "status": False,
+                "message": "Failed to rearrange tasks",
+                "error": str(e),
+                "data": {}
+            }
+        )
+
+#API TO DELETE TASK
+@app.delete("/task/delete/task") 
+async def delete_tasks( 
+    task_id : str, 
+    user_data = Depends(verify_token) 
+):
+    user_id = user_data.get("id")     
+    if user_id and task_id:      
+        responce , status_code = delete_task_service( task_id )
+        return JSONResponse(status_code=status_code , content = responce)
+    else :  
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+
+#API TO LIST ALL TASKS
+@app.get("/tasks") 
+async def get_all_tasks(user_data = Depends(verify_token)):
+    user_id = user_data.get("id")
+    
+    if user_id:
+        response = list_all_tasks_service(user_id)
+        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+    else:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
+
+ 
 
 # API to retrieve queries by search
 @app.get("/search/query") 
