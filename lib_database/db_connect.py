@@ -29,7 +29,7 @@ embeddings_collection_name = os.getenv("EMBEDDINGS_COLLECTION")
 MONGO_URI_DEV = f'mongodb+srv://{MONGO_USERNAME_DEV}:{MONGO_PASSWORD_DEV}@{MONGO_HOST_DEV}/?retryWrites=true&w=majority'
 MONGO_URI_PROD = f'mongodb+srv://{MONGO_USERNAME_PROD}:{MONGO_PASSWORD_PROD}@{MONGO_HOST_PROD}/?retryWrites=true&w=majority'
 
-client = MongoClient(MONGO_URI_PROD)
+client = MongoClient(MONGO_URI_DEV)
 
 chats_collection = client[dbName][chat_collection_name]
 users_collection = client[dbName][users_collection_name]
