@@ -1,18 +1,18 @@
 from bson.objectid import ObjectId
 from fastapi import status, HTTPException
-from api_request_schemas import TaskSchema
+from api_request_schemas import task_scehma , update_task_schema
 from lib_db_repos.task_repo import TasksRepo 
 
-def create_task_service(user_id, task_payload: TaskSchema):
+def create_task_service(user_id, task_payload: task_scehma):
     try:
         data = {
             "user_id": ObjectId(user_id),
             "text": task_payload.text,
             "is_done": task_payload.is_done,
-            "order": task_payload.order
+            "order": task_payload.order,
+            "deadline_time": task_payload.deadline_time
         }
         task_id = TasksRepo.create_task(data)
-        print(">>>>", task_id)
         task_text = task_payload.text
         if task_id:
             response = {
@@ -22,7 +22,11 @@ def create_task_service(user_id, task_payload: TaskSchema):
                     "task_id": str(task_id),
                     "task_text": task_text,
                     "is_done": task_payload.is_done,
-                    "order": task_payload.order
+                    "order": task_payload.order,
+                    "deadline_time": {
+                        "start" : task_payload.deadline_time.start,
+                        "end" : task_payload.deadline_time.end
+                    }
                 }
             }
             return response, status.HTTP_200_OK
@@ -49,12 +53,17 @@ def create_task_service(user_id, task_payload: TaskSchema):
 
 
 
-def update_task_service(user_id: str, task_id: str, task_payload: TaskSchema):
+def update_task_service(user_id: str, task_id: str, task_payload: update_task_schema):
     try:
         update_data = {
             "text": task_payload.text,
             "is_done": task_payload.is_done,
-            "order": task_payload.order
+            "order": task_payload.order,
+            "deadline_time": {
+                "start" : task_payload.deadline_time.start,
+                "end" : task_payload.deadline_time.end
+            }
+
         }
         
         # Call the repository with the correct parameters
@@ -66,9 +75,6 @@ def update_task_service(user_id: str, task_id: str, task_payload: TaskSchema):
                 "message": "Task updated successfully.",
                 "data": {
                     "task_id": str(task_id),
-                    "task_text": task_payload.text,
-                    "is_done": task_payload.is_done,
-                    "order": task_payload.order 
                 }
             }
             return response, status.HTTP_200_OK
@@ -97,9 +103,9 @@ def update_task_service(user_id: str, task_id: str, task_payload: TaskSchema):
 
 
 
-def rearrange_task_service(user_id: str, task_order: dict):
-    try: 
-    
+def rearrange_task_service(user_id: str, task_order_payload):
+    try:    
+        task_order = task_order_payload.task_order
         rearranged = TasksRepo.rearrange_tasks(user_id, task_order)
 
         if rearranged:
@@ -111,8 +117,8 @@ def rearrange_task_service(user_id: str, task_order: dict):
             return response, status.HTTP_200_OK
         else:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to rearrange tasks."
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Tasks to Rearrange Not provided."
             )
 
     except Exception as e:
@@ -133,7 +139,7 @@ def rearrange_task_service(user_id: str, task_order: dict):
 
 def delete_task_service(user_id: str, task_id: str):
     try:
-        deleted = TasksRepo.remove_task(user_id, task_id) 
+        deleted = TasksRepo.remove_task(task_id) 
 
         if deleted.get("status"):
             response = {
@@ -165,28 +171,32 @@ def delete_task_service(user_id: str, task_id: str):
     
 def list_all_tasks_service(user_id: str):  
     try:
-        response = TasksRepo.get_tasks_by_user_id(user_id) 
-        
-        if not response.get("status"): 
+        tasks = TasksRepo.get_tasks_by_user_id(user_id) 
+
+        if tasks : 
+            response = {
+                "status" : True,
+                "message": "File Retrieved.",
+                "data" : { "tasks" : tasks }
+            }
+            return response , status.HTTP_200_OK
+
+        else : 
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="No Tasks found" 
-            ) 
+                detail=f"Tasks not found"
+            )
         
-        return response, status.HTTP_200_OK 
-
-    except HTTPException as e:
-        return {
-            "status": False,
-            "message": "Failed to retrieve Tasks.", 
-            "data": {},
+    except Exception as e : 
+        print(e)
+        if isinstance(e , HTTPException) : status_code = e.status_code
+        else : status_code = status.HTTP_400_BAD_REQUEST
+        response = {
+            "status" : False,
+            "message": "Failed to Retrieve Tasks.",
+            "data" : {},
             "error": str(e),
-        }, e.status_code
+        }
 
-    except Exception as e:
-        return {
-            "status": False, 
-            "message": "Failed to retrieve Tasks.",
-            "data": {},
-            "error": str(e),
-        }, status.HTTP_500_INTERNAL_SERVER_ERROR
+        return response , status_code
+

@@ -1,4 +1,5 @@
 from fastapi import Form 
+from datetime import time
 from bson import ObjectId
 from typing import Optional
 from pydantic import ( BaseModel, EmailStr , validator )  
@@ -50,7 +51,41 @@ class object_id_schema(BaseModel) :
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
 
-class TaskSchema(BaseModel):
+
+
+class time_range_schema(BaseModel):
+    start: str
+    end: str 
+
+    @validator('start', 'end')
+    def validate_time_format(cls, value):
+        try:
+            # Validate if the string can be parsed as a valid time
+            time.fromisoformat(value)
+        except ValueError:
+            raise ValueError(f"Invalid time format: {value}. Expected format is 'HH:MM:SS'.")
+        return value
+
+    @validator('end')
+    def validate_time_range(cls, end, values):
+        start = values.get('start')
+        if start and time.fromisoformat(end) <= time.fromisoformat(start):
+            raise ValueError('End time must be after start time')
+        return end
+
+class task_scehma(BaseModel):
     text: str
     is_done: Optional[bool] = False 
     order: int 
+    deadline_time: time_range_schema
+
+
+class update_task_schema(BaseModel):
+    text: Optional[str]
+    is_done: Optional[bool] = False 
+    order: Optional[int] 
+    deadline_time: Optional[time_range_schema]  
+
+
+class task_rearrange_schema(BaseModel) : 
+    task_order : dict

@@ -59,17 +59,6 @@ class TasksRepo:
             )
 
     @staticmethod
-    # def update_task(user_id: str, task_id: str, update_data: dict):
-    #     task_id = ObjectId(task_id)
-    #     result = tasks_collection.update_one(
-    #         {"_id": task_id, "user_id": user_id},  # Matching both task_id and user_id
-    #         {"$set": update_data}
-    #     )
-
-    #     if result.matched_count == 0:
-    #         return False
-    #     return True
-
     def update_task(task_id, data):
         try:
             task_id = ObjectId(task_id)
@@ -120,15 +109,14 @@ class TasksRepo:
     def rearrange_tasks(user_id, task_order):
         try:
             user_id = ObjectId(user_id)
+            update_resp = None
             for task_id, new_order in task_order.items():
                 task_id = ObjectId(task_id)
-                tasks_collection.update_one(
+                update_resp = tasks_collection.update_one(
                     {"_id": task_id, "user_id": user_id},
                     {"$set": {"order": new_order}}
                 )
-            return {"status": True, "message": "Tasks rearranged successfully"}
+            return update_resp
+        
         except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error rearranging tasks: {str(e)}" 
-            )
+            return None

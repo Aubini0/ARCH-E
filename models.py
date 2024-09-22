@@ -1,5 +1,5 @@
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime , time
 from typing import Optional, List
 from pydantic import ( BaseModel, Field, EmailStr , validator )
 
@@ -80,11 +80,35 @@ class Folders(BaseModel):
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
 
+
+
+class TimeRange(BaseModel):
+    start: str
+    end: str 
+
+    @validator('start', 'end')
+    def validate_time_format(cls, value):
+        try:
+            # Validate if the string can be parsed as a valid time
+            time.fromisoformat(value)
+        except ValueError:
+            raise ValueError(f"Invalid time format: {value}. Expected format is 'HH:MM:SS'.")
+        return value
+
+    @validator('end')
+    def validate_time_range(cls, end, values):
+        start = values.get('start')
+        if start and time.fromisoformat(end) <= time.fromisoformat(start):
+            raise ValueError('End time must be after start time')
+        return end
+
+
 class Tasks(BaseModel):
     text: str
     user_id: ObjectId
     is_done: Optional[bool] = False 
     order: int     
+    deadline_time: Optional[TimeRange]
     createdAt: datetime = Field(default_factory=datetime.now)
     updatedAt: datetime = Field(default_factory=datetime.now)
 
