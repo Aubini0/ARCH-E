@@ -2,6 +2,7 @@ from fastapi import Form
 from bson import ObjectId
 from typing import Optional
 from pydantic import ( BaseModel, EmailStr , validator )  
+from typing import Optional
 
 
 class invoke_llm_schema(BaseModel):
@@ -49,3 +50,7 @@ class object_id_schema(BaseModel) :
     class Config:
         arbitrary_types_allowed = True  # Allow ObjectId type
 
+class TaskSchema(BaseModel):
+    text: str
+    is_done: Optional[bool] = False 
+    order: int 
