@@ -24,7 +24,8 @@ from lib_llm.helpers.prompt_generator import PromptGenerator
 from lib_websearch_cohere.cohere_search import Cohere_Websearch
 from lib_websocket_services.chat_service import ( process_llm_service )
 
-from api_request_schemas import ( login_schema, signup_schema , folder_schema , object_id_schema,NoteSchema ,TaskSchema )
+from api_request_schemas import ( login_schema, signup_schema , folder_schema , 
+                                 task_rearrange_schema ,NoteSchema ,task_scehma , update_task_schema )
 
 from lib_utils.token_utils import ( generate_token_and_set_cookie , decode_token )
 from lib_api_services.search_service import ( chat_session_service, search_query_service , 
@@ -390,8 +391,8 @@ async def update_note(
 async def get_all_notes(user_data = Depends(verify_token)):
     user_id = user_data.get("id")
     if user_id:
-        response = list_all_notes_service(user_id)
-        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+        response , status_code = list_all_notes_service(user_id)
+        return JSONResponse(status_code=status_code, content=response)
     else:
         return JSONResponse(status_code=status.HTTP_401_UNAUTHORIZED, content={
             "status": False,
@@ -404,38 +405,38 @@ async def get_all_notes(user_data = Depends(verify_token)):
 #API TO CREATE TASK 
 @app.post("/tasks/create/task")
 async def create_task( 
-    task_payload : TaskSchema,
+    task_payload : task_scehma,
     user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")     
     if user_id:  
-        response = create_task_service( user_id , task_payload )
-        return JSONResponse(status_code=status.HTTP_200_OK , content = { "status" : True , "data" : { "results" : response } , "message" : "task created SUCCESFFULLY"  })
+        response , status_code = create_task_service( user_id , task_payload )
+        return JSONResponse(status_code=status_code , content = response )
 
     else :  
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
-
 
 #API TO UPDATE TASK   
 @app.put("/tasks/update/task/{task_id}")
 async def update_task(
     task_id: str,  
-    task_payload: TaskSchema,  
+    task_payload: update_task_schema,  
     user_data = Depends(verify_token)  
 ):
     user_id = user_data.get("id")
     
-    if user_id:
+    if user_id and task_id:
         response, status_code = update_task_service(user_id, task_id, task_payload)
-        
-        return JSONResponse( status_code=status_code, content={ "status": True, "data": {"result": response}, "message": "Task updated successfully" })
+        return JSONResponse( status_code=status_code, content=response)
     else:
-        return JSONResponse( status_code=status.HTTP_400_BAD_REQUEST,  content={"status": False,"data": {},"message": "User ID not provided" })
+        return JSONResponse( status_code=status.HTTP_400_BAD_REQUEST,  content={"status": False,"data": {},"message": "User ID not provided" if not user_id else "Task_Id not provided" })
+
+
 
 # API TO RE-ARRANGE TASKS
 @app.put("/tasks/rearrange")  
 async def rearrange_task(
-    task_order_payload: dict, 
+    task_order_payload: task_rearrange_schema, 
     user_data=Depends(verify_token)
 ):
     user_id = user_data.get("id")
@@ -449,34 +450,13 @@ async def rearrange_task(
                 "data": {}
             }
         )
+    
+    
+    response, status_code = rearrange_task_service(user_id, task_order_payload)
+    return JSONResponse(status_code=status_code, content=response)
 
-    try:
-        if not task_order_payload or not isinstance(task_order_payload, dict):
-            raise ValueError("Invalid task order payload provided")
 
-        response, status_code = rearrange_task_service(user_id, task_order_payload)
-        return JSONResponse(status_code=status_code, content=response)
 
-    except ValueError as ve:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "status": False,
-                "message": str(ve),
-                "data": {}
-            }
-        )
-
-    except Exception as e:
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
-                "status": False,
-                "message": "Failed to rearrange tasks",
-                "error": str(e),
-                "data": {}
-            }
-        )
 
 #API TO DELETE TASK
 @app.delete("/task/delete/task") 
@@ -486,7 +466,7 @@ async def delete_tasks(
 ):
     user_id = user_data.get("id")     
     if user_id and task_id:      
-        responce , status_code = delete_task_service( task_id )
+        responce , status_code = delete_task_service( user_id , task_id )
         return JSONResponse(status_code=status_code , content = responce)
     else :  
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
@@ -498,12 +478,15 @@ async def get_all_tasks(user_data = Depends(verify_token)):
     user_id = user_data.get("id")
     
     if user_id:
-        response = list_all_tasks_service(user_id)
-        return JSONResponse(status_code=status.HTTP_200_OK, content=response)
+        response , status_code = list_all_tasks_service(user_id)
+        return JSONResponse(status_code=status_code, content=response)
     else:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
 
  
+
+
+
 
 # API to retrieve queries by search
 @app.get("/search/query") 
