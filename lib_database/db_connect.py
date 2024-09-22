@@ -6,7 +6,7 @@ from lib_database.db_configurations import create_unique_index
 load_dotenv()
 
 # dev db credentials
-MONGO_HOST_DEV = os.getenv("DB_HOST")
+MONGO_HOST_DEV = os.getenv("DB_HOST") 
 MONGO_USERNAME_DEV = os.getenv("USERMONGO")
 MONGO_PASSWORD_DEV = os.getenv("PASSWORDMONGO")
 
@@ -17,6 +17,7 @@ MONGO_PASSWORD_PROD = os.getenv("PASSWORDMONGO_PROD")
 
 
 dbName = os.getenv("DB_NAME")
+tasks_collection_name = os.getenv("TASKS_COLLECTION") 
 notes_collection_name = os.getenv("NOTES_COLLECTION")
 files_collection_name = os.getenv("FILES_COLLECTION")
 chat_collection_name = os.getenv("CHAT_DB_COLLECTION")
@@ -35,8 +36,9 @@ chats_collection = client[dbName][chat_collection_name]
 users_collection = client[dbName][users_collection_name]
 files_collection = client[dbName][files_collection_name]
 notes_collection = client[dbName][notes_collection_name]
+tasks_collection = client[dbName][tasks_collection_name]
 folders_collection = client[dbName][folders_collection_name]
-embeddings_collection = client[dbName][embeddings_collection_name]
+embeddings_collection = client[dbName][embeddings_collection_name] 
 
 
 
