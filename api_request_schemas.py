@@ -77,7 +77,7 @@ class task_scehma(BaseModel):
     text: str
     is_done: Optional[bool] = False 
     order: int 
-    deadline_time: time_range_schema
+    deadline_time: Optional[time_range_schema]
 
 
 class update_task_schema(BaseModel):
