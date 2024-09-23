@@ -23,10 +23,10 @@ def create_task_service(user_id, task_payload: task_scehma):
                     "task_text": task_text,
                     "is_done": task_payload.is_done,
                     "order": task_payload.order,
-                    "deadline_time": {
+                    "deadline_time":   {
                         "start" : task_payload.deadline_time.start,
                         "end" : task_payload.deadline_time.end
-                    }
+                    } if task_payload.deadline_time else {}
                 }
             }
             return response, status.HTTP_200_OK
