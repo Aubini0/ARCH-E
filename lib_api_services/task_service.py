@@ -59,13 +59,15 @@ def update_task_service(user_id: str, task_id: str, task_payload: update_task_sc
             "text": task_payload.text,
             "is_done": task_payload.is_done,
             "order": task_payload.order,
-            "deadline_time": {
+
+        }
+
+        if task_payload.deadline_time : 
+            update_data["deadline_time"] = {
                 "start" : task_payload.deadline_time.start,
                 "end" : task_payload.deadline_time.end
             }
 
-        }
-        
         # Call the repository with the correct parameters
         result = TasksRepo.update_task(task_id, update_data)  # Remove user_id
         
