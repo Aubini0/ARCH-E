@@ -62,11 +62,25 @@ def update_task_service(user_id: str, task_id: str, task_payload: update_task_sc
 
         }
 
-        if task_payload.deadline_time : 
-            update_data["deadline_time"] = {
-                "start" : task_payload.deadline_time.start,
-                "end" : task_payload.deadline_time.end
-            }
+        # if task_payload.deadline_time : 
+        #     update_data["deadline_time"] = {
+        #         "start" : task_payload.deadline_time.start,
+        #         "end" : task_payload.deadline_time.end
+        #     }
+
+        if task_payload.deadline_time is not None:
+            if task_payload.deadline_time.start is None or task_payload.deadline_time.end is None:
+                # If either start or end is None, set deadline_time to None (or remove it)
+                update_data["deadline_time"] = None  # If you want to set it as null
+            else:
+                update_data["deadline_time"] = {
+                    "start": task_payload.deadline_time.start,
+                    "end": task_payload.deadline_time.end
+                }
+        else:
+            pass
+
+
 
         # Call the repository with the correct parameters
         result = TasksRepo.update_task(task_id, update_data)  # Remove user_id
