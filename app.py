@@ -226,12 +226,13 @@ async def upload_files(
     position_x: Optional[float] = Form(None),
     position_y: Optional[float] = Form(None),
     position_z: Optional[float] = Form(None),
+    rotation : Optional[float] = Form(None),
     user_data = Depends(verify_token)
 ):
     user_id = user_data.get("id")
     if user_id and file:
         position_payload = [position_x,position_y,position_z]
-        responce , status_code = upload_file_service( user_id , file , position_payload )
+        responce , status_code = upload_file_service( user_id , file , position_payload , rotation )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided" if not user_id else "file not provided" })
@@ -267,11 +268,15 @@ async def delete_file(
 async def update_file(
     file_id : str,
     file_name : str,
+    position_x: Optional[float] = None,
+    position_y: Optional[float] = None,
+    position_z: Optional[float] = None,
+    rotation : Optional[float]  = None,
     user_data = Depends(verify_token)
 ):
     user_id = user_data.get("id")
     if user_id and file_id and file_name:
-        responce , status_code = update_file_service( user_id , file_id , file_name )
+        responce , status_code = update_file_service( user_id , file_id , file_name , position_x ,position_y , position_z, rotation )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         missing_field = "user_id" if not user_id else "file_id" if not file_id else "file_name"
@@ -310,13 +315,13 @@ async def upload_files_to_folder(
     position_x: Optional[float] = Form(None),
     position_y: Optional[float] = Form(None),
     position_z: Optional[float] = Form(None),
-
+    rotation : Optional[float] = Form(None),
     user_data = Depends(verify_token)
 ):
     user_id = user_data.get("id")
     if user_id and folder_id and file:
         position_payload = [position_x,position_y,position_z]
-        responce , status_code = upload_file_service( user_id  , file , position_payload,  folder_id )
+        responce , status_code = upload_file_service( user_id  , file , position_payload, rotation,  folder_id )
         return JSONResponse(status_code=status_code , content = responce)
     else : 
         missing_field = "user_id" if not user_id else "folder_id" if not folder_id else "file"
@@ -350,9 +355,7 @@ async def create_note(
     else :  
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
 
-
 #API TO DELETE NOTES
-
 @app.delete("/notes/delete/note") 
 async def delete_note( 
     note_id : str, 
@@ -364,9 +367,6 @@ async def delete_note(
         return JSONResponse(status_code=status_code , content = responce)
     else :  
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST , content = { "status" : False , "data" : { } , "message" : "user_id not provided"  })
-
-
-
 
 # API TO UPDATE NOTES SERVICE
 @app.put("/notes/update/note/{note_id}")
