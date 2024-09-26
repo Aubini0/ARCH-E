@@ -8,7 +8,7 @@ from lib_db_repos import ( FilesRepo , FoldersRepo )
 
 
 
-def upload_file_service(user_id , file , position_payload , folder_id = None):
+def upload_file_service(user_id , file , position_payload , rotation , folder_id = None):
     try : 
         data = {}
         if folder_id : 
@@ -37,7 +37,8 @@ def upload_file_service(user_id , file , position_payload , folder_id = None):
                 "file_server_path" : file_server_path,
                 "position_x": position_payload[0],
                 "position_y": position_payload[1],
-                "position_z": position_payload[2]
+                "position_z": position_payload[2],
+                "rotation" : rotation
                 }
             if folder_id : 
                 data["folder_id"] = ObjectId(folder_id)
@@ -49,7 +50,7 @@ def upload_file_service(user_id , file , position_payload , folder_id = None):
                 response = {
                     "status" : True,
                     "message": "File Uploaded.",
-                    "data" : { "file_url" : file_url }
+                    "data" : { "file_url" : file_url , "file_id" : file_id }
                 }
 
                 return response , status.HTTP_200_OK
@@ -212,10 +213,6 @@ def retrieve_files_of_folder_service(folder_id):
 
         return response , status_code
 
-
-
-
-
 def delete_file_service(user_id , file_id):
     try : 
 
@@ -260,14 +257,20 @@ def delete_file_service(user_id , file_id):
 
         return response , status_code
 
-
-
-def update_file_service(user_id , file_id , file_name):
+def update_file_service(user_id , file_id , file_name ,  position_x, position_y, position_z, rotation):
     try : 
 
         file = FilesRepo.get_file_by_id( file_id )
         if file and str(file["user_id"]) == user_id : 
             update_data = {"file_name": file_name , "updatedAt": datetime.now()}
+            if rotation : update_data["rotation"] = rotation
+            if position_x : update_data["position_x"] = position_x
+            if position_y : update_data["position_y"] = position_y
+            if position_z : update_data["position_z"] = position_z
+
+
+
+
             responce = FilesRepo.update_file_by_id( file_id  , update_data)
             if responce : 
                 response = {

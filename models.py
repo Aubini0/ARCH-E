@@ -31,6 +31,7 @@ class Files(BaseModel):
     file_url: str = Field(...)    
     folder_id : Optional[ObjectId]
     file_server_path : str = Field(...)
+    rotation : Optional[float]
     position_x : Optional[float]
     position_y : Optional[float]
     position_z : Optional[float]
